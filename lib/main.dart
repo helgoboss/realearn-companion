@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:math';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:realearn_companion/model.dart';
-import 'package:web_socket_channel/io.dart';
+import 'package:http/http.dart' as http;
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'dart:convert';
 import 'package:flutter/services.dart';
@@ -21,8 +21,12 @@ class CustomHttpOverrides extends HttpOverrides {
   }
 }
 
+const web = false;
+
 void main() {
-  HttpOverrides.global = new CustomHttpOverrides();
+  if (!kIsWeb) {
+    HttpOverrides.global = new CustomHttpOverrides();
+  }
   runApp(MyApp());
 }
 
@@ -38,11 +42,9 @@ class MyApp extends StatelessWidget {
       ),
       home: MyHomePage(
         title: 'ReaLearn',
-        channel: IOWebSocketChannel.connect(
-            // 'ws://localhost:3030/?topics=/realearn/session/WGVPeHcA/controller,/realearn/session/WGVPeHcA/controller-routing'),
-            'wss://uschi:3030/?topics=/realearn/session/WGVPeHcA/controller,/realearn/session/WGVPeHcA/controller-routing'),
-        // 'wss://uschi:3030/?topics=/realearn/session/WGVPeHcA/controller,/realearn/session/WGVPeHcA/controller-routing'),
-        // 'wss://echo.websocket.org'),
+        channel: WebSocketChannel.connect(Uri.parse(kIsWeb
+            ? 'wss://192.168.178.57:3030/?topics=/realearn/session/WGVPeHcA/controller,/realearn/session/WGVPeHcA/controller-routing'
+            : 'wss://uschi:3030/?topics=/realearn/session/WGVPeHcA/controller,/realearn/session/WGVPeHcA/controller-routing')),
       ),
     );
   }
@@ -63,6 +65,20 @@ class _MyHomePageState extends State<MyHomePage> {
   StreamSubscription _websocketSubscription;
   Controller _controller = null;
   ControllerRouting _routing = null;
+
+  void _saveControllerData() {
+    http.patch(
+      'https://uschi:3030/realearn/controller/${_controller.id}',
+      headers: {
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode({
+        'op': 'replace',
+        'path': '/customData/companion',
+        'value': _controller.customData.companion.toJson()
+      }),
+    );
+  }
 
   void _updateController(Controller controller) {
     setState(() {
@@ -104,25 +120,51 @@ class _MyHomePageState extends State<MyHomePage> {
       return Text("Controller or routing not yet set");
     }
     return Scaffold(
-        // appBar: AppBar(
-        //   title: Text(widget.title),
-        // ),
-        body: InteractiveViewer(
-            panEnabled: false,
-            // Set it to false to prevent panning.
-            boundaryMargin: EdgeInsets.zero,
-            minScale: 0.5,
-            maxScale: 4,
-            child: Container(
-                child: controllerRoutingCanvas(_controller, _routing))));
+      appBar: AppBar(
+        title: Text(widget.title),
+      ),
+      body: InteractiveViewer(
+        panEnabled: false,
+        // Set it to false to prevent panning.
+        boundaryMargin: EdgeInsets.zero,
+        minScale: 0.5,
+        maxScale: 4,
+        child: Container(
+          child: controllerRoutingCanvas(
+            controller: _controller,
+            routing: _routing,
+            onControlDataUpdate: (mappingId, data) {
+              setState(() {
+                _controller.updateControlData(mappingId, data);
+              });
+            },
+          ),
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _saveControllerData,
+        tooltip: 'Save',
+        child: Icon(Icons.save),
+      ), // This trailing comma makes auto-formatting nicer for build methods.
+    );
   }
 }
 
 controllerRoutingCanvas(
-    Controller controller, ControllerRouting controllerRouting) {
+    {Controller controller,
+    ControllerRouting routing,
+    Function(String, ControlData) onControlDataUpdate}) {
   var draggables = controller.mappings.map((m) {
-    var route = controllerRouting.routes[m.id];
-    return Control(controlLabel: m.name, targetLabel: route?.label ?? "");
+    var route = routing.routes[m.id];
+    var data = controller.findControlData(m.id) ?? ControlData(x: 0.0, y: 0.0);
+    return Control(
+      controlLabel: m.name,
+      targetLabel: route?.label ?? "",
+      data: data,
+      onControlDataUpdate: (data) {
+        onControlDataUpdate(m.id, data);
+      },
+    );
   }).toList();
   return Stack(
     children: draggables,
@@ -130,37 +172,63 @@ controllerRoutingCanvas(
 }
 
 class Control extends StatefulWidget {
+  // TODO-low Is it good to make those members public?
   final String controlLabel;
   final String targetLabel;
+  final ControlData data;
+  final Function(ControlData) onControlDataUpdate;
 
-  Control({Key key, @required this.controlLabel, this.targetLabel})
-      : super(key: key);
+  // TODO-low Lookup this shortcut constructor syntax. Does it work with private members, too?
+  Control({
+    Key key,
+    @required this.controlLabel,
+    @required this.targetLabel,
+    @required this.data,
+    @required this.onControlDataUpdate,
+  }) : super(key: key);
 
   @override
   _ControlState createState() => _ControlState();
 }
 
-enum ControlShape { rectangle, circle }
-
 class _ControlState extends State<Control> {
-  Offset _offset = Offset(0.0, 0.0);
-  ControlShape _shape = ControlShape.circle;
+  Offset _dragOffset = null;
+
+  // TODO-low Put into widget props
   bool _isInEditMode = false;
 
-  void reposition(Offset newOffset) {
+  void onDragStart() {
     setState(() {
-      _offset = newOffset;
+      _dragOffset = widgetOffset();
     });
   }
 
-  void adjustToGrid() {
-    reposition(alignOffsetToGrid(_offset, 10, 10));
+  Offset widgetOffset() => Offset(widget.data.x, widget.data.y);
+
+  void onDrag(Offset newOffset) {
+    setState(() {
+      _dragOffset = newOffset;
+    });
+  }
+
+  void onDragEnd() {
+    var alignedToGrid = alignOffsetToGrid(_dragOffset, 10, 10);
+    setState(() {
+      _dragOffset = null;
+    });
+    notifyControlDataChanged(x: alignedToGrid.dx, y: alignedToGrid.dy);
   }
 
   void changeShape(ControlShape newShape) {
-    setState(() {
-      _shape = newShape;
-    });
+    notifyControlDataChanged(shape: newShape);
+  }
+
+  void notifyControlDataChanged({ControlShape shape, double x, double y}) {
+    widget.onControlDataUpdate(ControlData(
+      shape: shape ?? widget.data.shape,
+      x: x ?? widget.data.x,
+      y: y ?? widget.data.y,
+    ));
   }
 
   @override
@@ -169,27 +237,35 @@ class _ControlState extends State<Control> {
         height: 50.0,
         width: 50.0,
         decoration: new BoxDecoration(
-          color: Colors.orange,
-          shape: mapControlShapeToBoxShape(_shape),
+          color: Colors.green,
+          shape: mapControlShapeToBoxShape(
+              widget.data.shape ?? ControlShape.circle),
         ),
         child: FittedBox(
-            fit: BoxFit.fitWidth,
+            fit: BoxFit.none,
+            clipBehavior: Clip.none,
             child: Text(getControlLabel(
                 widget.controlLabel, widget.targetLabel, _isInEditMode))));
     var draggable = GestureDetector(
+      onPanStart: (_) {
+        onDragStart();
+      },
       onPanUpdate: (details) {
-        reposition(Offset(
-            _offset.dx + details.delta.dx, _offset.dy + details.delta.dy));
+        onDrag(Offset(_dragOffset.dx + details.delta.dx,
+            _dragOffset.dy + details.delta.dy));
       },
       onPanEnd: (_) {
-        adjustToGrid();
+        onDragEnd();
       },
       onTap: () {
-        changeShape(getNextShape(_shape));
+        // TODO-medium Introduce shape and x and y getters
+        changeShape(getNextShape(widget.data.shape ?? ControlShape.circle));
       },
       child: container,
     );
-    return Positioned(top: _offset.dy, left: _offset.dx, child: draggable);
+    var effectiveOffset = _dragOffset ?? widgetOffset();
+    return Positioned(
+        top: effectiveOffset.dy, left: effectiveOffset.dx, child: draggable);
   }
 }
 

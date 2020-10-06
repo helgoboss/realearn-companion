@@ -17,7 +17,18 @@ class Controller {
   final String id;
   final String name;
   final List<Mapping> mappings;
-  final CustomControllerData customData;
+  CustomControllerData customData;
+
+  ControlData findControlData(String mappingId) {
+    return (customData?.companion?.controls ?? const {})[mappingId];
+  }
+
+  void updateControlData(String mappingId, ControlData data) {
+    if (customData == null) {
+      customData = CustomControllerData();
+    }
+    customData.updateControlData(mappingId, data);
+  }
 
   Controller({this.id, this.name, this.mappings, this.customData});
   factory Controller.fromJson(Map<String, dynamic> json) => _$ControllerFromJson(json);
@@ -34,7 +45,14 @@ class Mapping {
 
 @JsonSerializable(createToJson: false, nullable: true)
 class CustomControllerData {
-  final Map<String, dynamic> companion;
+  CompanionControllerData companion;
+
+  void updateControlData(String mappingId, ControlData data) {
+    if (companion == null) {
+      companion = CompanionControllerData();
+    }
+    companion.updateControlData(mappingId, data);
+  }
 
   CustomControllerData({this.companion});
   factory CustomControllerData.fromJson(Map<String, dynamic> json) => _$CustomControllerDataFromJson(json);
@@ -42,9 +60,33 @@ class CustomControllerData {
 
 @JsonSerializable(createToJson: true, nullable: true)
 class CompanionControllerData {
+  Map<String, ControlData> controls;
 
-  CompanionControllerData();
+  void updateControlData(String mappingId, ControlData data) {
+    if (controls == null) {
+      controls = Map();
+    }
+    controls[mappingId] = data;
+  }
+
+  CompanionControllerData({this.controls});
   factory CompanionControllerData.fromJson(Map<String, dynamic> json) => _$CompanionControllerDataFromJson(json);
+
+  Map<String, dynamic> toJson() => _$CompanionControllerDataToJson(this);
+}
+
+enum ControlShape { rectangle, circle }
+
+@JsonSerializable(createToJson: true, nullable: true)
+class ControlData {
+  final ControlShape shape;
+  final double x;
+  final double y;
+
+  ControlData({this.shape, this.x, this.y});
+  factory ControlData.fromJson(Map<String, dynamic> json) => _$ControlDataFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ControlDataToJson(this);
 }
 
 @JsonSerializable(createToJson: false, nullable: true)
