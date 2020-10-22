@@ -28,6 +28,7 @@ dependencies:
   http: 0.12.2
   flutter_web_plugins:
     sdk: flutter
+  platform_detect: 1.4.0
 
 
   # The following adds the Cupertino Icons font to your application.

@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:realearn_companion/model.dart';
@@ -11,32 +10,32 @@ import 'package:flutter/services.dart';
 import 'configure_nonweb.dart' if (dart.library.html) 'configure_web.dart';
 
 
-class CustomHttpOverrides extends HttpOverrides {
-  @override
-  HttpClient createHttpClient(SecurityContext context) {
-    var customContext = new SecurityContext(withTrustedRoots: false);
-    // customContext.setTrustedCertificates("C:\\REAPER\\ReaLearn\\certs\\192.168.178.57.pem");
-    var client = super.createHttpClient(customContext);
-    client.badCertificateCallback =
-        (X509Certificate cert, String host, int port) => true;
-    return client;
-  }
+void main() {
+  var config = configureApp();
+  runApp(MyApp(config: config));
 }
 
-const web = false;
-
-void main() {
-  configureApp();
-  if (!kIsWeb) {
-    HttpOverrides.global = new CustomHttpOverrides();
-  }
-  runApp(MyApp());
+bool isLocalhost(String host) {
+  return host == "localhost" || host == "127.0.0.1";
 }
 
 class MyApp extends StatelessWidget {
+  final AppConfig config;
+
+  MyApp({this.config});
+
   @override
   Widget build(BuildContext context) {
     SystemChrome.setEnabledSystemUIOverlays([]);
+    var params = Uri.base.queryParameters;
+    var host = params["host"];
+    var useTls = config.useTls && !isLocalhost(host);
+    var scheme = useTls ? "wss" : "ws";
+    var port = params[useTls ? "https_port" : "http_port"];
+    var sessionId = params["session_id"];
+    var controllerTopic = "/realearn/session/$sessionId/controller";
+    var controllerRoutingTopic = "/realearn/session/$sessionId/controller-routing";
+    var wsUri = Uri.parse("$scheme://$host:$port/ws?topics=$controllerTopic,$controllerRoutingTopic");
     return MaterialApp(
       title: 'ReaLearn Companion',
       theme: ThemeData(
@@ -45,9 +44,7 @@ class MyApp extends StatelessWidget {
       ),
       home: MyHomePage(
         title: 'ReaLearn',
-        channel: WebSocketChannel.connect(Uri.parse(kIsWeb
-            ? 'wss://192.168.178.57:3030/?topics=/realearn/session/WGVPeHcA/controller,/realearn/session/WGVPeHcA/controller-routing'
-            : 'wss://uschi:3030/?topics=/realearn/session/WGVPeHcA/controller,/realearn/session/WGVPeHcA/controller-routing')),
+        channel: WebSocketChannel.connect(wsUri),
       ),
     );
   }
@@ -120,7 +117,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     if (_controller == null || _routing == null) {
-      return Text("Controller or routing not yet set");
+      return Text(Uri.base.toString());
     }
     return Scaffold(
       appBar: AppBar(

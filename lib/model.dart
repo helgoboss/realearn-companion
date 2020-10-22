@@ -2,6 +2,12 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'model.g.dart';
 
+class AppConfig {
+  final bool useTls;
+
+  AppConfig({this.useTls});
+}
+
 @JsonSerializable(createToJson: false, nullable: true)
 class RealearnEvent {
   final String type;
