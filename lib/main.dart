@@ -8,6 +8,8 @@ import 'package:http/http.dart' as http;
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'dart:convert';
 import 'package:flutter/services.dart';
+import 'configure_nonweb.dart' if (dart.library.html) 'configure_web.dart';
+
 
 class CustomHttpOverrides extends HttpOverrides {
   @override
@@ -24,6 +26,7 @@ class CustomHttpOverrides extends HttpOverrides {
 const web = false;
 
 void main() {
+  configureApp();
   if (!kIsWeb) {
     HttpOverrides.global = new CustomHttpOverrides();
   }
