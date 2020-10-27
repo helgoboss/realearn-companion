@@ -8,49 +8,105 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'configure_nonweb.dart' if (dart.library.html) 'configure_web.dart';
+import 'package:fluro/fluro.dart';
 
 void main() {
-  var config = configureApp();
-  runApp(MyApp(config: config));
+  Application.config = configureApp();
+  runApp(MyApp());
+}
+
+class Application {
+  static FluroRouter router;
+  static AppConfig config;
+}
+
+var rootHandler = Handler(
+    handlerFunc: (BuildContext context, Map<String, List<String>> params) {
+      final args = MainArguments(
+        host: params['host']?.first,
+        httpPort: params['http-port']?.first,
+        httpsPort: params['https-port']?.first,
+        sessionId: params['session-id']?.first,
+      );
+      if (!args.isValid()) {
+        return Text("Invalid arguments");
+      }
+      return MyHomeContainer(args: args);
+    });
+
+class Routes {
+  static String controllerRouting = "/controller-routing";
+
+  static void configureRoutes(FluroRouter router) {
+    router.notFoundHandler = Handler(
+        handlerFunc: (BuildContext context, Map<String, List<String>> params) {
+          print("ROUTE WAS NOT FOUND !!!");
+          return Text("Route doesn't exist");
+        });
+    router.define(controllerRouting, handler: rootHandler);
+  }
 }
 
 bool isLocalhost(String host) {
   return host == "localhost" || host == "127.0.0.1";
 }
 
-class MyApp extends StatelessWidget {
-  final AppConfig config;
+class MyApp extends StatefulWidget {
+  MyApp();
 
-  MyApp({this.config});
+
+  @override
+  State createState() {
+    return MyAppState();
+  }
+}
+
+class MyAppState extends State<MyApp> {
+  MyAppState() {
+    final router = FluroRouter();
+    Routes.configureRoutes(router);
+    Application.router = router;
+  }
 
   @override
   Widget build(BuildContext context) {
     SystemChrome.setEnabledSystemUIOverlays([]);
-    var params = Uri.base.queryParameters;
-    var host = params["host"];
-    var useTls = config.useTls && !isLocalhost(host);
+    return MaterialApp(
+      title: 'ReaLearn Companion',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        primarySwatch: Colors.green,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+      ),
+      onGenerateRoute: Application.router.generator,
+    );
+  }
+}
+
+class MyHomeContainer extends StatelessWidget {
+  final MainArguments args;
+
+  MyHomeContainer({@required this.args});
+
+  @override
+  Widget build(BuildContext context) {
+    var host = args.host;
+    var useTls = Application.config.useTls && !isLocalhost(host);
     var wsProtocol = useTls ? "wss" : "ws";
     var httpProtocol = useTls ? "https" : "http";
-    var port = params[useTls ? "https_port" : "http_port"];
-    var sessionId = params["session_id"];
+    var port = useTls ? args.httpsPort : args.httpPort;
+    var sessionId = args.sessionId;
     var controllerTopic = "/realearn/session/$sessionId/controller";
     var controllerRoutingTopic =
         "/realearn/session/$sessionId/controller-routing";
     var wsBaseUri = Uri.parse("$wsProtocol://$host:$port");
     var wsUri =
-        wsBaseUri.resolve("/ws?topics=$controllerTopic,$controllerRoutingTopic");
+    wsBaseUri.resolve("/ws?topics=$controllerTopic,$controllerRoutingTopic");
     var httpBaseUri = Uri.parse("$httpProtocol://$host:$port");
-    return MaterialApp(
-      title: 'ReaLearn Companion',
-      theme: ThemeData(
-        primarySwatch: Colors.green,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-      ),
-      home: MyHomePage(
-        title: 'ReaLearn',
-        channel: WebSocketChannel.connect(wsUri),
-        httpBaseUri: httpBaseUri,
-      ),
+    return MyHomePage(
+      title: 'ReaLearn',
+      channel: WebSocketChannel.connect(wsUri),
+      httpBaseUri: httpBaseUri,
     );
   }
 }
@@ -60,11 +116,10 @@ class MyHomePage extends StatefulWidget {
   final WebSocketChannel channel;
   final Uri httpBaseUri;
 
-  MyHomePage(
-      {Key key,
-      @required this.title,
-      @required this.channel,
-      @required this.httpBaseUri})
+  MyHomePage({Key key,
+    @required this.title,
+    @required this.channel,
+    @required this.httpBaseUri})
       : super(key: key);
 
   @override
@@ -160,10 +215,9 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
-controllerRoutingCanvas(
-    {Controller controller,
-    ControllerRouting routing,
-    Function(String, ControlData) onControlDataUpdate}) {
+controllerRoutingCanvas({Controller controller,
+  ControllerRouting routing,
+  Function(String, ControlData) onControlDataUpdate}) {
   var draggables = controller.mappings.map((m) {
     var route = routing.routes[m.id];
     var data = controller.findControlData(m.id) ?? ControlData(x: 0.0, y: 0.0);
@@ -279,8 +333,8 @@ class _ControlState extends State<Control> {
   }
 }
 
-String getControlLabel(
-    String controlLabel, String targetLabel, bool isInEditMode) {
+String getControlLabel(String controlLabel, String targetLabel,
+    bool isInEditMode) {
   if (isInEditMode) {
     return controlLabel;
   } else {

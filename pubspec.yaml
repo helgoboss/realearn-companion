@@ -26,6 +26,7 @@ dependencies:
   web_socket_channel: 1.1.0
   json_serializable: 3.5.0
   http: 0.12.2
+  fluro: 1.7.7
   flutter_web_plugins:
     sdk: flutter
   platform_detect: 1.4.0
