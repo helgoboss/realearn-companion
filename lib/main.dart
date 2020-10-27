@@ -9,7 +9,6 @@ import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'configure_nonweb.dart' if (dart.library.html) 'configure_web.dart';
 
-
 void main() {
   var config = configureApp();
   runApp(MyApp(config: config));
@@ -30,12 +29,17 @@ class MyApp extends StatelessWidget {
     var params = Uri.base.queryParameters;
     var host = params["host"];
     var useTls = config.useTls && !isLocalhost(host);
-    var scheme = useTls ? "wss" : "ws";
+    var wsProtocol = useTls ? "wss" : "ws";
+    var httpProtocol = useTls ? "https" : "http";
     var port = params[useTls ? "https_port" : "http_port"];
     var sessionId = params["session_id"];
     var controllerTopic = "/realearn/session/$sessionId/controller";
-    var controllerRoutingTopic = "/realearn/session/$sessionId/controller-routing";
-    var wsUri = Uri.parse("$scheme://$host:$port/ws?topics=$controllerTopic,$controllerRoutingTopic");
+    var controllerRoutingTopic =
+        "/realearn/session/$sessionId/controller-routing";
+    var wsBaseUri = Uri.parse("$wsProtocol://$host:$port");
+    var wsUri =
+        wsBaseUri.resolve("/ws?topics=$controllerTopic,$controllerRoutingTopic");
+    var httpBaseUri = Uri.parse("$httpProtocol://$host:$port");
     return MaterialApp(
       title: 'ReaLearn Companion',
       theme: ThemeData(
@@ -45,17 +49,23 @@ class MyApp extends StatelessWidget {
       home: MyHomePage(
         title: 'ReaLearn',
         channel: WebSocketChannel.connect(wsUri),
+        httpBaseUri: httpBaseUri,
       ),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, @required this.title, @required this.channel})
-      : super(key: key);
-
   final String title;
   final WebSocketChannel channel;
+  final Uri httpBaseUri;
+
+  MyHomePage(
+      {Key key,
+      @required this.title,
+      @required this.channel,
+      @required this.httpBaseUri})
+      : super(key: key);
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
@@ -68,7 +78,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _saveControllerData() {
     http.patch(
-      'https://uschi:3030/realearn/controller/${_controller.id}',
+      widget.httpBaseUri.resolve('/realearn/controller/${_controller.id}'),
       headers: {
         'Content-Type': 'application/json; charset=UTF-8',
       },
@@ -117,7 +127,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     if (_controller == null || _routing == null) {
-      return Text(Uri.base.toString());
+      return Text(widget.httpBaseUri.toString());
     }
     return Scaffold(
       appBar: AppBar(
