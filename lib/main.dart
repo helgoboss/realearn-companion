@@ -24,12 +24,11 @@ class Application {
 var controllerRoutingHandler = Handler(
     handlerFunc: (BuildContext context, Map<String, List<String>> params) {
   final args = MainArguments(
-    host: params['host']?.first,
-    httpPort: params['http-port']?.first,
-    httpsPort: params['https-port']?.first,
-    sessionId: params['session-id']?.first,
-    generated: params['generated']?.first == "true"
-  );
+      host: params['host']?.first,
+      httpPort: params['http-port']?.first,
+      httpsPort: params['https-port']?.first,
+      sessionId: params['session-id']?.first,
+      generated: params['generated']?.first == "true");
   if (!args.isValid()) {
     return IFrameDemoPage();
   }
@@ -107,8 +106,9 @@ class MyHomeContainer extends StatelessWidget {
     var wsUri = wsBaseUri
         .resolve("/ws?topics=$controllerTopic,$controllerRoutingTopic");
     var httpBaseUri = Uri.parse("$httpProtocol://$host:$port");
+    var certificateUrl = Uri.parse("http://$host:${args.httpPort}/certificate.pem");
     // Attempt to connect via HTTP
-    tryConnect(httpBaseUri, args.isGenerated());
+    tryConnect(httpBaseUri, args.isGenerated(), certificateUrl);
     // Connect to websocket for fun
     // var ws = WebSocket(wsUri.toString());
     // ws.onClose.listen((event) {
@@ -123,22 +123,35 @@ class MyHomeContainer extends StatelessWidget {
   }
 }
 
-tryConnect(Uri uri, bool generated) async {
+tryConnect(Uri uri, bool generated, Uri certificateUrl) async {
   var seconds = 5;
   try {
     // TODO-low Use one client for all requests
     // TODO-low Use head (it always brings a timeout in my case)
     await http.get(uri).timeout(Duration(seconds: seconds));
-  } catch (e) {
+  } on TimeoutException catch (_) {
     var lines = [
       "Couldn't connect to ReaLearn at ${uri} within ${seconds} seconds.",
       "",
-      "Please proceed as follows:",
+      "Please try the following things:",
       if (!generated) "- Make sure the connection data you entered is correct.",
       "- Open ports in your firewall (step 4 in ReaLearn's projection setup).",
       "- Make sure the computer running REAPER and this device are in the same network."
     ];
     window.alert(lines.join("\n"));
+  } on http.ClientException catch (_) {
+    var lines = [
+      "Connection is possible, congratulations! Now we have to make it secure:",
+      "",
+      "1. When you press continue, you will be provided with the profile \"ReaLearn\" that contains the certificate for a secure connection. Safari is going to instruct you how to install it.",
+      "2. Install the profile!",
+      "3. In your iOS settings, go to General → About → Certificate Trust Settings and enable full trust for the root certificate \"ReaLearn\"",
+      "4. When you are done, come back to this page, e.g. by scanning the QR code again.",
+      "",
+      "This sounds more serious than it is, it's just that browsers nowadays have a lot of security requirements (which is a good thing) and by using browser technology, ReaLearn companion has to conform. ReaLearn companion also won't ask you for a password or anything like that!"
+    ];
+    window.alert(lines.join("\n"));
+    window.location.href = certificateUrl.toString();
   }
 }
 
