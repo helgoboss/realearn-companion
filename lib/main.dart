@@ -28,7 +28,8 @@ var controllerRoutingHandler = Handler(
       httpPort: params['http-port']?.first,
       httpsPort: params['https-port']?.first,
       sessionId: params['session-id']?.first,
-      generated: params['generated']?.first == "true");
+      generated: params['generated']?.first == "true",
+      cert: params['cert']?.first);
   if (!args.isValid()) {
     return IFrameDemoPage();
   }
@@ -106,14 +107,17 @@ class MyHomeContainer extends StatelessWidget {
     var wsUri = wsBaseUri
         .resolve("/ws?topics=$controllerTopic,$controllerRoutingTopic");
     var httpBaseUri = Uri.parse("$httpProtocol://$host:$port");
-    var certificateUrl = Uri.parse("http://$host:${args.httpPort}/certificate.pem");
-    // Attempt to connect via HTTP
-    tryConnect(httpBaseUri, args.isGenerated(), certificateUrl);
-    // Connect to websocket for fun
-    // var ws = WebSocket(wsUri.toString());
-    // ws.onClose.listen((event) {
-    //   window.alert(event.code.toString());
-    // });
+    // TODO-medium Chrome already complains that we shouldn't redirect a https
+    //  page to http. But if we redirect to https, we have an additional warning.
+    //  Maybe just include in instructions. Or on Android/Chrome, maybe we can
+    //  just skip the certificate installation and just accept in the browser!
+    var certRedirectUrl = getCertRedirectUrl(
+        Uri.parse("http://$host:${args.httpPort}/realearn.cer"), httpBaseUri);
+    // TODO-high As soon as we have a proper presentation (not just alerts),
+    //  try to provide cert download via download link by converting args.getCertContent()
+    //  to a blob. https://stackoverflow.com/questions/19327749/javascript-blob-filename-without-link
+    // tryConnect(httpBaseUri, args.isGenerated(), args.getCertContent(), certificateUrl);
+    tryConnect(httpBaseUri, args.isGenerated(), null, certRedirectUrl);
     return MyHomePage(
       title: 'ReaLearn',
       channel: WebSocketChannel.connect(wsUri),
@@ -123,7 +127,20 @@ class MyHomeContainer extends StatelessWidget {
   }
 }
 
-tryConnect(Uri uri, bool generated, Uri certificateUrl) async {
+Uri getCertRedirectUrl(Uri insecureDownloadUrl, Uri rootUrl) {
+  if (Application.config.securityPlatform == SecurityPlatform.Windows) {
+    // TODO-medium As soon as we have proper presentation, open root URL in new
+    //  tab so that we can easily go back!
+    return rootUrl;
+  }
+  return insecureDownloadUrl;
+}
+
+/**
+ * certContent may be null (if QR code didn't contain it or entered manually)
+ */
+tryConnect(
+    Uri uri, bool generated, String certContent, Uri certRedirectUrl) async {
   var seconds = 5;
   try {
     // TODO-low Use one client for all requests
@@ -140,20 +157,66 @@ tryConnect(Uri uri, bool generated, Uri certificateUrl) async {
     ];
     window.alert(lines.join("\n"));
   } on http.ClientException catch (_) {
-    var lines = [
-      "Connection is possible, congratulations! We are not there yet. You still need to convince Safari that connecting to ReaLearn is secure.",
-      "",
-      "Proceed as follows:",
-      "1. When you press continue, you will be provided with the profile \"ReaLearn\" that contains the certificate for a secure connection. Safari is going to instruct you how to install it.",
-      "2. Install the profile!",
-      "3. In your iOS settings, go to General → About → Certificate Trust Settings and enable full trust for the root certificate \"ReaLearn\"",
-      "4. When you are done, come back to this page, e.g. by scanning the QR code again. It should work.",
-      "",
-      "This sounds more serious than it is, it's just that browsers nowadays have a lot of security requirements (which is a good thing in general)."
-      "Even though ReaLearn Companion will not ask you for a password or anything like that and therefore security is secondary, it uses browser technology and therefore is bound to conform to its security rules."
-    ];
+    var lines = getCertificateInstructions();
     window.alert(lines.join("\n"));
-    window.location.href = certificateUrl.toString();
+    window.location.href = getCertHref(certContent, certRedirectUrl);
+  }
+}
+
+String getCertHref(String certContent, Uri certRedirectUrl) {
+  if (certContent == null) {
+    return certRedirectUrl.toString();
+  } else {
+    var blob = Blob([certContent], "application/pkix-cert");
+    return Url.createObjectUrlFromBlob(blob);
+  }
+}
+
+List<String> getCertificateInstructions() {
+  var header =
+      "Connection is possible, congratulations! We are not there yet. You still need to promise ${Application.config.securityPlatform} that connecting to your personal ReaLearn installation is secure.";
+  var footer =
+      "When you are done, come back to this page and reload it or scan the QR code again.\n"
+      "\n"
+      "This sounds more serious than it is, it's just that browsers nowadays have a lot of security requirements (which is a good thing in general).\n"
+      "Even though ReaLearn Companion will not ask you for a password or anything like that and therefore security is secondary, it uses browser technology and therefore is bound to conform to its security rules.";
+  switch (Application.config.securityPlatform) {
+    case SecurityPlatform.Android:
+      return [
+        header,
+        "",
+        "Proceed as follows:",
+        "1. When you press continue, a certificate file will be downloaded. Tap the downloaded file and the android Certificate Installer will open.",
+        "   - In case it doesn't open: Go to Android settings → Security → (More settings) → Encryption and credentials → Install from storage → Select the previously downloaded certificate file in the \"Downloads\" folder.",
+        "3. Give the certificate the name \"ReaLearn\", select \"VPN and apps\" as credential use and press OK",
+        "",
+        footer
+      ];
+    case SecurityPlatform.iOS:
+      return [
+        header,
+        "",
+        "Proceed as follows:",
+        "1. When you press continue, you will be provided with the profile \"ReaLearn\" that contains the certificate for a secure connection. iOS is going to instruct you how to install it.",
+        "2. Install the profile!",
+        "3. In your iOS settings, go to General → About → Certificate Trust Settings and enable full trust for the root certificate \"ReaLearn\"",
+        "",
+        footer
+      ];
+    case SecurityPlatform.Windows:
+      return [
+        header,
+        "",
+        "Proceed as follows:",
+        "1. When you press continue, you will be forwarded to the ReaLearn server page.",
+        "2. Accept that the certificate is untrusted.",
+        "",
+        footer
+      ];
+    case SecurityPlatform.Linux:
+      return ["TODO Linux certificate instructions"];
+    case SecurityPlatform.macOS:
+      return ["TODO macOS certificate instructions"];
   }
 }
 

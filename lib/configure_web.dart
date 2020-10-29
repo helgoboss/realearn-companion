@@ -1,3 +1,5 @@
+import 'dart:html';
+
 import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 import 'package:realearn_companion/model.dart';
 import 'package:platform_detect/platform_detect.dart';
@@ -16,5 +18,47 @@ AppConfig configureApp() {
   // future-proof. Chrome already rejects http, so Safari might, too. It's also
   // not very secure.
   var useTls = !(browser.isSafari && Uri.base.isScheme("http"));
-  return AppConfig(useTls: useTls);
+  return AppConfig(useTls: useTls, securityPlatform: getSecurityPlatform());
 }
+
+SecurityPlatform getSecurityPlatform() {
+  if (isAndroid()) {
+    return SecurityPlatform.Android;
+  } else if (operatingSystem.isWindows) {
+    return SecurityPlatform.Windows;
+  } else if (operatingSystem.isLinux) {
+    return SecurityPlatform.Linux;
+  } else if (operatingSystem.isMac) {
+    if (isIos()) {
+      return SecurityPlatform.iOS;
+    } else {
+      return SecurityPlatform.macOS;
+    }
+  }
+}
+
+final List<String> _iOS = [
+  'iPad Simulator',
+  'iPhone Simulator',
+  'iPod Simulator',
+  'iPad',
+  'iPhone',
+  'iPod'
+];
+
+bool isIos() {
+  bool result = false;
+  _iOS.forEach((name) {
+    if (window.navigator.platform.contains(name) ||
+        window.navigator.userAgent.contains(name)) {
+      result = true;
+    }
+  });
+  if (!result) {
+    result = window.navigator.maxTouchPoints > 0;
+  }
+  return result;
+}
+
+bool isAndroid() =>  window.navigator.platform == 'Android' ||
+    window.navigator.userAgent.contains('Android');
