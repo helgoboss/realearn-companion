@@ -141,14 +141,16 @@ tryConnect(Uri uri, bool generated, Uri certificateUrl) async {
     window.alert(lines.join("\n"));
   } on http.ClientException catch (_) {
     var lines = [
-      "Connection is possible, congratulations! Now we have to make it secure:",
+      "Connection is possible, congratulations! We are not there yet. You still need to convince Safari that connecting to ReaLearn is secure.",
       "",
+      "Proceed as follows:",
       "1. When you press continue, you will be provided with the profile \"ReaLearn\" that contains the certificate for a secure connection. Safari is going to instruct you how to install it.",
       "2. Install the profile!",
       "3. In your iOS settings, go to General → About → Certificate Trust Settings and enable full trust for the root certificate \"ReaLearn\"",
-      "4. When you are done, come back to this page, e.g. by scanning the QR code again.",
+      "4. When you are done, come back to this page, e.g. by scanning the QR code again. It should work.",
       "",
-      "This sounds more serious than it is, it's just that browsers nowadays have a lot of security requirements (which is a good thing) and by using browser technology, ReaLearn companion has to conform. ReaLearn companion also won't ask you for a password or anything like that!"
+      "This sounds more serious than it is, it's just that browsers nowadays have a lot of security requirements (which is a good thing in general)."
+      "Even though ReaLearn Companion will not ask you for a password or anything like that and therefore security is secondary, it uses browser technology and therefore is bound to conform to its security rules."
     ];
     window.alert(lines.join("\n"));
     window.location.href = certificateUrl.toString();
