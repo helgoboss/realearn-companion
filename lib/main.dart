@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:io';
+import 'dart:html';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:realearn_companion/model.dart';
@@ -8,6 +8,7 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'configure_nonweb.dart' if (dart.library.html) 'configure_web.dart';
+import 'qr.dart';
 import 'package:fluro/fluro.dart';
 
 void main() {
@@ -20,19 +21,19 @@ class Application {
   static AppConfig config;
 }
 
-var rootHandler = Handler(
+var controllerRoutingHandler = Handler(
     handlerFunc: (BuildContext context, Map<String, List<String>> params) {
-      final args = MainArguments(
-        host: params['host']?.first,
-        httpPort: params['http-port']?.first,
-        httpsPort: params['https-port']?.first,
-        sessionId: params['session-id']?.first,
-      );
-      if (!args.isValid()) {
-        return Text("Invalid arguments");
-      }
-      return MyHomeContainer(args: args);
-    });
+  final args = MainArguments(
+    host: params['host']?.first,
+    httpPort: params['http-port']?.first,
+    httpsPort: params['https-port']?.first,
+    sessionId: params['session-id']?.first,
+  );
+  if (!args.isValid()) {
+    return IFrameDemoPage();
+  }
+  return MyHomeContainer(args: args);
+});
 
 class Routes {
   static String controllerRouting = "/controller-routing";
@@ -40,10 +41,10 @@ class Routes {
   static void configureRoutes(FluroRouter router) {
     router.notFoundHandler = Handler(
         handlerFunc: (BuildContext context, Map<String, List<String>> params) {
-          print("ROUTE WAS NOT FOUND !!!");
-          return Text("Route doesn't exist");
-        });
-    router.define(controllerRouting, handler: rootHandler);
+      print("ROUTE WAS NOT FOUND !!!");
+      return Text("Route doesn't exist");
+    });
+    router.define(controllerRouting, handler: controllerRoutingHandler);
   }
 }
 
@@ -53,7 +54,6 @@ bool isLocalhost(String host) {
 
 class MyApp extends StatefulWidget {
   MyApp();
-
 
   @override
   State createState() {
@@ -91,6 +91,9 @@ class MyHomeContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var host = args.host;
+    // TODO There might be some browsers (macOS Safari?) which won't connect
+    //  from a secure (companion app) website to a non-secure localhost, so
+    //  maybe we should use TLS even then!
     var useTls = Application.config.useTls && !isLocalhost(host);
     var wsProtocol = useTls ? "wss" : "ws";
     var httpProtocol = useTls ? "https" : "http";
@@ -100,12 +103,17 @@ class MyHomeContainer extends StatelessWidget {
     var controllerRoutingTopic =
         "/realearn/session/$sessionId/controller-routing";
     var wsBaseUri = Uri.parse("$wsProtocol://$host:$port");
-    var wsUri =
-    wsBaseUri.resolve("/ws?topics=$controllerTopic,$controllerRoutingTopic");
+    var wsUri = wsBaseUri
+        .resolve("/ws?topics=$controllerTopic,$controllerRoutingTopic");
     var httpBaseUri = Uri.parse("$httpProtocol://$host:$port");
+    var ws = WebSocket(wsUri.toString());
+    ws.onClose.listen((event) {
+      window.alert(event.code.toString());
+    });
     return MyHomePage(
       title: 'ReaLearn',
       channel: WebSocketChannel.connect(wsUri),
+      wsBaseUri: wsBaseUri,
       httpBaseUri: httpBaseUri,
     );
   }
@@ -114,12 +122,15 @@ class MyHomeContainer extends StatelessWidget {
 class MyHomePage extends StatefulWidget {
   final String title;
   final WebSocketChannel channel;
+  final Uri wsBaseUri;
   final Uri httpBaseUri;
 
-  MyHomePage({Key key,
-    @required this.title,
-    @required this.channel,
-    @required this.httpBaseUri})
+  MyHomePage(
+      {Key key,
+      @required this.title,
+      @required this.channel,
+      @required this.wsBaseUri,
+      @required this.httpBaseUri})
       : super(key: key);
 
   @override
@@ -161,6 +172,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
     _websocketSubscription = widget.channel.stream.listen((data) {
+      window.alert(data.toString());
       var jsonObject = jsonDecode(data);
       var realearnEvent = RealearnEvent.fromJson(jsonObject);
       if (realearnEvent.type == "updated") {
@@ -182,7 +194,9 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     if (_controller == null || _routing == null) {
-      return Text(widget.httpBaseUri.toString());
+      return Text("""${widget.httpBaseUri.toString()}
+      ${widget.wsBaseUri.toString()}
+      """);
     }
     return Scaffold(
       appBar: AppBar(
@@ -215,9 +229,10 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
-controllerRoutingCanvas({Controller controller,
-  ControllerRouting routing,
-  Function(String, ControlData) onControlDataUpdate}) {
+controllerRoutingCanvas(
+    {Controller controller,
+    ControllerRouting routing,
+    Function(String, ControlData) onControlDataUpdate}) {
   var draggables = controller.mappings.map((m) {
     var route = routing.routes[m.id];
     var data = controller.findControlData(m.id) ?? ControlData(x: 0.0, y: 0.0);
@@ -333,8 +348,8 @@ class _ControlState extends State<Control> {
   }
 }
 
-String getControlLabel(String controlLabel, String targetLabel,
-    bool isInEditMode) {
+String getControlLabel(
+    String controlLabel, String targetLabel, bool isInEditMode) {
   if (isInEditMode) {
     return controlLabel;
   } else {
