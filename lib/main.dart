@@ -28,6 +28,7 @@ var controllerRoutingHandler = Handler(
     httpPort: params['http-port']?.first,
     httpsPort: params['https-port']?.first,
     sessionId: params['session-id']?.first,
+    generated: params['generated']?.first == "true"
   );
   if (!args.isValid()) {
     return IFrameDemoPage();
@@ -106,16 +107,38 @@ class MyHomeContainer extends StatelessWidget {
     var wsUri = wsBaseUri
         .resolve("/ws?topics=$controllerTopic,$controllerRoutingTopic");
     var httpBaseUri = Uri.parse("$httpProtocol://$host:$port");
-    var ws = WebSocket(wsUri.toString());
-    ws.onClose.listen((event) {
-      window.alert(event.code.toString());
-    });
+    // Attempt to connect via HTTP
+    tryConnect(httpBaseUri, args.isGenerated());
+    // Connect to websocket for fun
+    // var ws = WebSocket(wsUri.toString());
+    // ws.onClose.listen((event) {
+    //   window.alert(event.code.toString());
+    // });
     return MyHomePage(
       title: 'ReaLearn',
       channel: WebSocketChannel.connect(wsUri),
       wsBaseUri: wsBaseUri,
       httpBaseUri: httpBaseUri,
     );
+  }
+}
+
+tryConnect(Uri uri, bool generated) async {
+  var seconds = 5;
+  try {
+    // TODO-low Use one client for all requests
+    // TODO-low Use head (it always brings a timeout in my case)
+    await http.get(uri).timeout(Duration(seconds: seconds));
+  } catch (e) {
+    var lines = [
+      "Couldn't connect to ReaLearn at ${uri} within ${seconds} seconds.",
+      "",
+      "Please proceed as follows:",
+      if (!generated) "- Make sure the connection data you entered is correct.",
+      "- Open ports in your firewall (step 4 in ReaLearn's projection setup).",
+      "- Make sure the computer running REAPER and this device are in the same network."
+    ];
+    window.alert(lines.join("\n"));
   }
 }
 
@@ -172,7 +195,6 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
     _websocketSubscription = widget.channel.stream.listen((data) {
-      window.alert(data.toString());
       var jsonObject = jsonDecode(data);
       var realearnEvent = RealearnEvent.fromJson(jsonObject);
       if (realearnEvent.type == "updated") {

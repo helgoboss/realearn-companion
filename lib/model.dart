@@ -13,14 +13,19 @@ class MainArguments {
   final String httpPort;
   final String httpsPort;
   final String sessionId;
+  final bool generated;
 
-  MainArguments({this.host, this.httpPort, this.httpsPort, this.sessionId});
+  MainArguments({this.host, this.httpPort, this.httpsPort, this.sessionId, this.generated});
 
   bool isValid() {
     return host != null &&
         httpPort != null &&
         httpsPort != null &&
         sessionId != null;
+  }
+
+  bool isGenerated() {
+    return generated == true;
   }
 }
 
