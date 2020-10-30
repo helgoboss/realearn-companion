@@ -30,6 +30,7 @@ dependencies:
   flutter_web_plugins:
     sdk: flutter
   platform_detect: 1.4.0
+  flutter_svg: 0.19.1
 
 
   # The following adds the Cupertino Icons font to your application.
@@ -51,6 +52,9 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  assets:
+    - assets/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

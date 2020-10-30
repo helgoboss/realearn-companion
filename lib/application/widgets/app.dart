@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:realearn_companion/application/routes.dart';
 
 import '../app.dart';
@@ -26,7 +27,7 @@ class AppWidgetState extends State<AppWidget> {
       ),
       darkTheme: ThemeData(
         brightness: Brightness.dark,
-        primarySwatch: Colors.green,
+        primarySwatch: Colors.deepPurple,
         // visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
       themeMode: ThemeMode.light,
@@ -45,12 +46,15 @@ class RootWidget extends StatelessWidget {
       ),
       body: Center(
         child: Container(
-          // constraints: BoxConstraints(maxWidth: 500),
           padding: EdgeInsets.all(30),
           child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               mainAxisSize: MainAxisSize.max,
               children: [
+                if (isPortrait) SvgPicture.asset(
+                  "assets/realearn_logo.svg",
+                  color: Theme.of(context).primaryColor.withOpacity(0.1),
+                ),
                 Container(
                   padding: EdgeInsets.all(30),
                   child: Text(

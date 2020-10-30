@@ -11,6 +11,7 @@ import 'package:realearn_companion/domain/connection.dart';
 import 'app.dart';
 
 String rootRoute = "/";
+String enterConnectionDataRoute = "/enter-connection-data";
 String controllerRoutingRoute = "/controller-routing";
 
 void configureRoutes(FluroRouter router) {
@@ -29,14 +30,9 @@ var _rootHandler = Handler(
 
 var _controllerRoutingHandler = Handler(
     handlerFunc: (BuildContext context, Map<String, List<String>> params) {
-  final args = _ConnectionArgs(
-      host: params['host']?.first,
-      httpPort: params['http-port']?.first,
-      httpsPort: params['https-port']?.first,
-      sessionId: params['session-id']?.first,
-      generated: params['generated']?.first,
-      cert: params['cert']?.first);
+  final args = _ConnectionArgs.fromParams(params);
   if (!args.isComplete) {
+    // TODO-medium Display warning and schedule navigation to root route
     return App.instance.config.qrCodeScanner();
   }
   return ControllerRoutingConnectionWidget(connectionData: args.toData());
@@ -49,6 +45,16 @@ class _ConnectionArgs {
   final String sessionId;
   final String generated;
   final String cert;
+
+  static _ConnectionArgs fromParams(Map<String, List<String>> params) {
+    return _ConnectionArgs(
+        host: params['host']?.first,
+        httpPort: params['http-port']?.first,
+        httpsPort: params['https-port']?.first,
+        sessionId: params['session-id']?.first,
+        generated: params['generated']?.first,
+        cert: params['cert']?.first);
+  }
 
   _ConnectionArgs(
       {this.host,
