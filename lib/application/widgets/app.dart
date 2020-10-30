@@ -54,7 +54,7 @@ class RootWidget extends StatelessWidget {
                 Container(
                   padding: EdgeInsets.all(30),
                   child: Text(
-                    "Choose how you want to connect to ReaLearn!",
+                    "How do you want to connect to ReaLearn?",
                     style: Theme.of(context).textTheme.headline5,
                     textAlign: TextAlign.center,
                   ),
