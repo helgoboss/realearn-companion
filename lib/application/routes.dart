@@ -4,21 +4,28 @@ import 'package:fluro/fluro.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter/widgets.dart';
+import 'package:realearn_companion/application/widgets/app.dart';
 import 'package:realearn_companion/application/widgets/controller_routing_connection.dart';
 import 'package:realearn_companion/domain/connection.dart';
 
 import 'app.dart';
 
-String controllerRouting = "/controller-routing";
+String rootRoute = "/";
+String controllerRoutingRoute = "/controller-routing";
 
 void configureRoutes(FluroRouter router) {
   router.notFoundHandler = Handler(
       handlerFunc: (BuildContext context, Map<String, List<String>> params) {
-    print("ROUTE WAS NOT FOUND !!!");
     return Text("Route doesn't exist");
   });
-  router.define(controllerRouting, handler: _controllerRoutingHandler);
+  router.define(rootRoute, handler: _rootHandler);
+  router.define(controllerRoutingRoute, handler: _controllerRoutingHandler);
 }
+
+var _rootHandler = Handler(
+    handlerFunc: (BuildContext context, Map<String, List<String>> params) {
+      return RootWidget();
+    });
 
 var _controllerRoutingHandler = Handler(
     handlerFunc: (BuildContext context, Map<String, List<String>> params) {
