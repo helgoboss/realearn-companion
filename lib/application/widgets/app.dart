@@ -20,9 +20,16 @@ class AppWidgetState extends State<AppWidget> {
       title: 'ReaLearn Companion',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primarySwatch: Colors.green,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
+        brightness: Brightness.light,
+        primarySwatch: Colors.deepPurple,
+        // visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
+      darkTheme: ThemeData(
+        brightness: Brightness.dark,
+        primarySwatch: Colors.green,
+        // visualDensity: VisualDensity.adaptivePlatformDensity,
+      ),
+      themeMode: ThemeMode.light,
       onGenerateRoute: App.instance.router.generator,
     );
   }
@@ -31,9 +38,68 @@ class AppWidgetState extends State<AppWidget> {
 class RootWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    SchedulerBinding.instance.addPostFrameCallback((_) {
-      App.instance.router.navigateTo(context, controllerRoutingRoute);
-    });
-    return Text("TODO You are going to be forwarded");
+    var isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('ReaLearn Companion'),
+      ),
+      body: Center(
+        child: Container(
+          // constraints: BoxConstraints(maxWidth: 500),
+          padding: EdgeInsets.all(30),
+          child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                Container(
+                  padding: EdgeInsets.all(30),
+                  child: Text(
+                    "Choose how you want to connect to ReaLearn!",
+                    style: Theme.of(context).textTheme.headline5,
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                Flex(
+                  direction: isPortrait ? Axis.vertical : Axis.horizontal,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    mainButton(context, const Icon(Icons.qr_code_scanner),
+                        'Scan QR code'),
+                    space(),
+                    Text(
+                      "or",
+                      style: Theme.of(context).textTheme.subtitle1,
+                    ),
+                    space(),
+                    mainButton(context, const Icon(Icons.keyboard),
+                        'Enter connection data'),
+                  ],
+                )
+              ]),
+        ),
+      ),
+    );
   }
+}
+
+Widget space() {
+  return SizedBox(width: 10, height: 10);
+}
+
+Widget mainButton(BuildContext context, Widget icon, String text) {
+  return Container(
+    constraints: BoxConstraints(minWidth: 250),
+    child: RaisedButton.icon(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15),
+      ),
+      elevation: 0,
+      textColor: Theme.of(context).typography.white.button.color,
+      color: Theme.of(context).primaryColor,
+      icon: icon,
+      label: Text(text),
+      padding: EdgeInsets.symmetric(vertical: 20, horizontal: 10),
+      onPressed: () {},
+    ),
+  );
 }
