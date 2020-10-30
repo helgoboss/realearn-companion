@@ -44,43 +44,39 @@ class RootWidget extends StatelessWidget {
       appBar: AppBar(
         title: const Text('ReaLearn Companion'),
       ),
-      body: Center(
-        child: Container(
-          padding: EdgeInsets.all(30),
-          child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              mainAxisSize: MainAxisSize.max,
-              children: [
-                if (isPortrait) SvgPicture.asset(
-                  "assets/realearn_logo.svg",
-                  color: Theme.of(context).primaryColor.withOpacity(0.1),
+      body: Container(
+        padding: EdgeInsets.symmetric(horizontal: 30),
+        child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              if (isPortrait) SvgPicture.asset(
+                "assets/realearn_logo.svg",
+                color: Theme.of(context).primaryColor.withOpacity(0.1),
+              ),
+              Container(
+                child: Text(
+                  "How do you want to connect to ReaLearn?",
+                  style: Theme.of(context).textTheme.headline5,
+                  textAlign: TextAlign.center,
                 ),
-                Container(
-                  padding: EdgeInsets.all(30),
-                  child: Text(
-                    "How do you want to connect to ReaLearn?",
-                    style: Theme.of(context).textTheme.headline5,
-                    textAlign: TextAlign.center,
+              ),
+              Flex(
+                direction: isPortrait ? Axis.vertical : Axis.horizontal,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  mainButton(context, const Icon(Icons.qr_code_scanner),
+                      'Scan QR code'),
+                  space(),
+                  Text(
+                    "or",
+                    style: Theme.of(context).textTheme.subtitle1,
                   ),
-                ),
-                Flex(
-                  direction: isPortrait ? Axis.vertical : Axis.horizontal,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    mainButton(context, const Icon(Icons.qr_code_scanner),
-                        'Scan QR code'),
-                    space(),
-                    Text(
-                      "or",
-                      style: Theme.of(context).textTheme.subtitle1,
-                    ),
-                    space(),
-                    mainButton(context, const Icon(Icons.keyboard),
-                        'Enter connection data'),
-                  ],
-                )
-              ]),
-        ),
+                  space(),
+                  mainButton(context, const Icon(Icons.keyboard),
+                      'Enter connection data'),
+                ],
+              )
+            ]),
       ),
     );
   }
