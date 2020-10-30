@@ -3,12 +3,12 @@ import 'dart:js' as js;
 import 'dart:html' as html;
 import 'package:flutter/material.dart';
 
-class IFrameDemoPage extends StatefulWidget {
+class WebQrCodeScanner extends StatefulWidget {
   @override
-  _IFrameDemoPageState createState() => _IFrameDemoPageState();
+  _WebQrCodeScannerState createState() => _WebQrCodeScannerState();
 }
 
-class _IFrameDemoPageState extends State<IFrameDemoPage> {
+class _WebQrCodeScannerState extends State<WebQrCodeScanner> {
   html.IFrameElement _element;
   js.JsObject _connector;
 
@@ -56,10 +56,9 @@ class _IFrameDemoPageState extends State<IFrameDemoPage> {
         </html>
         """;
 
-    // ignore:undefined_prefixed_name
     ui.platformViewRegistry.registerViewFactory(
       'example',
-          (int viewId) => _element,
+      (int viewId) => _element,
     );
   }
 

@@ -4,51 +4,6 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'model.g.dart';
 
-enum SecurityPlatform {
-  Android,
-  iOS,
-  Windows,
-  Linux,
-  macOS,
-}
-
-class AppConfig {
-  final bool useTls;
-  final SecurityPlatform securityPlatform;
-
-  AppConfig({this.useTls, this.securityPlatform});
-}
-
-class MainArguments {
-  final String host;
-  final String httpPort;
-  final String httpsPort;
-  final String sessionId;
-  final bool generated;
-  final String cert;
-
-  MainArguments({this.host, this.httpPort, this.httpsPort, this.sessionId, this.generated, this.cert});
-
-  bool isValid() {
-    return host != null &&
-        httpPort != null &&
-        httpsPort != null &&
-        sessionId != null;
-  }
-
-  bool isGenerated() {
-    return generated == true;
-  }
-
-  String getCertContent() {
-    if (cert == null) {
-      return null;
-    }
-    Codec<String, String> stringToBase64Url = utf8.fuse(base64Url);
-    return stringToBase64Url.decode(cert);
-  }
-}
-
 @JsonSerializable(createToJson: false, nullable: true)
 class RealearnEvent {
   final String type;
