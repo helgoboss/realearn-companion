@@ -26,7 +26,11 @@ class RootWidget extends StatelessWidget {
             ProminentButton(
                 icon: const Icon(Icons.qr_code_scanner),
                 text: 'Scan QR code',
-                onPressed: () {}),
+                onPressed: () {
+                  App.instance.router.navigateTo(
+                      context, scanConnectionDataRoute,
+                      transition: TransitionType.native);
+                }),
             space(),
             Text(
               "or",

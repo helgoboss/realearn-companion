@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/framework.dart';
+import 'package:qrscan/qrscan.dart' as scanner;
 
 import '../../../application/app_config.dart';
 
@@ -27,7 +28,7 @@ class _NativeAppConfig implements AppConfig {
 
   @override
   Widget qrCodeScanner() {
-    return Text("QR scanner not yet implemented");
+    return NativeQrCodeScanner();
   }
 
   @override
@@ -45,5 +46,13 @@ class _CustomHttpOverrides extends HttpOverrides {
     client.badCertificateCallback =
         (X509Certificate cert, String host, int port) => true;
     return client;
+  }
+}
+
+class NativeQrCodeScanner extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    scanner.scan();
+    return Text("Scanning ...");
   }
 }

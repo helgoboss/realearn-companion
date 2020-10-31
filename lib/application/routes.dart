@@ -12,6 +12,7 @@ import 'app.dart';
 import 'widgets/root.dart';
 
 String rootRoute = "/";
+String scanConnectionDataRoute = "/scan-connection-data";
 String enterConnectionDataRoute = "/enter-connection-data";
 String controllerRoutingRoute = "/controller-routing";
 
@@ -21,6 +22,7 @@ void configureRoutes(FluroRouter router) {
     return Text("Route doesn't exist");
   });
   router.define(rootRoute, handler: _rootHandler);
+  router.define(scanConnectionDataRoute, handler: _scanConnectionDataHandler);
   router.define(enterConnectionDataRoute, handler: _enterConnectionDataHandler);
   router.define(controllerRoutingRoute, handler: _controllerRoutingHandler);
 }
@@ -28,6 +30,11 @@ void configureRoutes(FluroRouter router) {
 var _rootHandler = Handler(
     handlerFunc: (BuildContext context, Map<String, List<String>> params) {
       return RootWidget();
+    });
+
+var _scanConnectionDataHandler = Handler(
+    handlerFunc: (BuildContext context, Map<String, List<String>> params) {
+      return App.instance.config.qrCodeScanner();
     });
 
 var _enterConnectionDataHandler = Handler(
