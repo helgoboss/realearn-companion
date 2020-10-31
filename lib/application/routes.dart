@@ -4,11 +4,12 @@ import 'package:fluro/fluro.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter/widgets.dart';
-import 'package:realearn_companion/application/widgets/app.dart';
+import 'package:realearn_companion/application/widgets/connection_data.dart';
 import 'package:realearn_companion/application/widgets/controller_routing_connection.dart';
 import 'package:realearn_companion/domain/connection.dart';
 
 import 'app.dart';
+import 'widgets/root.dart';
 
 String rootRoute = "/";
 String enterConnectionDataRoute = "/enter-connection-data";
@@ -20,12 +21,18 @@ void configureRoutes(FluroRouter router) {
     return Text("Route doesn't exist");
   });
   router.define(rootRoute, handler: _rootHandler);
+  router.define(enterConnectionDataRoute, handler: _enterConnectionDataHandler);
   router.define(controllerRoutingRoute, handler: _controllerRoutingHandler);
 }
 
 var _rootHandler = Handler(
     handlerFunc: (BuildContext context, Map<String, List<String>> params) {
       return RootWidget();
+    });
+
+var _enterConnectionDataHandler = Handler(
+    handlerFunc: (BuildContext context, Map<String, List<String>> params) {
+      return ConnectionDataWidget();
     });
 
 var _controllerRoutingHandler = Handler(
