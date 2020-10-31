@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:fluro/fluro.dart';
 import 'package:flutter/material.dart';
@@ -6,9 +7,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:realearn_companion/application/widgets/connection_data.dart';
 import 'package:realearn_companion/application/widgets/controller_routing_connection.dart';
+import 'package:realearn_companion/application/widgets/qr_code_scan.dart';
 import 'package:realearn_companion/domain/connection.dart';
 
-import 'app.dart';
 import 'widgets/root.dart';
 
 String rootRoute = "/";
@@ -16,41 +17,36 @@ String scanConnectionDataRoute = "/scan-connection-data";
 String enterConnectionDataRoute = "/enter-connection-data";
 String controllerRoutingRoute = "/controller-routing";
 
+// Called on hot reload
 void configureRoutes(FluroRouter router) {
+  // We don't use global handler variables because we want routes to be
+  // hot-reloadable.
   router.notFoundHandler = Handler(
       handlerFunc: (BuildContext context, Map<String, List<String>> params) {
     return Text("Route doesn't exist");
   });
-  router.define(rootRoute, handler: _rootHandler);
-  router.define(scanConnectionDataRoute, handler: _scanConnectionDataHandler);
-  router.define(enterConnectionDataRoute, handler: _enterConnectionDataHandler);
-  router.define(controllerRoutingRoute, handler: _controllerRoutingHandler);
+  router.define(rootRoute, handler: Handler(
+      handlerFunc: (BuildContext context, Map<String, List<String>> params) {
+    return RootWidget();
+  }));
+  router.define(scanConnectionDataRoute, handler: Handler(
+      handlerFunc: (BuildContext context, Map<String, List<String>> params) {
+    return QrCodeScanWidget();
+  }));
+  router.define(enterConnectionDataRoute, handler: Handler(
+      handlerFunc: (BuildContext context, Map<String, List<String>> params) {
+    return ConnectionDataWidget();
+  }));
+  router.define(controllerRoutingRoute, handler: Handler(
+      handlerFunc: (BuildContext context, Map<String, List<String>> params) {
+    final args = _ConnectionArgs.fromParams(params);
+    if (!args.isComplete) {
+      // TODO-medium Display warning and schedule navigation to root route
+      return Text("Incomplete connection args");
+    }
+    return ControllerRoutingConnectionWidget(connectionData: args.toData());
+  }));
 }
-
-var _rootHandler = Handler(
-    handlerFunc: (BuildContext context, Map<String, List<String>> params) {
-      return RootWidget();
-    });
-
-var _scanConnectionDataHandler = Handler(
-    handlerFunc: (BuildContext context, Map<String, List<String>> params) {
-      return App.instance.config.qrCodeScanner();
-    });
-
-var _enterConnectionDataHandler = Handler(
-    handlerFunc: (BuildContext context, Map<String, List<String>> params) {
-      return ConnectionDataWidget();
-    });
-
-var _controllerRoutingHandler = Handler(
-    handlerFunc: (BuildContext context, Map<String, List<String>> params) {
-  final args = _ConnectionArgs.fromParams(params);
-  if (!args.isComplete) {
-    // TODO-medium Display warning and schedule navigation to root route
-    return App.instance.config.qrCodeScanner();
-  }
-  return ControllerRoutingConnectionWidget(connectionData: args.toData());
-});
 
 class _ConnectionArgs {
   final String host;

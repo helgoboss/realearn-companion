@@ -11,8 +11,12 @@ class AppWidget extends StatefulWidget {
 }
 
 class AppWidgetState extends State<AppWidget> {
+  AppWidgetState() {
+  }
+
   @override
   Widget build(BuildContext context) {
+    App.instance.configureHotReloadable();
     SystemChrome.setEnabledSystemUIOverlays([]);
     return MaterialApp(
       title: 'ReaLearn Companion',

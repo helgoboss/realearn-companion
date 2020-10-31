@@ -23,13 +23,19 @@ class RootWidget extends StatelessWidget {
           direction: isPortrait ? Axis.vertical : Axis.horizontal,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            ProminentButton(
-                icon: const Icon(Icons.qr_code_scanner),
-                text: 'Scan QR code',
-                onPressed: () {
-                  App.instance.router.navigateTo(
-                      context, scanConnectionDataRoute,
-                      transition: TransitionType.native);
+            FutureBuilder<bool>(
+                future: App.instance.config.deviceHasCamera(),
+                builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
+                  return ProminentButton(
+                      icon: const Icon(Icons.qr_code_scanner),
+                      text: 'Scan QR code',
+                      onPressed: snapshot.data == true
+                          ? () {
+                              App.instance.router.navigateTo(
+                                  context, scanConnectionDataRoute,
+                                  transition: TransitionType.native);
+                            }
+                          : null);
                 }),
             space(),
             Text(

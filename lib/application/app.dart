@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:fluro/fluro.dart';
 import 'package:flutter/material.dart';
 import 'package:realearn_companion/application/routes.dart';
@@ -9,7 +11,8 @@ class App {
   static App _instance;
 
   final AppConfig config;
-  final FluroRouter router;
+  // We need the router hot-reloadable, so it's not final
+  FluroRouter router;
 
   static run({config: AppConfig}) {
     _instance = App._privateConstructor(config: config);
@@ -18,7 +21,13 @@ class App {
 
   static App get instance => _instance;
 
-  App._privateConstructor({this.config}) : router = FluroRouter() {
+  /**
+   * Must be called in a function that's called on hot reload.
+   */
+  void configureHotReloadable() {
+    router = FluroRouter();
     configureRoutes(router);
   }
+
+  App._privateConstructor({this.config});
 }

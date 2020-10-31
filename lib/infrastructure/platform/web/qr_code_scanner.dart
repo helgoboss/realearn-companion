@@ -2,13 +2,23 @@ import 'dart:ui' as ui;
 import 'dart:js' as js;
 import 'dart:html' as html;
 import 'package:flutter/material.dart';
+import 'package:realearn_companion/application/app_config.dart';
 
-class WebQrCodeScanner extends StatefulWidget {
+class WebQrCodeScan extends QrCodeScan {
   @override
-  _WebQrCodeScannerState createState() => _WebQrCodeScannerState();
+  // TODO: implement result
+  Future<String> get result => throw UnimplementedError();
+
+  @override
+  final WebQrCodeScannerWidget widget = new WebQrCodeScannerWidget();
 }
 
-class _WebQrCodeScannerState extends State<WebQrCodeScanner> {
+class WebQrCodeScannerWidget extends StatefulWidget {
+  @override
+  _WebQrCodeScannerWidgetState createState() => _WebQrCodeScannerWidgetState();
+}
+
+class _WebQrCodeScannerWidgetState extends State<WebQrCodeScannerWidget> {
   html.IFrameElement _element;
   js.JsObject _connector;
 

@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:qrscan/qrscan.dart' as scanner;
+import 'package:camera/camera.dart';
 
 import '../../../application/app_config.dart';
 
@@ -27,13 +28,19 @@ class _NativeAppConfig implements AppConfig {
   }
 
   @override
-  Widget qrCodeScanner() {
-    return NativeQrCodeScanner();
+  NativeQrCodeScan scanQrCode() {
+    return NativeQrCodeScan();
   }
 
   @override
   void useTlsCertificate(String certContent, Uri certRedirectUrl) {
     // TODO-medium Necessary?
+  }
+
+  @override
+  Future<bool> deviceHasCamera() async {
+    var cameras = await availableCameras();
+    return !cameras.isEmpty;
   }
 }
 
@@ -49,10 +56,10 @@ class _CustomHttpOverrides extends HttpOverrides {
   }
 }
 
-class NativeQrCodeScanner extends StatelessWidget {
+class NativeQrCodeScan extends QrCodeScan {
   @override
-  Widget build(BuildContext context) {
-    scanner.scan();
-    return Text("Scanning ...");
-  }
+  Future<String> get result => scanner.scan();
+
+  @override
+  final Widget widget = Text("Scanning...");
 }

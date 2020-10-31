@@ -38,13 +38,19 @@ class _WebAppConfig implements AppConfig {
   }
 
   @override
-  Widget qrCodeScanner() {
-    return new WebQrCodeScanner();
+  WebQrCodeScan scanQrCode() {
+    return new WebQrCodeScan();
   }
 
   @override
   void useTlsCertificate(String certContent, Uri certRedirectUrl) {
     window.location.href = getCertHref(certContent, certRedirectUrl);
+  }
+
+  @override
+  Future<bool> deviceHasCamera() {
+    // TODO: implement hasCamera
+    throw UnimplementedError();
   }
 }
 

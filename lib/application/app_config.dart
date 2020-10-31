@@ -8,7 +8,13 @@ abstract class AppConfig {
 
   void alert(String msg);
   void useTlsCertificate(String certContent, Uri certRedirectUrl);
-  Widget qrCodeScanner();
+  Future<bool> deviceHasCamera();
+  QrCodeScan scanQrCode();
+}
+
+abstract class QrCodeScan {
+  Widget get widget;
+  Future<String> get result;
 }
 
 enum SecurityPlatform {
