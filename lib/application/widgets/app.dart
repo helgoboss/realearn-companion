@@ -44,39 +44,46 @@ class RootWidget extends StatelessWidget {
       appBar: AppBar(
         title: const Text('ReaLearn Companion'),
       ),
-      body: Container(
-        padding: EdgeInsets.symmetric(horizontal: 30),
-        child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              if (isPortrait) SvgPicture.asset(
-                "assets/realearn_logo.svg",
-                color: Theme.of(context).primaryColor.withOpacity(0.1),
-              ),
-              Container(
-                child: Text(
-                  "How do you want to connect to ReaLearn?",
-                  style: Theme.of(context).textTheme.headline5,
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              Flex(
-                direction: isPortrait ? Axis.vertical : Axis.horizontal,
-                mainAxisAlignment: MainAxisAlignment.center,
+      body: Stack(
+        children: [
+          SvgPicture.asset(
+            "assets/realearn_logo.svg",
+            color: Theme.of(context).primaryColor.withOpacity(0.05),
+            fit: BoxFit.cover,
+            width: MediaQuery.of(context).size.shortestSide,
+            height: MediaQuery.of(context).size.longestSide,
+          ),
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 30),
+            child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  mainButton(context, const Icon(Icons.qr_code_scanner),
-                      'Scan QR code'),
-                  space(),
-                  Text(
-                    "or",
-                    style: Theme.of(context).textTheme.subtitle1,
+                  Container(
+                    child: Text(
+                      "How do you want to connect to ReaLearn?",
+                      style: Theme.of(context).textTheme.headline5,
+                      textAlign: TextAlign.center,
+                    ),
                   ),
-                  space(),
-                  mainButton(context, const Icon(Icons.keyboard),
-                      'Enter connection data'),
-                ],
-              )
-            ]),
+                  Flex(
+                    direction: isPortrait ? Axis.vertical : Axis.horizontal,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      mainButton(context, const Icon(Icons.qr_code_scanner),
+                          'Scan QR code'),
+                      space(),
+                      Text(
+                        "or",
+                        style: Theme.of(context).textTheme.subtitle1,
+                      ),
+                      space(),
+                      mainButton(context, const Icon(Icons.keyboard),
+                          'Enter connection data'),
+                    ],
+                  )
+                ]),
+          )
+        ],
       ),
     );
   }
