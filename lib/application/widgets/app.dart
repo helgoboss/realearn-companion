@@ -1,19 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 
 import '../app.dart';
 
-class AppWidget extends StatefulWidget {
-  @override
-  State createState() {
-    return AppWidgetState();
-  }
-}
-
-class AppWidgetState extends State<AppWidget> {
-  AppWidgetState() {
-  }
-
+class AppWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     App.instance.configureHotReloadable();

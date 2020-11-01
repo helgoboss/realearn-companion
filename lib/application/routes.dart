@@ -5,9 +5,9 @@ import 'package:fluro/fluro.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter/widgets.dart';
-import 'package:realearn_companion/application/widgets/connection_data.dart';
+import 'package:realearn_companion/application/widgets/enter_connection_data.dart';
 import 'package:realearn_companion/application/widgets/controller_routing_connection.dart';
-import 'package:realearn_companion/application/widgets/qr_code_scan.dart';
+import 'package:realearn_companion/application/widgets/scan_qr_code.dart';
 import 'package:realearn_companion/domain/connection.dart';
 
 import 'app.dart';
@@ -33,11 +33,11 @@ void configureRoutes(FluroRouter router) {
   router.define(scanConnectionDataRoute, handler: Handler(
       handlerFunc: (BuildContext context, Map<String, List<String>> params) {
     var scan = App.instance.config.scanQrCode(context);
-    return QrCodeScanWidget(scannerWidget: scan.widget, result: scan.result);
+    return ScanQrCodeWidget(scannerWidget: scan.widget, result: scan.result);
   }));
   router.define(enterConnectionDataRoute, handler: Handler(
       handlerFunc: (BuildContext context, Map<String, List<String>> params) {
-    return ConnectionDataWidget();
+    return EnterConnectionDataWidget();
   }));
   router.define(controllerRoutingRoute, handler: Handler(
       handlerFunc: (BuildContext context, Map<String, List<String>> params) {

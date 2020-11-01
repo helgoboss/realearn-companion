@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'normal_scaffold.dart';
 
-class ConnectionDataWidget extends StatelessWidget {
+class EnterConnectionDataWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return NormalScaffold(
