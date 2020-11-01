@@ -6,8 +6,8 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter/widgets.dart';
 import 'package:realearn_companion/application/widgets/enter_connection_data.dart';
-import 'package:realearn_companion/application/widgets/controller_routing_connection.dart';
-import 'package:realearn_companion/application/widgets/scan_qr_code.dart';
+import 'package:realearn_companion/application/widgets/establish_connection.dart';
+import 'package:realearn_companion/application/widgets/scan_connection_data.dart';
 import 'package:realearn_companion/domain/connection.dart';
 
 import 'app.dart';
@@ -22,6 +22,7 @@ String controllerRoutingRoute = "/controller-routing";
 void configureRoutes(FluroRouter router) {
   // We don't use global handler variables because we want routes to be
   // hot-reloadable.
+  log("Reconfigure routes");
   router.notFoundHandler = Handler(
       handlerFunc: (BuildContext context, Map<String, List<String>> params) {
     return Text("Route doesn't exist");
@@ -33,7 +34,7 @@ void configureRoutes(FluroRouter router) {
   router.define(scanConnectionDataRoute, handler: Handler(
       handlerFunc: (BuildContext context, Map<String, List<String>> params) {
     var scan = App.instance.config.scanQrCode(context);
-    return ScanQrCodeWidget(scannerWidget: scan.widget, result: scan.result);
+    return ScanConnectionDataWidget(scannerWidget: scan.widget, result: scan.result);
   }));
   router.define(enterConnectionDataRoute, handler: Handler(
       handlerFunc: (BuildContext context, Map<String, List<String>> params) {
@@ -47,7 +48,7 @@ void configureRoutes(FluroRouter router) {
       //  This can happen when entering URL or call from cmd line manually
       return Text("Incomplete connection args: $params");
     }
-    return ControllerRoutingConnectionWidget(connectionData: args.toData());
+    return EstablishConnectionWidget(connectionDataPalette: args.toData());
   }));
 }
 
@@ -96,8 +97,8 @@ class ConnectionArgs {
     return Uri(queryParameters: params).query;
   }
 
-  ConnectionData toData() {
-    return ConnectionData(
+  ConnectionDataPalette toData() {
+    return ConnectionDataPalette(
         host: host,
         httpPort: httpPort,
         httpsPort: httpsPort,

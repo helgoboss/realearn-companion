@@ -1,5 +1,4 @@
-import 'dart:convert';
-
+import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'model.g.dart';
@@ -14,6 +13,18 @@ class RealearnEvent {
 
   factory RealearnEvent.fromJson(Map<String, dynamic> json) =>
       _$RealearnEventFromJson(json);
+}
+
+class ControllerModel extends ChangeNotifier {
+  final Controller controller;
+
+  ControllerModel(this.controller);
+}
+
+class ControllerRoutingModel extends ChangeNotifier {
+  final ControllerRouting controllerRouting;
+
+  ControllerRoutingModel(this.controllerRouting);
 }
 
 @JsonSerializable(createToJson: false, nullable: true)

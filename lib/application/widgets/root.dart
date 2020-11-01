@@ -10,6 +10,7 @@ class RootWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     var isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
     return NormalScaffold(
+      hideAppBar: true,
       child:
           Column(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
         Container(

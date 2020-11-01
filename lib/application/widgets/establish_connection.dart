@@ -9,45 +9,34 @@ import '../app.dart';
 import '../app_config.dart';
 import 'controller_routing.dart';
 
-class ControllerRoutingConnectionWidget extends StatelessWidget {
-  final ConnectionData connectionData;
+class EstablishConnectionWidget extends StatelessWidget {
+  final ConnectionDataPalette connectionDataPalette;
 
-  ControllerRoutingConnectionWidget({@required this.connectionData});
+  EstablishConnectionWidget({@required this.connectionDataPalette});
 
   @override
   Widget build(BuildContext context) {
     // TODO There might be some browsers (macOS Safari?) which won't connect
     //  from a secure (companion app) website to a non-secure localhost, so
     //  maybe we should use TLS even then!
-    var useTls = App.instance.config.useTls && !connectionData.isLocalhost();
-    var wsProtocol = useTls ? "wss" : "ws";
-    var httpProtocol = useTls ? "https" : "http";
-    var host = connectionData.host;
-    var port = useTls ? connectionData.httpsPort : connectionData.httpPort;
-    var sessionId = connectionData.sessionId;
-    var controllerTopic = "/realearn/session/$sessionId/controller";
-    var controllerRoutingTopic =
-        "/realearn/session/$sessionId/controller-routing";
-    var wsBaseUri = Uri.parse("$wsProtocol://$host:$port");
-    var wsUri = wsBaseUri
-        .resolve("/ws?topics=$controllerTopic,$controllerRoutingTopic");
-    var httpBaseUri = Uri.parse("$httpProtocol://$host:$port");
+    var conData = connectionDataPalette.use(tls: App.instance.config.useTls);
     // TODO-medium Chrome already complains that we shouldn't redirect a https
     //  page to http. But if we redirect to https, we have an additional warning.
     //  Maybe just include in instructions. Or on Android/Chrome, maybe we can
     //  just skip the certificate installation and just accept in the browser!
     var certRedirectUrl = getCertRedirectUrl(
-        Uri.parse("http://$host:${connectionData.httpPort}/realearn.cer"), httpBaseUri);
+        Uri.parse("http://${conData.host}:${conData.httpPort}/realearn.cer"),
+        conData.httpBaseUri);
     // TODO-high As soon as we have a proper presentation (not just alerts),
     //  try to provide cert download via download link by converting args.getCertContent()
     //  to a blob. https://stackoverflow.com/questions/19327749/javascript-blob-filename-without-link
     // tryConnect(httpBaseUri, args.isGenerated(), args.getCertContent(), certificateUrl);
-    tryConnect(httpBaseUri, connectionData.isGenerated, null, certRedirectUrl);
+    tryConnect(conData.httpBaseUri, conData.isGenerated, null, certRedirectUrl);
     return ControllerRoutingWidget(
       title: 'ReaLearn',
-      channel: WebSocketChannel.connect(wsUri),
-      wsBaseUri: wsBaseUri,
-      httpBaseUri: httpBaseUri,
+      channel: WebSocketChannel.connect(conData.wsUri),
+      wsBaseUri: conData.wsBaseUri,
+      httpBaseUri: conData.httpBaseUri,
     );
   }
 }

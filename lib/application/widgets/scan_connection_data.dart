@@ -3,11 +3,11 @@ import 'package:realearn_companion/application/routes.dart';
 import '../app.dart';
 import 'normal_scaffold.dart';
 
-class ScanQrCodeWidget extends StatelessWidget {
+class ScanConnectionDataWidget extends StatelessWidget {
   final Widget scannerWidget;
   final Future<String> result;
 
-  const ScanQrCodeWidget({Key key, this.scannerWidget, this.result})
+  const ScanConnectionDataWidget({Key key, this.scannerWidget, this.result})
       : super(key: key);
 
   @override
@@ -40,6 +40,8 @@ class ScanQrCodeWidget extends StatelessWidget {
                   return nothing;
                 }
               }
+            } else {
+              return nothing;
             }
           }),
     );

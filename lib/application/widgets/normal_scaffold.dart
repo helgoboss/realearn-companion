@@ -3,13 +3,15 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 class NormalScaffold extends StatelessWidget {
   final Widget child;
+  final bool hideAppBar;
 
-  const NormalScaffold({Key key, this.child}) : super(key: key);
+  const NormalScaffold({Key key, this.child, this.hideAppBar = false})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+      appBar: hideAppBar ? null : AppBar(
         title: const Text('ReaLearn Companion'),
       ),
       body: Stack(
