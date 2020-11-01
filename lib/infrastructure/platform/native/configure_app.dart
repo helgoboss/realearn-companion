@@ -3,8 +3,8 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/framework.dart';
-import 'package:qrscan/qrscan.dart' as scanner;
 import 'package:camera/camera.dart';
+import 'package:barcode_scan/barcode_scan.dart';
 
 import '../../../application/app_config.dart';
 
@@ -28,7 +28,7 @@ class _NativeAppConfig implements AppConfig {
   }
 
   @override
-  NativeQrCodeScan scanQrCode() {
+  NativeQrCodeScan scanQrCode(BuildContext context) {
     return NativeQrCodeScan();
   }
 
@@ -58,8 +58,14 @@ class _CustomHttpOverrides extends HttpOverrides {
 
 class NativeQrCodeScan extends QrCodeScan {
   @override
-  Future<String> get result => scanner.scan();
+  final Future<String> result = scanQrCode();
 
   @override
-  final Widget widget = Text("Scanning...");
+  // https://stackoverflow.com/questions/53455358/how-to-present-an-empty-view-in-flutter
+  final Widget widget = SizedBox.shrink();
+}
+
+Future<String> scanQrCode() async {
+  var result = await BarcodeScanner.scan();
+  return result.rawContent;
 }

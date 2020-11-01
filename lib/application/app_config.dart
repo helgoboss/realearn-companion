@@ -9,7 +9,7 @@ abstract class AppConfig {
   void alert(String msg);
   void useTlsCertificate(String certContent, Uri certRedirectUrl);
   Future<bool> deviceHasCamera();
-  QrCodeScan scanQrCode();
+  QrCodeScan scanQrCode(BuildContext context);
 }
 
 abstract class QrCodeScan {

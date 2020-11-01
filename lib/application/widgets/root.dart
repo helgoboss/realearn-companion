@@ -72,6 +72,7 @@ class ProminentButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    var themeData = Theme.of(context);
     return Container(
       constraints: BoxConstraints(minWidth: 250),
       child: RaisedButton.icon(
@@ -79,8 +80,11 @@ class ProminentButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(15),
         ),
         elevation: 0,
-        textColor: Theme.of(context).typography.white.button.color,
-        color: Theme.of(context).primaryColor,
+        disabledElevation: 0,
+        textColor: themeData.typography.white.button.color,
+        disabledTextColor: themeData.typography.white.button.color,
+        color: themeData.primaryColor,
+        disabledColor: themeData.disabledColor,
         icon: icon,
         label: Text(text),
         padding: EdgeInsets.symmetric(vertical: 20, horizontal: 10),

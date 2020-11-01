@@ -10,6 +10,7 @@ import 'package:realearn_companion/application/widgets/controller_routing_connec
 import 'package:realearn_companion/application/widgets/qr_code_scan.dart';
 import 'package:realearn_companion/domain/connection.dart';
 
+import 'app.dart';
 import 'widgets/root.dart';
 
 String rootRoute = "/";
@@ -31,7 +32,8 @@ void configureRoutes(FluroRouter router) {
   }));
   router.define(scanConnectionDataRoute, handler: Handler(
       handlerFunc: (BuildContext context, Map<String, List<String>> params) {
-    return QrCodeScanWidget();
+    var scan = App.instance.config.scanQrCode(context);
+    return QrCodeScanWidget(scannerWidget: scan.widget, result: scan.result);
   }));
   router.define(enterConnectionDataRoute, handler: Handler(
       handlerFunc: (BuildContext context, Map<String, List<String>> params) {
@@ -39,16 +41,17 @@ void configureRoutes(FluroRouter router) {
   }));
   router.define(controllerRoutingRoute, handler: Handler(
       handlerFunc: (BuildContext context, Map<String, List<String>> params) {
-    final args = _ConnectionArgs.fromParams(params);
+    final args = ConnectionArgs.fromParams(params);
     if (!args.isComplete) {
-      // TODO-medium Display warning and schedule navigation to root route
-      return Text("Incomplete connection args");
+      // TODO-medium Display warning and schedule navigation to root route.
+      //  This can happen when entering URL or call from cmd line manually
+      return Text("Incomplete connection args: $params");
     }
     return ControllerRoutingConnectionWidget(connectionData: args.toData());
   }));
 }
 
-class _ConnectionArgs {
+class ConnectionArgs {
   final String host;
   final String httpPort;
   final String httpsPort;
@@ -56,8 +59,8 @@ class _ConnectionArgs {
   final String generated;
   final String cert;
 
-  static _ConnectionArgs fromParams(Map<String, List<String>> params) {
-    return _ConnectionArgs(
+  static ConnectionArgs fromParams(Map<String, List<String>> params) {
+    return ConnectionArgs(
         host: params['host']?.first,
         httpPort: params['http-port']?.first,
         httpsPort: params['https-port']?.first,
@@ -66,7 +69,7 @@ class _ConnectionArgs {
         cert: params['cert']?.first);
   }
 
-  _ConnectionArgs(
+  ConnectionArgs(
       {this.host,
       this.httpPort,
       this.httpsPort,
@@ -79,6 +82,18 @@ class _ConnectionArgs {
         httpPort != null ||
         httpsPort != null ||
         sessionId != null;
+  }
+
+  String toQueryString() {
+    var params = {
+      'host': host,
+      'http-port': httpPort,
+      'https-port': httpsPort,
+      'session-id': sessionId,
+      'generated': generated,
+      'cert': cert,
+    };
+    return Uri(queryParameters: params).query;
   }
 
   ConnectionData toData() {

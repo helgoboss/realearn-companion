@@ -38,7 +38,7 @@ class _WebAppConfig implements AppConfig {
   }
 
   @override
-  WebQrCodeScan scanQrCode() {
+  WebQrCodeScan scanQrCode(BuildContext context) {
     return new WebQrCodeScan();
   }
 
