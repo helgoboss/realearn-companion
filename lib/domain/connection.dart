@@ -43,9 +43,6 @@ class ConnectionData {
 
   Uri get wsBaseUri => Uri.parse("$wsProtocol://$host:$port");
 
-  Uri get wsUri =>
-      wsBaseUri.resolve("/ws?topics=$controllerTopic,$controllerRoutingTopic");
-
   String get httpPort => palette.httpPort;
 
   String get httpProtocol => tls ? "https" : "http";
@@ -59,10 +56,11 @@ class ConnectionData {
 
   String get sessionId => palette.sessionId;
 
-  String get controllerTopic => "/realearn/session/$sessionId/controller";
-
-  String get controllerRoutingTopic =>
-      "/realearn/session/$sessionId/controller-routing";
-
   bool get isGenerated => palette.isGenerated;
+
+  Uri buildWebSocketUrl(List<String> topics) {
+    var joinedTopics = topics.join(",");
+    return wsBaseUri.resolve("/ws?topics=$joinedTopics");
+  }
+
 }

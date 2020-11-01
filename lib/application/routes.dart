@@ -5,8 +5,8 @@ import 'package:fluro/fluro.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter/widgets.dart';
+import 'package:realearn_companion/application/widgets/controller_routing.dart';
 import 'package:realearn_companion/application/widgets/enter_connection_data.dart';
-import 'package:realearn_companion/application/widgets/establish_connection.dart';
 import 'package:realearn_companion/application/widgets/scan_connection_data.dart';
 import 'package:realearn_companion/domain/connection.dart';
 
@@ -48,7 +48,7 @@ void configureRoutes(FluroRouter router) {
       //  This can happen when entering URL or call from cmd line manually
       return Text("Incomplete connection args: $params");
     }
-    return EstablishConnectionWidget(connectionDataPalette: args.toData());
+    return ControllerRoutingWidget(connectionDataPalette: args.toPalette());
   }));
 }
 
@@ -97,7 +97,7 @@ class ConnectionArgs {
     return Uri(queryParameters: params).query;
   }
 
-  ConnectionDataPalette toData() {
+  ConnectionDataPalette toPalette() {
     return ConnectionDataPalette(
         host: host,
         httpPort: httpPort,

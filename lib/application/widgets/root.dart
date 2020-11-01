@@ -4,6 +4,7 @@ import 'package:realearn_companion/application/routes.dart';
 
 import '../app.dart';
 import 'normal_scaffold.dart';
+import 'space.dart';
 
 class RootWidget extends StatelessWidget {
   @override
@@ -38,12 +39,12 @@ class RootWidget extends StatelessWidget {
                             }
                           : null);
                 }),
-            space(),
+            Space(),
             Text(
               "or",
               style: Theme.of(context).textTheme.subtitle1,
             ),
-            space(),
+            Space(),
             ProminentButton(
                 icon: const Icon(Icons.keyboard),
                 text: 'Enter connection data',
@@ -57,10 +58,6 @@ class RootWidget extends StatelessWidget {
       ]),
     );
   }
-}
-
-Widget space() {
-  return SizedBox(width: 10, height: 10);
 }
 
 class ProminentButton extends StatelessWidget {

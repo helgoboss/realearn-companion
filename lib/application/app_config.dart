@@ -7,6 +7,7 @@ abstract class AppConfig {
   SecurityPlatform get securityPlatform;
 
   void alert(String msg);
+  /// certContent may be null if QR code not scanned or didn't contain cert content
   void useTlsCertificate(String certContent, Uri certRedirectUrl);
   Future<bool> deviceHasCamera();
   QrCodeScan scanQrCode(BuildContext context);
