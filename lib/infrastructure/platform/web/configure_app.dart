@@ -33,33 +33,20 @@ class _WebAppConfig implements AppConfig {
   _WebAppConfig({this.useTls, this.securityPlatform});
 
   @override
-  void alert(String msg) {
-    window.alert(msg);
-  }
-
-  @override
   WebQrCodeScan scanQrCode(BuildContext context) {
     return new WebQrCodeScan();
   }
 
   @override
-  void useTlsCertificate(String certContent, Uri certRedirectUrl) {
-    window.location.href = getCertHref(certContent, certRedirectUrl);
+  Future<bool> deviceHasCamera() {
+    // TODO-high: implement hasCamera
+    return Future.value(true);
   }
 
   @override
-  Future<bool> deviceHasCamera() {
-    // TODO: implement hasCamera
-    throw UnimplementedError();
-  }
-}
-
-String getCertHref(String certContent, Uri certRedirectUrl) {
-  if (certContent == null) {
-    return certRedirectUrl.toString();
-  } else {
+  Uri createCertObjectUrl(String certContent) {
     var blob = Blob([certContent], "application/pkix-cert");
-    return Url.createObjectUrlFromBlob(blob);
+    return Uri.parse(Url.createObjectUrlFromBlob(blob));
   }
 }
 

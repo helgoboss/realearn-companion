@@ -54,6 +54,8 @@ class ConnectionData {
   String get port =>
       tls ? palette.httpsPort : palette.httpPort;
 
+  String get certContent => palette.certContent;
+
   String get sessionId => palette.sessionId;
 
   bool get isGenerated => palette.isGenerated;

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:realearn_companion/domain/connection.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:stream_transform/stream_transform.dart';
@@ -56,12 +57,13 @@ class ConnectionBuilderState extends State<ConnectionBuilder> {
       if (!widget.connectionData.isGenerated)
         "- Make sure the connection data you entered is correct.",
       "- Open ports in your firewall (step 4 in ReaLearn's projection setup).",
-      "- Make sure the computer running REAPER and this device are in the same network."
-          "- Make sure REAPER and ReaLearn are running.",
+      "- Make sure the computer running REAPER and this device are in the same network.",
+      "- Make sure REAPER and ReaLearn are running.",
     ];
     var dialog = AlertDialog(
       title: Text("Connection failed"),
-      content: MarkdownBody(data: lines.join("\n")),
+      content:
+          SingleChildScrollView(child: MarkdownBody(data: lines.join("\n"))),
       actions: [
         FlatButton(
           child: Text("Cancel"),
@@ -79,40 +81,131 @@ class ConnectionBuilderState extends State<ConnectionBuilder> {
         ),
       ],
     );
-    showDialog(context: context, builder: (BuildContext context) => dialog);
+    showDialogCustom(dialog);
+  }
+
+  void showDialogCustom(AlertDialog dialog) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) => dialog,
+    );
   }
 
   void notifyTrustIssue() {
     setState(() {
       connectionStatus = ConnectionStatus.TrustIssue;
     });
-    var lines = getCertificateInstructions();
+    var instructions = getTrustInstructions();
     var dialog = AlertDialog(
-      title: Text("Almost there"),
-      content: MarkdownBody(data: lines.join("\n")),
+      title: Text("Almost there!"),
+      content: SingleChildScrollView(
+          child: MarkdownBody(data: instructions.lines.join("\n"))),
       actions: [
+        if (instructions.action != null)
+          FlatButton(
+            child: Text(instructions.action.name),
+            onPressed: () {
+              launch(instructions.action.url.toString());
+            },
+          ),
         FlatButton(
-          child: Text("Download certificate"),
+          child: Text("Retry"),
           onPressed: () {
             App.instance.router.pop(context);
+            connect();
           },
         ),
       ],
     );
-    showDialog(context: context, builder: (BuildContext context) => dialog);
-    // // TODO-medium Chrome already complains that we shouldn't redirect a https
-    // //  page to http. But if we redirect to https, we have an additional warning.
-    // //  Maybe just include in instructions. Or on Android/Chrome, maybe we can
-    // //  just skip the certificate installation and just accept in the browser!
-    // var certRedirectUrl = getCertRedirectUrl(
-    //     Uri.parse("http://${conData.host}:${conData.httpPort}/realearn.cer"),
-    //     conData.httpBaseUri);
-    // // TODO-high As soon as we have a proper presentation (not just alerts),
-    // //  try to provide cert download via download link by converting args.getCertContent()
-    // //  to a blob. https://stackoverflow.com/questions/19327749/javascript-blob-filename-without-link
-    // // tryConnect(httpBaseUri, args.isGenerated(), args.getCertContent(), certificateUrl);
-    // App.instance.config.useTlsCertificate(
-    //     widget.connectionDataPalette.certContent, certRedirectUrl);
+    showDialogCustom(dialog);
+  }
+
+  /**
+   * Browser trust issue measure 1 (preferred if possible because very easy).
+   *
+   * URL that needs to be opened in browser to accept that the certificate is
+   * insecure (alternative to trusting the certificate, available in some
+   * browser/OS combinations).
+   */
+  Uri get trustExceptionUrl => widget.connectionData.httpBaseUri;
+
+  /**
+   * Browser trust issue measure 2 (nice and clean but slightly more effort
+   * than measure 1).
+   *
+   * URL which points to a text file containing the certificate content that's
+   * part of the QR code. Falls back to the insecure certificate download URL
+   * that exposes the server certificate via HTTP without TLS.
+   */
+  Uri get certificateDownloadUrl {
+    var data = widget.connectionData;
+    if (data.certContent == null) {
+      // QR code didn't contain certificate content or connection data was
+      // entered manually. Fall back to insecure server-facing certificate
+      // download URL.
+      // TODO-medium Chrome already complains that we shouldn't redirect a https
+      //  page to http. But if we redirect to https, we have an additional warning.
+      //  Maybe just include in instructions.
+      return Uri.parse("http://${data.host}:${data.httpPort}/realearn.cer");
+    }
+    return App.instance.config.createCertObjectUrl(data.certContent);
+  }
+
+  TrustInstructions getTrustInstructions() {
+    var securityPlatform = App.instance.config.securityPlatform;
+    var header =
+        "Congratulations, connection is possible. There's just one step left to make it work. You need to tell your browser that connecting to your personal ReaLearn installation is secure.";
+    // This sounds more serious than it is, it's just that browsers nowadays have a lot of security requirements (which is a good thing in general).
+    // Even though ReaLearn Companion will not ask you for a password or anything like that and therefore security is secondary, it uses browser technology and therefore is bound to conform to its security rules.
+    var footer = "When you are done, come back here.";
+    switch (securityPlatform) {
+      case SecurityPlatform.Android:
+        return TrustInstructions(
+            lines: [
+              header,
+              "",
+              "Proceed as follows:",
+              "1. Download your personal ReaLearn certificate (generated by ReaLearn itself). The Android Certificate Installer will open.",
+              "   - In case it doesn't open: Go to Android settings → Security → (More settings) → Encryption and credentials → Install from storage → Select the previously downloaded certificate file in the \"Downloads\" folder.",
+              "2. Give the certificate the name \"ReaLearn\", select \"VPN and apps\" as credential use and press OK",
+              "",
+              footer
+            ],
+            action: TrustAction(
+                name: "Download certificate", url: certificateDownloadUrl));
+      case SecurityPlatform.iOS:
+        return TrustInstructions(
+            lines: [
+              header,
+              "",
+              "Proceed as follows:",
+              "1. Download your personal \"ReaLearn\" profile (generated by ReaLearn itself). It contains the certificate for a secure connection.",
+              "2. Install the profile! iOS is going to instruct you how to install it.",
+              "3. In your iOS settings, go to General → About → Certificate Trust Settings and enable full trust for the root certificate \"ReaLearn\"",
+              "",
+              footer
+            ],
+            action: TrustAction(
+                name: "Download profile", url: certificateDownloadUrl));
+      case SecurityPlatform.Windows:
+        return TrustInstructions(
+            lines: [
+              header,
+              "",
+              "Proceed as follows:",
+              "1. Navigate to the ReaLearn server page.",
+              "2. The browser will complain that this certificate is untrusted. Allow the browser to make an exception.",
+              "",
+              footer
+            ],
+            action: TrustAction(
+                name: "Navigate to ReaLearn server page",
+                url: trustExceptionUrl));
+      case SecurityPlatform.Linux:
+        return TrustInstructions(lines: ["TODO Linux trust instructions"]);
+      case SecurityPlatform.macOS:
+        return TrustInstructions(lines: ["TODO macOS trust instructions"]);
+    }
   }
 
   void notifyConnectionPossible() {
@@ -150,6 +243,8 @@ class ConnectionBuilderState extends State<ConnectionBuilder> {
         return SizedBox.shrink();
       case ConnectionStatus.Connected:
         return widget.builder(context, webSocketStream);
+      default:
+        throw UnsupportedError("unknown connection status");
     }
   }
 
@@ -182,59 +277,16 @@ class ConnectionBuilderState extends State<ConnectionBuilder> {
   }
 }
 
-Uri getCertRedirectUrl(Uri insecureDownloadUrl, Uri rootUrl) {
-  if (App.instance.config.securityPlatform == SecurityPlatform.Windows) {
-    // TODO-medium As soon as we have proper presentation, open root URL in new
-    //  tab so that we can easily go back!
-    return rootUrl;
-  }
-  return insecureDownloadUrl;
+class TrustInstructions {
+  final List<String> lines;
+  final TrustAction action;
+
+  TrustInstructions({this.lines, this.action});
 }
 
-List<String> getCertificateInstructions() {
-  var header =
-      "Connection is possible, congratulations! We are not there yet. You still need to promise ${App.instance.config.securityPlatform} that connecting to your personal ReaLearn installation is secure.";
-  var footer =
-      "When you are done, come back to this page and reload it or scan the QR code again.\n"
-      "\n"
-      "This sounds more serious than it is, it's just that browsers nowadays have a lot of security requirements (which is a good thing in general).\n"
-      "Even though ReaLearn Companion will not ask you for a password or anything like that and therefore security is secondary, it uses browser technology and therefore is bound to conform to its security rules.";
-  switch (App.instance.config.securityPlatform) {
-    case SecurityPlatform.Android:
-      return [
-        header,
-        "",
-        "Proceed as follows:",
-        "1. When you press continue, a certificate file will be downloaded. Tap the downloaded file and the android Certificate Installer will open.",
-        "   - In case it doesn't open: Go to Android settings → Security → (More settings) → Encryption and credentials → Install from storage → Select the previously downloaded certificate file in the \"Downloads\" folder.",
-        "3. Give the certificate the name \"ReaLearn\", select \"VPN and apps\" as credential use and press OK",
-        "",
-        footer
-      ];
-    case SecurityPlatform.iOS:
-      return [
-        header,
-        "",
-        "Proceed as follows:",
-        "1. When you press continue, you will be provided with the profile \"ReaLearn\" that contains the certificate for a secure connection. iOS is going to instruct you how to install it.",
-        "2. Install the profile!",
-        "3. In your iOS settings, go to General → About → Certificate Trust Settings and enable full trust for the root certificate \"ReaLearn\"",
-        "",
-        footer
-      ];
-    case SecurityPlatform.Windows:
-      return [
-        header,
-        "",
-        "Proceed as follows:",
-        "1. When you press continue, you will be forwarded to the ReaLearn server page.",
-        "2. Accept that the certificate is untrusted.",
-        "",
-        footer
-      ];
-    case SecurityPlatform.Linux:
-      return ["TODO Linux certificate instructions"];
-    case SecurityPlatform.macOS:
-      return ["TODO macOS certificate instructions"];
-  }
+class TrustAction {
+  final String name;
+  final Uri url;
+
+  TrustAction({this.name, this.url});
 }

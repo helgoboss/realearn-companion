@@ -23,24 +23,19 @@ class _NativeAppConfig implements AppConfig {
   bool get useTls => true;
 
   @override
-  void alert(String msg) {
-    log(msg);
-  }
-
-  @override
   NativeQrCodeScan scanQrCode(BuildContext context) {
     return NativeQrCodeScan();
-  }
-
-  @override
-  void useTlsCertificate(String certContent, Uri certRedirectUrl) {
-    // TODO-medium Necessary?
   }
 
   @override
   Future<bool> deviceHasCamera() async {
     var cameras = await availableCameras();
     return !cameras.isEmpty;
+  }
+
+  @override
+  Uri createCertObjectUrl(String content) {
+    throw UnsupportedError("this shouldn't be called in a native app");
   }
 }
 
