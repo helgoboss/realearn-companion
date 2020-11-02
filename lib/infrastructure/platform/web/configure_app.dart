@@ -38,9 +38,12 @@ class _WebAppConfig implements AppConfig {
   }
 
   @override
-  Future<bool> deviceHasCamera() {
-    // TODO-high: implement hasCamera
-    return Future.value(true);
+  Future<bool> deviceHasCamera() async {
+    if (window.navigator.mediaDevices == null) {
+      return false;
+    }
+    var devices = await window.navigator.mediaDevices.enumerateDevices();
+    return devices.any((dev) => dev.kind == 'videoinput');
   }
 
   @override
