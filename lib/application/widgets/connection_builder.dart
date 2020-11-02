@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:realearn_companion/domain/connection.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:stream_transform/stream_transform.dart';
 
 import '../app.dart';
 import '../app_config.dart';
@@ -42,7 +43,7 @@ const connectTimeoutInSeconds = 5;
 class ConnectionBuilderState extends State<ConnectionBuilder> {
   int successfulConnectsCount = 0;
   ConnectionStatus connectionStatus = ConnectionStatus.Connecting;
-  WebSocketChannel webSocketChannel = null;
+  Stream<dynamic> webSocketStream = Stream.empty();
 
   void notifyTimeout() {
     setState(() {
@@ -51,11 +52,12 @@ class ConnectionBuilderState extends State<ConnectionBuilder> {
     var lines = [
       "Couldn't connect to ReaLearn within ${connectTimeoutInSeconds} seconds.",
       "",
-      "Please try the following things:",
+      "Please consider the following advice:",
       if (!widget.connectionData.isGenerated)
         "- Make sure the connection data you entered is correct.",
       "- Open ports in your firewall (step 4 in ReaLearn's projection setup).",
       "- Make sure the computer running REAPER and this device are in the same network."
+          "- Make sure REAPER and ReaLearn are running.",
     ];
     var dialog = AlertDialog(
       title: Text("Connection failed"),
@@ -115,9 +117,13 @@ class ConnectionBuilderState extends State<ConnectionBuilder> {
 
   void notifyConnectionPossible() {
     var wsUrl = widget.connectionData.buildWebSocketUrl(widget.topics);
-    webSocketChannel = WebSocketChannel.connect(wsUrl);
     setState(() {
+      var channel = WebSocketChannel.connect(wsUrl);
+      webSocketStream = channel.stream.tap((_) {}, onDone: () {
+        connect();
+      });
       connectionStatus = ConnectionStatus.Connected;
+      successfulConnectsCount += 1;
     });
   }
 
@@ -129,7 +135,7 @@ class ConnectionBuilderState extends State<ConnectionBuilder> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              "Connecting to ReaLearn...",
+              "${isReconnect ? 'Reconnecting' : 'Connecting'} to ReaLearn...",
               style: Theme.of(context).textTheme.headline5,
             ),
             Space(),
@@ -143,7 +149,7 @@ class ConnectionBuilderState extends State<ConnectionBuilder> {
       case ConnectionStatus.TrustIssue:
         return SizedBox.shrink();
       case ConnectionStatus.Connected:
-        return widget.builder(context, webSocketChannel.stream);
+        return widget.builder(context, webSocketStream);
     }
   }
 
@@ -153,6 +159,8 @@ class ConnectionBuilderState extends State<ConnectionBuilder> {
     connect();
   }
 
+  bool get isReconnect => successfulConnectsCount > 0;
+
   void connect() async {
     setState(() {
       connectionStatus = ConnectionStatus.Connecting;
@@ -160,9 +168,11 @@ class ConnectionBuilderState extends State<ConnectionBuilder> {
     try {
       // TODO-low Use one client for all requests
       // TODO-low Use head (it always brings a timeout in my case)
-      await http
-          .get(widget.connectionData.httpBaseUri)
-          .timeout(Duration(seconds: connectTimeoutInSeconds));
+      var responseFuture = http.get(widget.connectionData.httpBaseUri);
+      var awaitedFuture = isReconnect
+          ? responseFuture
+          : responseFuture.timeout(Duration(seconds: connectTimeoutInSeconds));
+      await awaitedFuture;
       notifyConnectionPossible();
     } on TimeoutException catch (_) {
       notifyTimeout();
