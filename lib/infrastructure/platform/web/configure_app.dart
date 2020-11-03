@@ -8,7 +8,7 @@ import 'qr_code_scanner.dart';
 import '../../../application/app_config.dart';
 
 AppConfig configureApp() {
-  setUrlStrategy(PathUrlStrategy());
+  // setUrlStrategy(PathUrlStrategy());
   return _WebAppConfig(
       // TODO-low Revise this
       // iPad Safari can ONLY connect to non-TLS websocket f the companion app URL
