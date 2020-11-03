@@ -4,15 +4,27 @@ import '../infrastructure/platform/stub/configure_app.dart';
 
 abstract class AppConfig {
   bool get useTls;
+
   SecurityPlatform get securityPlatform;
 
   Future<bool> deviceHasCamera();
+
   QrCodeScan scanQrCode(BuildContext context);
+
   Uri createCertObjectUrl(String content);
+
+  Widget svgImage(
+    String assetPath, {
+    Color color,
+    BoxFit fit,
+    double width,
+    double height,
+  });
 }
 
 abstract class QrCodeScan {
   Widget get widget;
+
   Future<String> get result;
 }
 

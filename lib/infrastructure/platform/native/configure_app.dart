@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:camera/camera.dart';
 import 'package:barcode_scan/barcode_scan.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../application/app_config.dart';
 
@@ -36,6 +37,18 @@ class _NativeAppConfig implements AppConfig {
   @override
   Uri createCertObjectUrl(String content) {
     throw UnsupportedError("this shouldn't be called in a native app");
+  }
+
+  @override
+  Widget svgImage(String assetPath,
+      {Color color, BoxFit fit, double width, double height}) {
+    return SvgPicture.asset(
+      assetPath,
+      color: color,
+      fit: fit,
+      width: width,
+      height: height,
+    );
   }
 }
 

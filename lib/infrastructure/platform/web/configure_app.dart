@@ -1,7 +1,8 @@
 import 'dart:html';
 
+import 'package:flutter/src/painting/box_fit.dart';
 import 'package:flutter/src/widgets/framework.dart';
-import 'package:flutter_web_plugins/flutter_web_plugins.dart';
+import 'package:flutter/widgets.dart';
 import 'package:platform_detect/platform_detect.dart';
 import 'qr_code_scanner.dart';
 
@@ -50,6 +51,18 @@ class _WebAppConfig implements AppConfig {
   Uri createCertObjectUrl(String certContent) {
     var blob = Blob([certContent], "application/pkix-cert");
     return Uri.parse(Url.createObjectUrlFromBlob(blob));
+  }
+
+  @override
+  Widget svgImage(String assetPath,
+      {Color color, BoxFit fit, double width, double height}) {
+    return Image.network(
+      assetPath,
+      color: color,
+      fit: fit,
+      width: width,
+      height: height,
+    );
   }
 }
 
