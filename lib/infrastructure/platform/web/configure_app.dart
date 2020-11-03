@@ -49,7 +49,14 @@ class _WebAppConfig implements AppConfig {
 
   @override
   Uri createCertObjectUrl(String certContent) {
-    var blob = Blob([certContent], "application/pkix-cert");
+    const mimeType = "application/pkix-cert";
+    if (browser.isSafari) {
+      // Unfortunately, Safari doesn't see a profile when downloading a blob
+      // object URL. Also tried it with data URI, same effect: 'Do you want to
+      // download "Unknown"?'
+      return null;
+    }
+    var blob = Blob([certContent], mimeType);
     return Uri.parse(Url.createObjectUrlFromBlob(blob));
   }
 

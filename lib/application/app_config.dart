@@ -11,6 +11,9 @@ abstract class AppConfig {
 
   QrCodeScan scanQrCode(BuildContext context);
 
+  /**
+   * Returns null if not supported.
+   */
   Uri createCertObjectUrl(String content);
 
   Widget svgImage(

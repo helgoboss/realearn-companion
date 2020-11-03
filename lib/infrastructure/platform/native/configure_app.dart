@@ -36,7 +36,9 @@ class _NativeAppConfig implements AppConfig {
 
   @override
   Uri createCertObjectUrl(String content) {
-    throw UnsupportedError("this shouldn't be called in a native app");
+    // This shouldn't be necessary anyway in a native app because we can choose
+    // to be fine with a self-signed certificate (at least on Android).
+    return null;
   }
 
   @override

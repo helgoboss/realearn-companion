@@ -143,12 +143,18 @@ class ConnectionBuilderState extends State<ConnectionBuilder> {
       // QR code didn't contain certificate content or connection data was
       // entered manually. Fall back to insecure server-facing certificate
       // download URL.
-      // TODO-medium Chrome already complains that we shouldn't redirect a https
-      //  page to http. But if we redirect to https, we have an additional warning.
-      //  Maybe just include in instructions.
-      return Uri.parse("http://${data.host}:${data.httpPort}/realearn.cer");
+      return insecureCertificateDownloadUrl;
     }
-    return App.instance.config.createCertObjectUrl(data.certContent);
+    return App.instance.config.createCertObjectUrl(data.certContent) ??
+        insecureCertificateDownloadUrl;
+  }
+
+  Uri get insecureCertificateDownloadUrl {
+    var data = widget.connectionData;
+    // TODO-medium Chrome already complains that we shouldn't redirect a https
+    //  page to http. But if we redirect to https, we have an additional warning.
+    //  Maybe just include in instructions.
+    return Uri.parse("http://${data.host}:${data.httpPort}/realearn.cer");
   }
 
   TrustInstructions getTrustInstructions() {
