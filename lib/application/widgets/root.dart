@@ -28,14 +28,14 @@ class RootWidget extends StatelessWidget {
             FutureBuilder<bool>(
                 future: App.instance.config.deviceHasCamera(),
                 builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
+                  var hasCamera = snapshot.data == true;
                   return ProminentButton(
                       icon: const Icon(Icons.qr_code_scanner),
                       text: 'Scan QR code',
-                      onPressed: snapshot.data == true
+                      onPressed: hasCamera
                           ? () {
-                              App.instance.router.navigateTo(
-                                  context, scanConnectionDataRoute,
-                                  transition: TransitionType.native);
+                              App.instance.router
+                                  .navigateTo(context, scanConnectionDataRoute);
                             }
                           : null);
                 }),
@@ -49,9 +49,8 @@ class RootWidget extends StatelessWidget {
                 icon: const Icon(Icons.keyboard),
                 text: 'Enter connection data',
                 onPressed: () {
-                  App.instance.router.navigateTo(
-                      context, enterConnectionDataRoute,
-                      transition: TransitionType.native);
+                  App.instance.router
+                      .navigateTo(context, enterConnectionDataRoute);
                 }),
           ],
         )

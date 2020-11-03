@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:realearn_companion/application/routes.dart';
 import '../app.dart';
-import 'normal_scaffold.dart';
 
 class ScanConnectionDataWidget extends StatelessWidget {
   final Widget scannerWidget;
@@ -12,39 +11,30 @@ class ScanConnectionDataWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return NormalScaffold(
-      child: FutureBuilder<String>(
-          future: result,
-          builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
-            var nothing = SizedBox.shrink();
-            if (snapshot.hasError) {
-              cancelScanning(context, "Couldn't scan QR code", isError: true);
-              return nothing;
-            } else if (snapshot.hasData) {
-              if (snapshot.data == null || snapshot.data.isEmpty) {
-                cancelScanning(context, "Cancelled scanning QR code");
-                return nothing;
-              } else {
-                try {
-                  var uri = Uri.parse(snapshot.data);
-                  var connectionArgs =
-                      ConnectionArgs.fromParams(uri.queryParametersAll);
-                  if (!connectionArgs.isComplete) {
-                    handleWrongQrCode(context);
-                    return nothing;
-                  }
-                  handleSuccess(context, connectionArgs);
-                  return nothing;
-                } on FormatException catch (_) {
-                  handleWrongQrCode(context);
-                  return nothing;
-                }
-              }
+    return FutureBuilder<String>(
+        future: result,
+        builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
+          if (snapshot.hasError) {
+            cancelScanning(context, "Couldn't scan QR code", isError: true);
+          } else if (snapshot.hasData) {
+            if (snapshot.data == null || snapshot.data.isEmpty) {
+              cancelScanning(context, "Cancelled scanning QR code");
             } else {
-              return nothing;
+              try {
+                var uri = Uri.parse(snapshot.data);
+                var connectionArgs =
+                    ConnectionArgs.fromParams(uri.queryParametersAll);
+                if (!connectionArgs.isComplete) {
+                  handleWrongQrCode(context);
+                }
+                handleSuccess(context, connectionArgs);
+              } on FormatException catch (_) {
+                handleWrongQrCode(context);
+              }
             }
-          }),
-    );
+          }
+          return scannerWidget;
+        });
   }
 }
 
