@@ -59,8 +59,13 @@ class _WebQrCodeScannerWidgetState extends State<WebQrCodeScannerWidget> {
 
 <body>
     <canvas id="canvas" hidden></canvas>
+    <video id="video"></video>
     <script>
-        var video = document.createElement("video");
+        var video = document.getElementById("video");
+        video['style']['transform'] = 'scale(0.0001,0.0001)';
+        video['style']['position'] = 'fixed';
+        video['style']['bottom'] = '0px';
+        video['style']['right'] = '0px';
         var canvasElement = document.getElementById("canvas");
         var canvas = canvasElement.getContext("2d");
         navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(function (stream) {
