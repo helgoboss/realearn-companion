@@ -48,7 +48,7 @@ void configureRoutes(FluroRouter router) {
       //  This can happen when entering URL or call from cmd line manually
       return Text("Incomplete connection args: $params");
     }
-    return ControllerRoutingWidget(connectionDataPalette: args.toPalette());
+    return ControllerRoutingPage(connectionDataPalette: args.toPalette());
   }));
 }
 
