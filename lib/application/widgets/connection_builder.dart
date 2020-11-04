@@ -220,7 +220,7 @@ class ConnectionBuilderState extends State<ConnectionBuilder> {
       var channel = WebSocketChannel.connect(wsUrl);
       webSocketStream = channel.stream.tap((_) {}, onDone: () {
         connect();
-      });
+      }).asBroadcastStream();
       connectionStatus = ConnectionStatus.Connected;
       successfulConnectsCount += 1;
     });
