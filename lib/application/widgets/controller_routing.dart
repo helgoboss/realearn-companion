@@ -151,11 +151,72 @@ class ControllerRoutingWidget extends StatelessWidget {
       minScale: 0.5,
       maxScale: 4,
       child: Container(
-          // child: controllerRoutingCanvas(
-          //   controller: controller,
-          //   routing: routing,
-          // ),
-          ),
+        child: ControllerRoutingCanvas(
+          controller: controller,
+          routing: routing,
+        ),
+      ),
     );
+  }
+}
+
+class ControllerRoutingCanvas extends StatelessWidget {
+  final Controller controller;
+  final ControllerRouting routing;
+
+  const ControllerRoutingCanvas({Key key, this.controller, this.routing})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    var draggables = controller.mappings.map((m) {
+      var route = routing.routes[m.id];
+      var data =
+          controller.findControlData(m.id) ?? ControlData(x: 0.0, y: 0.0);
+      return Control(
+        label: route?.label ?? "",
+        data: data,
+      );
+    }).toList();
+    return Stack(
+      children: draggables,
+    );
+  }
+}
+
+class Control extends StatelessWidget {
+  final String label;
+  final ControlData data;
+
+  const Control({Key key, this.label, this.data}) : super(key: key);
+
+  Offset getOffset() => Offset(data.x, data.y);
+
+  @override
+  Widget build(BuildContext context) {
+    var container = Container(
+      height: 50.0,
+      width: 50.0,
+      decoration: new BoxDecoration(
+        color: Colors.green,
+        shape: mapControlShapeToBoxShape(data.shape ?? ControlShape.circle),
+      ),
+      child: FittedBox(
+        fit: BoxFit.none,
+        clipBehavior: Clip.none,
+        child: Text(label),
+      ),
+    );
+    var offset = getOffset();
+    return Positioned(top: offset.dy, left: offset.dx, child: container);
+  }
+}
+
+BoxShape mapControlShapeToBoxShape(ControlShape controlShape) {
+  switch (controlShape) {
+    case ControlShape.circle:
+      return BoxShape.circle;
+    case ControlShape.rectangle:
+      return BoxShape.rectangle;
   }
 }
