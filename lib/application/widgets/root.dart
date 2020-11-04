@@ -34,8 +34,8 @@ class RootWidget extends StatelessWidget {
                       text: 'Scan QR code',
                       onPressed: hasCamera
                           ? () {
-                              App.instance.router
-                                  .navigateTo(context, scanConnectionDataRoute);
+                              Navigator.pushNamed(
+                                  context, scanConnectionDataRoute);
                             }
                           : null);
                 }),
@@ -49,8 +49,7 @@ class RootWidget extends StatelessWidget {
                 icon: const Icon(Icons.keyboard),
                 text: 'Enter connection data',
                 onPressed: () {
-                  App.instance.router
-                      .navigateTo(context, enterConnectionDataRoute);
+                  Navigator.pushNamed(context, enterConnectionDataRoute);
                 }),
           ],
         )

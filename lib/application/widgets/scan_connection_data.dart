@@ -40,9 +40,8 @@ class ScanConnectionDataWidget extends StatelessWidget {
 
 void handleSuccess(BuildContext context, ConnectionArgs connectionArgs) {
   WidgetsBinding.instance.addPostFrameCallback((_) {
-    App.instance.router.navigateTo(
-        context, "$controllerRoutingRoute?${connectionArgs.toQueryString()}",
-        replace: true);
+    Navigator.pushReplacementNamed(
+        context, "$controllerRoutingRoute?${connectionArgs.toQueryString()}");
   });
 }
 
@@ -66,16 +65,15 @@ void continueOrCancelScanning({
         FlatButton(
           child: Text("Cancel"),
           onPressed: () {
-            App.instance.router.pop(context);
+            Navigator.pop(context);
             cancelScanning(context, "Cancelled scanning QR code");
           },
         ),
         FlatButton(
           child: Text("Continue"),
           onPressed: () {
-            App.instance.router.pop(context);
-            App.instance.router
-                .navigateTo(context, scanConnectionDataRoute, replace: true);
+            Navigator.pop(context);
+            Navigator.pushReplacementNamed(context, scanConnectionDataRoute);
           },
         ),
       ],
@@ -89,6 +87,6 @@ void cancelScanning(BuildContext context, String msg, {bool isError = false}) {
     var snackBar = SnackBar(
         content: Text(msg), backgroundColor: isError ? Colors.red : null);
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
-    App.instance.router.pop(context);
+    Navigator.pop(context);
   });
 }
