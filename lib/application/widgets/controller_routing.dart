@@ -25,6 +25,7 @@ class ControllerRoutingPage extends StatefulWidget {
 class ControllerRoutingPageState extends State<ControllerRoutingPage> {
   bool appBarIsVisible = true;
   bool isInEditMode = false;
+  bool madeEdit = false;
 
   void toggleAppBar() {
     setState(() {
@@ -44,28 +45,30 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
     });
   }
 
+  void notifyEditMade() {
+    setState(() {
+      madeEdit = true;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     AppBar controllerRoutingAppBar() {
-      var themeData = Theme.of(context);
+      var theme = Theme.of(context);
       return AppBar(
         title: Text("Controller Routing"),
         actions: [
-          if (isInEditMode)
-            IconButton(
-              icon: Icon(
-                Icons.save,
-              ),
-              color: themeData.colorScheme.onPrimary,
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text("Saved controller layout")));
-              },
-            ),
           IconButton(
-            icon: Icon(
-              isInEditMode ? Icons.clear : Icons.edit,
-            ),
+            icon: Icon(Icons.save),
+            onPressed: madeEdit ? () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text("Saved controller layout")),
+              );
+            } : null,
+          ),
+          IconButton(
+            icon: Icon(Icons.edit),
+            color: isInEditMode ? theme.accentColor : null,
             onPressed: () {
               if (isInEditMode) {
                 leaveEditMode();
@@ -94,7 +97,10 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
             toggleAppBar();
           },
           child: ControllerRoutingContainer(
-              messages: messages, isInEditMode: isInEditMode),
+            messages: messages,
+            isInEditMode: isInEditMode,
+            onEdit: notifyEditMade,
+          ),
         ),
       ),
     );
@@ -104,8 +110,10 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
 class ControllerRoutingContainer extends StatefulWidget {
   final Stream<dynamic> messages;
   final bool isInEditMode;
+  final VoidCallback onEdit;
 
-  const ControllerRoutingContainer({Key key, this.messages, this.isInEditMode})
+  const ControllerRoutingContainer(
+      {Key key, this.messages, this.isInEditMode, this.onEdit})
       : super(key: key);
 
   @override
@@ -117,8 +125,8 @@ class ControllerRoutingContainer extends StatefulWidget {
 class ControllerRoutingContainerState
     extends State<ControllerRoutingContainer> {
   StreamSubscription messagesSubscription;
-  Controller controller = null;
-  ControllerRouting routing = null;
+  Controller controller;
+  ControllerRouting routing;
 
   @override
   Widget build(BuildContext context) {
@@ -126,6 +134,12 @@ class ControllerRoutingContainerState
       controller: controller,
       routing: routing,
       isInEditMode: widget.isInEditMode,
+      onControlDataUpdate: (mappingId, data) {
+        setState(() {
+          widget.onEdit();
+          controller.updateControlData(mappingId, data);
+        });
+      },
     );
   }
 
@@ -177,10 +191,15 @@ class ControllerRoutingWidget extends StatelessWidget {
   final Controller controller;
   final ControllerRouting routing;
   final bool isInEditMode;
+  final Function(String, ControlData) onControlDataUpdate;
 
-  const ControllerRoutingWidget(
-      {Key key, this.controller, this.routing, this.isInEditMode})
-      : super(key: key);
+  const ControllerRoutingWidget({
+    Key key,
+    this.controller,
+    this.routing,
+    this.isInEditMode,
+    this.onControlDataUpdate,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -196,6 +215,7 @@ class ControllerRoutingWidget extends StatelessWidget {
         controller: controller,
         routing: routing,
         isInEditMode: isInEditMode,
+        onControlDataUpdate: onControlDataUpdate,
       ),
     );
   }
@@ -205,10 +225,15 @@ class ControllerRoutingCanvas extends StatelessWidget {
   final Controller controller;
   final ControllerRouting routing;
   final bool isInEditMode;
+  final Function(String, ControlData) onControlDataUpdate;
 
-  const ControllerRoutingCanvas(
-      {Key key, this.controller, this.routing, this.isInEditMode})
-      : super(key: key);
+  const ControllerRoutingCanvas({
+    Key key,
+    this.controller,
+    this.routing,
+    this.isInEditMode,
+    this.onControlDataUpdate,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -227,6 +252,9 @@ class ControllerRoutingCanvas extends StatelessWidget {
             label: m.name,
             data: data,
             scale: scale,
+            onControlDataUpdate: (data) {
+              onControlDataUpdate(m.id, data);
+            },
           );
         } else {
           return FixedControl(
@@ -247,8 +275,10 @@ class EditableControl extends StatefulWidget {
   final String label;
   final ControlData data;
   final double scale;
+  final Function(ControlData) onControlDataUpdate;
 
-  const EditableControl({Key key, this.label, this.data, this.scale})
+  const EditableControl(
+      {Key key, this.label, this.data, this.scale, this.onControlDataUpdate})
       : super(key: key);
 
   @override
@@ -275,11 +305,20 @@ class EditableControlState extends State<EditableControl> {
   }
 
   void onDragEnd() {
-    // var alignedToGrid = alignOffsetToGrid(dragOffset, 10, 10);
+    var alignedToGrid = alignOffsetToGrid(dragOffset, 10, 10);
     setState(() {
       dragOffset = null;
     });
-    // notifyControlDataChanged(x: alignedToGrid.dx, y: alignedToGrid.dy);
+    notifyControlDataChanged(x: alignedToGrid.dx, y: alignedToGrid.dy);
+  }
+
+  void notifyControlDataChanged({ControlShape shape, double x, double y}) {
+    var data = ControlData(
+      shape: shape ?? widget.data.shape,
+      x: x ?? widget.data.x,
+      y: y ?? widget.data.y,
+    );
+    widget.onControlDataUpdate(data);
   }
 
   @override
@@ -382,4 +421,15 @@ BoxShape mapControlShapeToBoxShape(ControlShape controlShape) {
     default:
       throw UnsupportedError("Unknown value $controlShape");
   }
+}
+
+Offset alignOffsetToGrid(Offset offset, double xGridSize, double yGridSize) {
+  return Offset(
+    roundNumberToGridSize(offset.dx, xGridSize),
+    roundNumberToGridSize(offset.dy, yGridSize),
+  );
+}
+
+double roundNumberToGridSize(double number, double gridSize) {
+  return (number / gridSize).roundToDouble() * gridSize;
 }
