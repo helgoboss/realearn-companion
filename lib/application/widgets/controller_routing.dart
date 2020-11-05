@@ -23,11 +23,18 @@ class ControllerRoutingPage extends StatefulWidget {
 
 class ControllerRoutingPageState extends State<ControllerRoutingPage> {
   bool appBarIsVisible = true;
+  Timer timer = null;
 
   @override
   void initState() {
     super.initState();
     showAppBarForSomeSecs();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    timer?.cancel();
   }
 
   void showAppBar(bool show) {
@@ -38,7 +45,8 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
 
   void showAppBarForSomeSecs() {
     showAppBar(true);
-    Timer(Duration(seconds: 3), () {
+    timer?.cancel();
+    timer = Timer(Duration(seconds: 3), () {
       showAppBar(false);
     });
   }
