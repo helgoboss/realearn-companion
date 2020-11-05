@@ -15,6 +15,7 @@ class App {
   static App _instance;
 
   final AppConfig config;
+
   // We need the router hot-reloadable, so it's not final
   FluroRouter router;
 
@@ -55,5 +56,12 @@ class App {
   void configureHotReloadable() {
     router = FluroRouter();
     configureRoutes(router);
+  }
+
+  ConnectionData createConnectionData(ConnectionDataPalette palette) {
+    // TODO There might be some browsers (macOS Safari?) which won't connect
+    //  from a secure (companion app) website to a non-secure localhost, so
+    //  maybe we should use TLS even then!
+    return palette.use(tls: config.useTls);
   }
 }

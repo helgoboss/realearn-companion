@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
@@ -21,15 +22,11 @@ class ConnectionBuilder extends StatefulWidget {
   final List<String> topics;
   final Widget Function(BuildContext context, Stream<dynamic> messages) builder;
 
-  // TODO There might be some browsers (macOS Safari?) which won't connect
-  //  from a secure (companion app) website to a non-secure localhost, so
-  //  maybe we should use TLS even then!
-  ConnectionBuilder(
-      {@required ConnectionDataPalette connectionDataPalette,
-      this.topics,
-      this.builder})
-      : connectionData =
-            connectionDataPalette.use(tls: App.instance.config.useTls);
+  ConnectionBuilder({
+    this.connectionData,
+    this.topics,
+    this.builder,
+  });
 
   @override
   State<StatefulWidget> createState() {

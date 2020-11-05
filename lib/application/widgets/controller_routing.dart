@@ -1,9 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
-import 'dart:math';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:realearn_companion/application/repositories/controller.dart';
 import 'package:realearn_companion/domain/connection.dart';
 import 'package:realearn_companion/domain/model.dart';
 
@@ -11,9 +12,9 @@ import 'connection_builder.dart';
 import 'normal_scaffold.dart';
 
 class ControllerRoutingPage extends StatefulWidget {
-  final ConnectionDataPalette connectionDataPalette;
+  final ConnectionData connectionData;
 
-  const ControllerRoutingPage({Key key, @required this.connectionDataPalette})
+  const ControllerRoutingPage({Key key, @required this.connectionData})
       : super(key: key);
 
   @override
@@ -26,6 +27,7 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
   bool appBarIsVisible = true;
   bool isInEditMode = false;
   bool madeEdit = false;
+  Controller controller = null;
 
   void toggleAppBar() {
     setState(() {
@@ -45,9 +47,19 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
     });
   }
 
-  void notifyEditMade() {
+  void saveController() async {
+    await ControllerRepository(widget.connectionData).save(controller);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Saved controller layout")),
+    );
     setState(() {
-      madeEdit = true;
+      madeEdit = false;
+    });
+  }
+
+  void setController(Controller controller) {
+    setState(() {
+      this.controller = controller;
     });
   }
 
@@ -60,11 +72,7 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
         actions: [
           IconButton(
             icon: Icon(Icons.save),
-            onPressed: madeEdit ? () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text("Saved controller layout")),
-              );
-            } : null,
+            onPressed: madeEdit ? saveController : null,
           ),
           IconButton(
             icon: Icon(Icons.edit),
@@ -81,7 +89,7 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
       );
     }
 
-    var sessionId = widget.connectionDataPalette.sessionId;
+    var sessionId = widget.connectionData.sessionId;
     var controllerTopic = "/realearn/session/$sessionId/controller";
     var controllerRoutingTopic =
         "/realearn/session/$sessionId/controller-routing";
@@ -89,7 +97,7 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
       padding: EdgeInsets.all(10),
       appBar: appBarIsVisible ? controllerRoutingAppBar() : null,
       child: ConnectionBuilder(
-        connectionDataPalette: widget.connectionDataPalette,
+        connectionData: widget.connectionData,
         topics: [controllerTopic, controllerRoutingTopic],
         builder: (BuildContext context, Stream<dynamic> messages) =>
             GestureDetector(
@@ -99,7 +107,14 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
           child: ControllerRoutingContainer(
             messages: messages,
             isInEditMode: isInEditMode,
-            onEdit: notifyEditMade,
+            onControlDataUpdated: (mappingId, data) {
+              setState(() {
+                controller.updateControlData(mappingId, data);
+                madeEdit = true;
+              });
+            },
+            controller: controller,
+            onControllerSwitched: setController,
           ),
         ),
       ),
@@ -108,13 +123,20 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
 }
 
 class ControllerRoutingContainer extends StatefulWidget {
+  final Controller controller;
   final Stream<dynamic> messages;
   final bool isInEditMode;
-  final VoidCallback onEdit;
+  final Function(Controller controller) onControllerSwitched;
+  final Function(String mappingId, ControlData data) onControlDataUpdated;
 
-  const ControllerRoutingContainer(
-      {Key key, this.messages, this.isInEditMode, this.onEdit})
-      : super(key: key);
+  const ControllerRoutingContainer({
+    Key key,
+    this.messages,
+    this.isInEditMode,
+    this.controller,
+    this.onControllerSwitched,
+    this.onControlDataUpdated,
+  }) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
@@ -125,20 +147,16 @@ class ControllerRoutingContainer extends StatefulWidget {
 class ControllerRoutingContainerState
     extends State<ControllerRoutingContainer> {
   StreamSubscription messagesSubscription;
-  Controller controller;
   ControllerRouting routing;
 
   @override
   Widget build(BuildContext context) {
     return ControllerRoutingWidget(
-      controller: controller,
+      controller: widget.controller,
       routing: routing,
       isInEditMode: widget.isInEditMode,
       onControlDataUpdate: (mappingId, data) {
-        setState(() {
-          widget.onEdit();
-          controller.updateControlData(mappingId, data);
-        });
+        widget.onControlDataUpdated(mappingId, data);
       },
     );
   }
@@ -160,9 +178,10 @@ class ControllerRoutingContainerState
       var realearnEvent = RealearnEvent.fromJson(jsonObject);
       if (realearnEvent.type == "updated") {
         if (realearnEvent.path.endsWith("/controller")) {
-          updateController(Controller.fromJson(realearnEvent.payload));
+          widget
+              .onControllerSwitched(Controller.fromJson(realearnEvent.payload));
         } else if (realearnEvent.path.endsWith("/controller-routing")) {
-          updateRouting(ControllerRouting.fromJson(realearnEvent.payload));
+          setRouting(ControllerRouting.fromJson(realearnEvent.payload));
         }
       }
     });
@@ -174,13 +193,7 @@ class ControllerRoutingContainerState
     super.dispose();
   }
 
-  void updateController(Controller controller) {
-    setState(() {
-      this.controller = controller;
-    });
-  }
-
-  void updateRouting(ControllerRouting routing) {
+  void setRouting(ControllerRouting routing) {
     setState(() {
       this.routing = routing;
     });
@@ -242,7 +255,7 @@ class ControllerRoutingCanvas extends StatelessWidget {
         builder: (BuildContext context, BoxConstraints constraints) {
       var widthScale = constraints.maxWidth / controllerSize.width;
       var heightScale = constraints.maxHeight / controllerSize.height;
-      var scale = min(widthScale, heightScale);
+      var scale = math.min(widthScale, heightScale);
       var controls = controller.mappings.map((m) {
         var route = routing.routes[m.id];
         var data =

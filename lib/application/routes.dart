@@ -38,7 +38,8 @@ void configureRoutes(FluroRouter router) {
   router.define(scanConnectionDataRoute, handler: Handler(
       handlerFunc: (BuildContext context, Map<String, List<String>> params) {
     var scan = App.instance.config.scanQrCode(context);
-    return ScanConnectionDataWidget(scannerWidget: scan.widget, result: scan.result);
+    return ScanConnectionDataWidget(
+        scannerWidget: scan.widget, result: scan.result);
   }));
   router.define(enterConnectionDataRoute, handler: Handler(
       handlerFunc: (BuildContext context, Map<String, List<String>> params) {
@@ -52,7 +53,9 @@ void configureRoutes(FluroRouter router) {
       //  This can happen when entering URL or call from cmd line manually
       return Text("Incomplete connection args: $params");
     }
-    return ControllerRoutingPage(connectionDataPalette: args.toPalette());
+    return ControllerRoutingPage(
+      connectionData: App.instance.createConnectionData(args.toPalette()),
+    );
   }));
 }
 
