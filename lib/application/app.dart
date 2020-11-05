@@ -1,8 +1,12 @@
+import 'dart:convert';
 import 'dart:developer';
 
 import 'package:fluro/fluro.dart';
 import 'package:flutter/material.dart';
 import 'package:realearn_companion/application/routes.dart';
+import 'package:realearn_companion/domain/connection.dart';
+import 'package:realearn_companion/domain/preferences.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app_config.dart';
 import 'widgets/app.dart';
@@ -21,6 +25,30 @@ class App {
 
   static App get instance => _instance;
 
+  Future<ConnectionDataPalette> loadLastConnection() async {
+    var prefs = await SharedPreferences.getInstance();
+    var jsonStrings = await prefs.getStringList('recentConnections');
+    if (jsonStrings == null || jsonStrings.isEmpty) {
+      return null;
+    }
+    var jsonString = jsonStrings.first;
+    var jsonMap = jsonDecode(jsonString);
+    var recentConnection = RecentConnection.fromJson(jsonMap);
+    return recentConnection.toPalette();
+  }
+
+  void saveLastConnection(ConnectionDataPalette palette) async {
+    var recentConnection = RecentConnection.fromPalette(palette);
+    var jsonMap = recentConnection.toJson();
+    var jsonString = jsonEncode(jsonMap);
+    var prefs = await SharedPreferences.getInstance();
+    // Maybe we want to save multiple recent connections in future so we use a
+    // list of exactly one connection.
+    await prefs.setStringList('recentConnections', [jsonString]);
+  }
+
+  App._privateConstructor({this.config});
+
   /**
    * Must be called in a function that's called on hot reload.
    */
@@ -28,6 +56,4 @@ class App {
     router = FluroRouter();
     configureRoutes(router);
   }
-
-  App._privateConstructor({this.config});
 }

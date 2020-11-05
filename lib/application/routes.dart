@@ -18,6 +18,10 @@ String scanConnectionDataRoute = "/scan-connection-data";
 String enterConnectionDataRoute = "/enter-connection-data";
 String controllerRoutingRoute = "/controller-routing";
 
+String getControllerRoutingRoute(ConnectionArgs args) {
+  return "$controllerRoutingRoute?${args.toQueryString()}";
+}
+
 // Called on hot reload
 void configureRoutes(FluroRouter router) {
   // We don't use global handler variables because we want routes to be
@@ -60,7 +64,7 @@ class ConnectionArgs {
   final String generated;
   final String cert;
 
-  static ConnectionArgs fromParams(Map<String, List<String>> params) {
+  factory ConnectionArgs.fromParams(Map<String, List<String>> params) {
     return ConnectionArgs(
         host: params['host']?.first,
         httpPort: params['http-port']?.first,
@@ -68,6 +72,16 @@ class ConnectionArgs {
         sessionId: params['session-id']?.first,
         generated: params['generated']?.first,
         cert: params['cert']?.first);
+  }
+
+  factory ConnectionArgs.fromPalette(ConnectionDataPalette data) {
+    return ConnectionArgs(
+      host: data.host,
+      httpPort: data.httpPort,
+      httpsPort: data.httpsPort,
+      sessionId: data.sessionId,
+      cert: _convertCertContentToArg(data.certContent),
+    );
   }
 
   ConnectionArgs(
@@ -104,14 +118,22 @@ class ConnectionArgs {
         httpsPort: httpsPort,
         sessionId: sessionId,
         isGenerated: generated == "true",
-        certContent: _getCertContent(cert));
+        certContent: _convertCertArgToContent(cert));
   }
 
-  static String _getCertContent(String certArg) {
+  static Codec<String, String> _stringToBase64Url = utf8.fuse(base64Url);
+
+  static String _convertCertContentToArg(String certContent) {
+    if (certContent == null) {
+      return null;
+    }
+    return _stringToBase64Url.encode(certContent);
+  }
+
+  static String _convertCertArgToContent(String certArg) {
     if (certArg == null) {
       return null;
     }
-    Codec<String, String> stringToBase64Url = utf8.fuse(base64Url);
-    return stringToBase64Url.decode(certArg);
+    return _stringToBase64Url.decode(certArg);
   }
 }

@@ -43,7 +43,7 @@ class ScanConnectionDataWidget extends StatelessWidget {
 void handleSuccess(BuildContext context, ConnectionArgs connectionArgs) {
   WidgetsBinding.instance.addPostFrameCallback((_) {
     Navigator.pushReplacementNamed(
-        context, "$controllerRoutingRoute?${connectionArgs.toQueryString()}");
+        context, getControllerRoutingRoute(connectionArgs));
   });
 }
 
@@ -64,14 +64,14 @@ void continueOrCancelScanning({
       title: Text(summary),
       content: Text(msg),
       actions: [
-        FlatButton(
+        TextButton(
           child: Text("Cancel"),
           onPressed: () {
             Navigator.pop(context);
             cancelScanning(context, "Cancelled scanning QR code");
           },
         ),
-        FlatButton(
+        TextButton(
           child: Text("Continue"),
           onPressed: () {
             Navigator.pop(context);

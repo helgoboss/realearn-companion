@@ -85,11 +85,11 @@ class EnterConnectionDataFormState extends State<EnterConnectionDataForm> {
           TextFormField(
             decoration: InputDecoration(
                 filled: true,
-                labelText: 'ReaLearn instance ID',
-                helperText: "ID of a particular ReaLearn instance"),
+                labelText: 'ReaLearn session ID',
+                helperText: "ID of a particular ReaLearn session"),
             validator: (value) {
               if (value.isEmpty) {
-                return 'Please enter a valid instance ID';
+                return 'Please enter a valid session ID';
               }
               return null;
             },
@@ -104,8 +104,8 @@ class EnterConnectionDataFormState extends State<EnterConnectionDataForm> {
                   httpsPort: httpsPortController.value.text,
                   sessionId: sessionIdController.value.text,
                 );
-                Navigator.pushNamed(context,
-                    "$controllerRoutingRoute?${connectionArgs.toQueryString()}");
+                Navigator.pushNamed(
+                    context, getControllerRoutingRoute(connectionArgs));
               }
             },
             child: Text('Connect'),

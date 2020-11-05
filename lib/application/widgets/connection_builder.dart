@@ -65,14 +65,14 @@ class ConnectionBuilderState extends State<ConnectionBuilder> {
       content:
           SingleChildScrollView(child: MarkdownBody(data: lines.join("\n"))),
       actions: [
-        FlatButton(
+        TextButton(
           child: Text("Cancel"),
           onPressed: () {
             App.instance.router.pop(context);
             App.instance.router.pop(context);
           },
         ),
-        FlatButton(
+        TextButton(
           child: Text("Retry"),
           onPressed: () {
             App.instance.router.pop(context);
@@ -102,13 +102,13 @@ class ConnectionBuilderState extends State<ConnectionBuilder> {
           child: MarkdownBody(data: instructions.lines.join("\n"))),
       actions: [
         if (instructions.action != null)
-          FlatButton(
+          TextButton(
             child: Text(instructions.action.name),
             onPressed: () {
               launch(instructions.action.url.toString());
             },
           ),
-        FlatButton(
+        TextButton(
           child: Text("Retry"),
           onPressed: () {
             App.instance.router.pop(context);
@@ -215,6 +215,7 @@ class ConnectionBuilderState extends State<ConnectionBuilder> {
   }
 
   void notifyConnectionPossible() {
+    App.instance.saveLastConnection(widget.connectionData.palette);
     var wsUrl = widget.connectionData.buildWebSocketUrl(widget.topics);
     setState(() {
       var channel = WebSocketChannel.connect(wsUrl);
