@@ -223,13 +223,13 @@ class ControllerRoutingCanvas extends StatelessWidget {
         var data =
             controller.findControlData(m.id) ?? ControlData(x: 0.0, y: 0.0);
         if (isInEditMode) {
-          return Control(
+          return EditableControl(
             label: m.name,
             data: data,
             scale: scale,
           );
         } else {
-          return Control(
+          return FixedControl(
             label: route?.label ?? "",
             data: data,
             scale: scale,
@@ -243,24 +243,122 @@ class ControllerRoutingCanvas extends StatelessWidget {
   }
 }
 
-class Control extends StatelessWidget {
+class EditableControl extends StatefulWidget {
   final String label;
   final ControlData data;
   final double scale;
 
-  const Control({Key key, this.label, this.data, this.scale}) : super(key: key);
+  const EditableControl({Key key, this.label, this.data, this.scale})
+      : super(key: key);
 
-  Offset getOffset() => Offset(scale * data.x, scale * data.y);
+  @override
+  State<StatefulWidget> createState() {
+    return EditableControlState();
+  }
+
+  Offset get offset => Offset(data.x, data.y);
+}
+
+class EditableControlState extends State<EditableControl> {
+  Offset dragOffset = null;
+
+  void onDragStart() {
+    setState(() {
+      dragOffset = widget.offset;
+    });
+  }
+
+  void onDrag(Offset newOffset) {
+    setState(() {
+      dragOffset = newOffset;
+    });
+  }
+
+  void onDragEnd() {
+    // var alignedToGrid = alignOffsetToGrid(dragOffset, 10, 10);
+    setState(() {
+      dragOffset = null;
+    });
+    // notifyControlDataChanged(x: alignedToGrid.dx, y: alignedToGrid.dy);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    var draggable = GestureDetector(
+        onPanStart: (_) {
+          onDragStart();
+        },
+        onPanUpdate: (details) {
+          var newOffset = Offset(
+            dragOffset.dx + details.delta.dx / widget.scale,
+            dragOffset.dy + details.delta.dy / widget.scale,
+          );
+          onDrag(newOffset);
+        },
+        onPanEnd: (_) {
+          onDragEnd();
+        },
+        onTap: () {
+          // TODO-medium Introduce shape and x and y getters
+          // changeShape(getNextShape(widget.data.shape ?? ControlShape.circle));
+        },
+        child: Control(
+          height: widget.scale * widget.data.height,
+          width: widget.scale * widget.data.width,
+          label: widget.label,
+          shape: widget.data.shape,
+        ));
+    var effectiveOffset = (dragOffset ?? widget.offset);
+    var scaledEffectiveOffset =
+        effectiveOffset.scale(widget.scale, widget.scale);
+    return Positioned(
+      top: scaledEffectiveOffset.dy,
+      left: scaledEffectiveOffset.dx,
+      child: draggable,
+    );
+  }
+}
+
+class FixedControl extends StatelessWidget {
+  final String label;
+  final ControlData data;
+  final double scale;
+
+  const FixedControl({Key key, this.label, this.data, this.scale})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+        top: scale * data.y,
+        left: scale * data.x,
+        child: Control(
+          height: scale * data.height,
+          width: scale * data.width,
+          label: label,
+          shape: data.shape,
+        ));
+  }
+}
+
+class Control extends StatelessWidget {
+  final double width;
+  final double height;
+  final String label;
+  final ControlShape shape;
+
+  const Control({Key key, this.label, this.width, this.height, this.shape})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     var theme = Theme.of(context);
-    var container = Container(
-      height: scale * data.height,
-      width: scale * data.width,
+    return Container(
+      width: width,
+      height: height,
       decoration: new BoxDecoration(
         color: theme.colorScheme.primary,
-        shape: mapControlShapeToBoxShape(data.shape ?? ControlShape.circle),
+        shape: mapControlShapeToBoxShape(shape ?? ControlShape.circle),
       ),
       child: FittedBox(
         fit: BoxFit.none,
@@ -272,8 +370,6 @@ class Control extends StatelessWidget {
         ),
       ),
     );
-    var offset = getOffset();
-    return Positioned(top: offset.dy, left: offset.dx, child: container);
   }
 }
 
@@ -283,5 +379,7 @@ BoxShape mapControlShapeToBoxShape(ControlShape controlShape) {
       return BoxShape.circle;
     case ControlShape.rectangle:
       return BoxShape.rectangle;
+    default:
+      throw UnsupportedError("Unknown value $controlShape");
   }
 }
