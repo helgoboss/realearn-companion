@@ -16,6 +16,7 @@ class AppWidget extends StatelessWidget {
       theme: ThemeData(
         brightness: Brightness.light,
         primarySwatch: Colors.deepPurple,
+        accentColor: Colors.cyanAccent,
         // visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
       darkTheme: ThemeData(

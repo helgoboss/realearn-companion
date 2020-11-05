@@ -14,7 +14,6 @@ class RootWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     var isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
     return NormalScaffold(
-      hideAppBar: true,
       child: FutureBuilder(
           future: App.instance.loadLastConnection(),
           builder: (BuildContext context,

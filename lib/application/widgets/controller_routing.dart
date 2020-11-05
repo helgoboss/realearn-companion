@@ -24,6 +24,7 @@ class ControllerRoutingPage extends StatefulWidget {
 
 class ControllerRoutingPageState extends State<ControllerRoutingPage> {
   bool appBarIsVisible = true;
+  bool isInEditMode = false;
   Timer timer = null;
 
   @override
@@ -52,15 +53,59 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
     });
   }
 
+  void enterEditMode() {
+    setState(() {
+      isInEditMode = true;
+    });
+  }
+
+  void leaveEditMode() {
+    setState(() {
+      isInEditMode = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    AppBar controllerRoutingAppBar() {
+      var themeData = Theme.of(context);
+      return AppBar(
+        title: Text("Controller Routing"),
+        actions: [
+          if (isInEditMode)
+            IconButton(
+              icon: Icon(
+                Icons.save,
+              ),
+              color: themeData.colorScheme.onPrimary,
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Saved controller layout")));
+              },
+            ),
+          IconButton(
+            icon: Icon(
+              isInEditMode ? Icons.clear : Icons.edit,
+            ),
+            onPressed: () {
+              if (isInEditMode) {
+                leaveEditMode();
+              } else {
+                enterEditMode();
+              }
+            },
+          )
+        ],
+      );
+    }
+
     var sessionId = widget.connectionDataPalette.sessionId;
     var controllerTopic = "/realearn/session/$sessionId/controller";
     var controllerRoutingTopic =
         "/realearn/session/$sessionId/controller-routing";
     return NormalScaffold(
       padding: EdgeInsets.all(10),
-      hideAppBar: !appBarIsVisible,
+      appBar: appBarIsVisible ? controllerRoutingAppBar() : null,
       child: ConnectionBuilder(
         connectionDataPalette: widget.connectionDataPalette,
         topics: [controllerTopic, controllerRoutingTopic],
@@ -69,7 +114,8 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
           onTap: () {
             showAppBarForSomeSecs();
           },
-          child: ControllerRoutingContainer(messages: messages),
+          child: ControllerRoutingContainer(
+              messages: messages, isInEditMode: isInEditMode),
         ),
       ),
     );
@@ -78,8 +124,10 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
 
 class ControllerRoutingContainer extends StatefulWidget {
   final Stream<dynamic> messages;
+  final bool isInEditMode;
 
-  const ControllerRoutingContainer({Key key, this.messages}) : super(key: key);
+  const ControllerRoutingContainer({Key key, this.messages, this.isInEditMode})
+      : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
@@ -95,7 +143,11 @@ class ControllerRoutingContainerState
 
   @override
   Widget build(BuildContext context) {
-    return ControllerRoutingWidget(controller: controller, routing: routing);
+    return ControllerRoutingWidget(
+      controller: controller,
+      routing: routing,
+      isInEditMode: widget.isInEditMode,
+    );
   }
 
   @override
@@ -145,8 +197,10 @@ class ControllerRoutingContainerState
 class ControllerRoutingWidget extends StatelessWidget {
   final Controller controller;
   final ControllerRouting routing;
+  final bool isInEditMode;
 
-  const ControllerRoutingWidget({Key key, this.controller, this.routing})
+  const ControllerRoutingWidget(
+      {Key key, this.controller, this.routing, this.isInEditMode})
       : super(key: key);
 
   @override
@@ -162,6 +216,7 @@ class ControllerRoutingWidget extends StatelessWidget {
       child: ControllerRoutingCanvas(
         controller: controller,
         routing: routing,
+        isInEditMode: isInEditMode,
       ),
     );
   }
@@ -170,8 +225,10 @@ class ControllerRoutingWidget extends StatelessWidget {
 class ControllerRoutingCanvas extends StatelessWidget {
   final Controller controller;
   final ControllerRouting routing;
+  final bool isInEditMode;
 
-  const ControllerRoutingCanvas({Key key, this.controller, this.routing})
+  const ControllerRoutingCanvas(
+      {Key key, this.controller, this.routing, this.isInEditMode})
       : super(key: key);
 
   @override
@@ -179,24 +236,31 @@ class ControllerRoutingCanvas extends StatelessWidget {
     var controllerSize = controller.calcTotalSize();
     return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
-          var widthScale = constraints.maxWidth / controllerSize.width;
-          var heightScale = constraints.maxHeight / controllerSize.height;
-          var scale = min(widthScale, heightScale);
-          var draggables = controller.mappings.map((m) {
-            var route = routing.routes[m.id];
-            var data =
-                controller.findControlData(m.id) ?? ControlData(x: 0.0, y: 0.0);
-            return Control(
-              label: route?.label ?? "",
-              data: data,
-              scale: scale,
-            );
-          }).toList();
-          return Stack(
-            children: draggables,
+      var widthScale = constraints.maxWidth / controllerSize.width;
+      var heightScale = constraints.maxHeight / controllerSize.height;
+      var scale = min(widthScale, heightScale);
+      var controls = controller.mappings.map((m) {
+        var route = routing.routes[m.id];
+        var data =
+            controller.findControlData(m.id) ?? ControlData(x: 0.0, y: 0.0);
+        if (isInEditMode) {
+          return Control(
+            label: m.name,
+            data: data,
+            scale: scale,
+          );
+        } else {
+          return Control(
+            label: route?.label ?? "",
+            data: data,
+            scale: scale,
           );
         }
-    );
+      }).toList();
+      return Stack(
+        children: controls,
+      );
+    });
   }
 }
 
@@ -224,7 +288,8 @@ class Control extends StatelessWidget {
         clipBehavior: Clip.none,
         child: Text(
           label,
-          style: theme.textTheme.button.copyWith(color: theme.colorScheme.onPrimary),
+          style: theme.textTheme.button
+              .copyWith(color: theme.colorScheme.onPrimary),
         ),
       ),
     );

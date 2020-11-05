@@ -7,24 +7,26 @@ import '../app.dart';
 
 class NormalScaffold extends StatelessWidget {
   final Widget child;
-  final bool hideAppBar;
+  final AppBar appBar;
   final EdgeInsets padding;
+
+  static AppBar defaultAppBar() {
+    return AppBar(
+      title: const Text('ReaLearn Companion'),
+    );
+  }
 
   const NormalScaffold(
       {Key key,
       this.child,
-      this.hideAppBar = false,
+      this.appBar,
       this.padding = const EdgeInsets.symmetric(horizontal: 30)})
       : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: hideAppBar
-          ? null
-          : AppBar(
-              title: const Text('ReaLearn Companion'),
-            ),
+      appBar: appBar,
       body: Stack(
         children: [
           Center(child: Background()),
