@@ -59,7 +59,7 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
     var controllerRoutingTopic =
         "/realearn/session/$sessionId/controller-routing";
     return NormalScaffold(
-      padding: EdgeInsets.zero,
+      padding: EdgeInsets.all(10),
       hideAppBar: !appBarIsVisible,
       child: ConnectionBuilder(
         connectionDataPalette: widget.connectionDataPalette,
@@ -177,22 +177,25 @@ class ControllerRoutingCanvas extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var controllerSize = controller.calcTotalSize();
-    var mq = MediaQuery.of(context);
-    var widthScale = mq.size.width / controllerSize.width;
-    var heightScale = mq.size.height / controllerSize.height;
-    var scale = min(widthScale, heightScale);
-    var draggables = controller.mappings.map((m) {
-      var route = routing.routes[m.id];
-      var data =
-          controller.findControlData(m.id) ?? ControlData(x: 0.0, y: 0.0);
-      return Control(
-        label: route?.label ?? "",
-        data: data,
-        scale: scale,
-      );
-    }).toList();
-    return Stack(
-      children: draggables,
+    return LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+          var widthScale = constraints.maxWidth / controllerSize.width;
+          var heightScale = constraints.maxHeight / controllerSize.height;
+          var scale = min(widthScale, heightScale);
+          var draggables = controller.mappings.map((m) {
+            var route = routing.routes[m.id];
+            var data =
+                controller.findControlData(m.id) ?? ControlData(x: 0.0, y: 0.0);
+            return Control(
+              label: route?.label ?? "",
+              data: data,
+              scale: scale,
+            );
+          }).toList();
+          return Stack(
+            children: draggables,
+          );
+        }
     );
   }
 }
