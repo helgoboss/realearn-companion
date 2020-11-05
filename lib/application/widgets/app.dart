@@ -20,7 +20,7 @@ class AppWidget extends StatelessWidget {
       ),
       darkTheme: ThemeData(
         brightness: Brightness.dark,
-        primarySwatch: Colors.deepPurple,
+        primarySwatch: Colors.orange,
         // visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
       themeMode: ThemeMode.light,

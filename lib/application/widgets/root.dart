@@ -24,7 +24,7 @@ class RootWidget extends StatelessWidget {
                 icon: const Icon(Icons.restore),
                 label: Text(
                   "Last session",
-                  textScaleFactor: 1.2,
+                  textScaleFactor: 1.6,
                 ),
                 onPressed: () {
                   var args = ConnectionArgs.fromPalette(snapshot.data);

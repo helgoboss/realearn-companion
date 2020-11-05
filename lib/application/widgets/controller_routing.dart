@@ -202,17 +202,21 @@ class Control extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    var theme = Theme.of(context);
     var container = Container(
       height: 50.0,
       width: 50.0,
       decoration: new BoxDecoration(
-        color: Colors.green,
+        color: theme.colorScheme.primary,
         shape: mapControlShapeToBoxShape(data.shape ?? ControlShape.circle),
       ),
       child: FittedBox(
         fit: BoxFit.none,
         clipBehavior: Clip.none,
-        child: Text(label),
+        child: Text(
+          label,
+          style: theme.textTheme.button.copyWith(color: theme.colorScheme.onPrimary),
+        ),
       ),
     );
     var offset = getOffset();
