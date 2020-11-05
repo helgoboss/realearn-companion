@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -45,6 +47,10 @@ class Controller {
     customData.updateControlData(mappingId, data);
   }
 
+  Size calcTotalSize() {
+    return customData?.calcTotalSize() ?? Size.zero;
+  }
+
   Controller({this.id, this.name, this.mappings, this.customData});
 
   factory Controller.fromJson(Map<String, dynamic> json) =>
@@ -66,34 +72,44 @@ class Mapping {
 class CustomControllerData {
   CompanionControllerData companion;
 
+  factory CustomControllerData.fromJson(Map<String, dynamic> json) =>
+      _$CustomControllerDataFromJson(json);
+
+  CustomControllerData({this.companion});
+
+  Size calcTotalSize() {
+    return companion?.calcTotalSize() ?? Size.zero;
+  }
+
   void updateControlData(String mappingId, ControlData data) {
     if (companion == null) {
       companion = CompanionControllerData();
     }
     companion.updateControlData(mappingId, data);
   }
-
-  CustomControllerData({this.companion});
-
-  factory CustomControllerData.fromJson(Map<String, dynamic> json) =>
-      _$CustomControllerDataFromJson(json);
 }
 
 @JsonSerializable(createToJson: true, nullable: true)
 class CompanionControllerData {
   Map<String, ControlData> controls;
 
+  factory CompanionControllerData.fromJson(Map<String, dynamic> json) =>
+      _$CompanionControllerDataFromJson(json);
+
+  CompanionControllerData({Map<String, ControlData> controls}) {
+    this.controls = controls ?? Map();
+  }
+
   void updateControlData(String mappingId, ControlData data) {
-    if (controls == null) {
-      controls = Map();
-    }
     controls[mappingId] = data;
   }
 
-  CompanionControllerData({this.controls});
-
-  factory CompanionControllerData.fromJson(Map<String, dynamic> json) =>
-      _$CompanionControllerDataFromJson(json);
+  Size calcTotalSize() {
+    return controls.values.fold(
+        Size(0, 0),
+        (Size prev, ControlData data) =>
+            Size(max(prev.width, data.right), max(prev.height, data.bottom)));
+  }
 
   Map<String, dynamic> toJson() => _$CompanionControllerDataToJson(this);
 }
@@ -106,10 +122,21 @@ class ControlData {
   final double x;
   final double y;
 
-  ControlData({this.shape, this.x, this.y});
-
   factory ControlData.fromJson(Map<String, dynamic> json) =>
       _$ControlDataFromJson(json);
+
+  ControlData({ControlShape shape, double x, double y})
+      : shape = shape ?? ControlShape.circle,
+        x = x ?? 0.0,
+        y = y ?? 0.0;
+
+  double get width => 50.0;
+
+  double get height => 50.0;
+
+  double get right => x + width;
+
+  double get bottom => y + height;
 
   Map<String, dynamic> toJson() => _$ControlDataToJson(this);
 }

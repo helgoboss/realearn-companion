@@ -177,6 +177,7 @@ class ControllerRoutingCanvas extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    var scale = 0.70;
     var draggables = controller.mappings.map((m) {
       var route = routing.routes[m.id];
       var data =
@@ -184,6 +185,7 @@ class ControllerRoutingCanvas extends StatelessWidget {
       return Control(
         label: route?.label ?? "",
         data: data,
+        scale: scale,
       );
     }).toList();
     return Stack(
@@ -195,17 +197,18 @@ class ControllerRoutingCanvas extends StatelessWidget {
 class Control extends StatelessWidget {
   final String label;
   final ControlData data;
+  final double scale;
 
-  const Control({Key key, this.label, this.data}) : super(key: key);
+  const Control({Key key, this.label, this.data, this.scale}) : super(key: key);
 
-  Offset getOffset() => Offset(data.x, data.y);
+  Offset getOffset() => Offset(scale * data.x, scale * data.y);
 
   @override
   Widget build(BuildContext context) {
     var theme = Theme.of(context);
     var container = Container(
-      height: 50.0,
-      width: 50.0,
+      height: scale * data.height,
+      width: scale * data.width,
       decoration: new BoxDecoration(
         color: theme.colorScheme.primary,
         shape: mapControlShapeToBoxShape(data.shape ?? ControlShape.circle),
