@@ -25,31 +25,10 @@ class ControllerRoutingPage extends StatefulWidget {
 class ControllerRoutingPageState extends State<ControllerRoutingPage> {
   bool appBarIsVisible = true;
   bool isInEditMode = false;
-  Timer timer = null;
 
-  @override
-  void initState() {
-    super.initState();
-    showAppBarForSomeSecs();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-    timer?.cancel();
-  }
-
-  void showAppBar(bool show) {
+  void toggleAppBar() {
     setState(() {
-      appBarIsVisible = show;
-    });
-  }
-
-  void showAppBarForSomeSecs() {
-    showAppBar(true);
-    timer?.cancel();
-    timer = Timer(Duration(seconds: 3), () {
-      showAppBar(false);
+      appBarIsVisible = !appBarIsVisible;
     });
   }
 
@@ -112,7 +91,7 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
         builder: (BuildContext context, Stream<dynamic> messages) =>
             GestureDetector(
           onTap: () {
-            showAppBarForSomeSecs();
+            toggleAppBar();
           },
           child: ControllerRoutingContainer(
               messages: messages, isInEditMode: isInEditMode),
