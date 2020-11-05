@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:realearn_companion/domain/connection.dart';
@@ -58,6 +59,7 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
     var controllerRoutingTopic =
         "/realearn/session/$sessionId/controller-routing";
     return NormalScaffold(
+      padding: EdgeInsets.zero,
       hideAppBar: !appBarIsVisible,
       child: ConnectionBuilder(
         connectionDataPalette: widget.connectionDataPalette,
@@ -153,16 +155,13 @@ class ControllerRoutingWidget extends StatelessWidget {
       return Center(child: Text("Loading..."));
     }
     return InteractiveViewer(
-      panEnabled: false,
-      // Set it to false to prevent panning.
+      panEnabled: true,
       boundaryMargin: EdgeInsets.zero,
       minScale: 0.5,
       maxScale: 4,
-      child: Container(
-        child: ControllerRoutingCanvas(
-          controller: controller,
-          routing: routing,
-        ),
+      child: ControllerRoutingCanvas(
+        controller: controller,
+        routing: routing,
       ),
     );
   }
@@ -177,7 +176,11 @@ class ControllerRoutingCanvas extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var scale = 0.70;
+    var controllerSize = controller.calcTotalSize();
+    var mq = MediaQuery.of(context);
+    var widthScale = mq.size.width / controllerSize.width;
+    var heightScale = mq.size.height / controllerSize.height;
+    var scale = min(widthScale, heightScale);
     var draggables = controller.mappings.map((m) {
       var route = routing.routes[m.id];
       var data =

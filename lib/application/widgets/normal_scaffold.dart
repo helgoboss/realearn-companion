@@ -8,8 +8,13 @@ import '../app.dart';
 class NormalScaffold extends StatelessWidget {
   final Widget child;
   final bool hideAppBar;
+  final EdgeInsets padding;
 
-  const NormalScaffold({Key key, this.child, this.hideAppBar = false})
+  const NormalScaffold(
+      {Key key,
+      this.child,
+      this.hideAppBar = false,
+      this.padding = const EdgeInsets.symmetric(horizontal: 30)})
       : super(key: key);
 
   @override
@@ -25,8 +30,10 @@ class NormalScaffold extends StatelessWidget {
           Center(child: Background()),
           Container(
             alignment: Alignment.center,
-            padding: EdgeInsets.symmetric(horizontal: 30),
+            padding: padding,
             child: child,
+            // In dark mode black might look better than the SVG background
+            // color: Colors.black
           )
         ],
       ),
