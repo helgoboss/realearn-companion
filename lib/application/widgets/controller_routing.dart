@@ -239,8 +239,9 @@ class ControllerRoutingCanvas extends StatelessWidget {
   final ControllerRouting routing;
   final bool isInEditMode;
   final Function(String, ControlData) onControlDataUpdate;
+  final GlobalKey stackKey = GlobalKey();
 
-  const ControllerRoutingCanvas({
+  ControllerRoutingCanvas({
     Key key,
     this.controller,
     this.routing,
@@ -265,6 +266,7 @@ class ControllerRoutingCanvas extends StatelessWidget {
             label: m.name,
             data: data,
             scale: scale,
+            stackKey: stackKey,
             onControlDataUpdate: (data) {
               onControlDataUpdate(m.id, data);
             },
@@ -278,6 +280,7 @@ class ControllerRoutingCanvas extends StatelessWidget {
         }
       }).toList();
       return Stack(
+        key: stackKey,
         children: controls,
       );
     });
@@ -289,10 +292,16 @@ class EditableControl extends StatefulWidget {
   final ControlData data;
   final double scale;
   final Function(ControlData) onControlDataUpdate;
+  final GlobalKey stackKey;
 
-  const EditableControl(
-      {Key key, this.label, this.data, this.scale, this.onControlDataUpdate})
-      : super(key: key);
+  const EditableControl({
+    Key key,
+    this.label,
+    this.data,
+    this.scale,
+    this.onControlDataUpdate,
+    this.stackKey,
+  }) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
@@ -303,28 +312,6 @@ class EditableControl extends StatefulWidget {
 }
 
 class EditableControlState extends State<EditableControl> {
-  Offset dragOffset = null;
-
-  void onDragStart() {
-    setState(() {
-      dragOffset = widget.offset;
-    });
-  }
-
-  void onDrag(Offset newOffset) {
-    setState(() {
-      dragOffset = newOffset;
-    });
-  }
-
-  void onDragEnd() {
-    var alignedToGrid = alignOffsetToGrid(dragOffset, 10, 10);
-    setState(() {
-      dragOffset = null;
-    });
-    notifyControlDataChanged(x: alignedToGrid.dx, y: alignedToGrid.dy);
-  }
-
   void notifyControlDataChanged({ControlShape shape, double x, double y}) {
     var data = ControlData(
       shape: shape ?? widget.data.shape,
@@ -336,38 +323,36 @@ class EditableControlState extends State<EditableControl> {
 
   @override
   Widget build(BuildContext context) {
-    var draggable = GestureDetector(
-        onPanStart: (_) {
-          onDragStart();
-        },
-        onPanUpdate: (details) {
-          var newOffset = Offset(
-            dragOffset.dx + details.delta.dx / widget.scale,
-            dragOffset.dy + details.delta.dy / widget.scale,
-          );
-          onDrag(newOffset);
-        },
-        onPanEnd: (_) {
-          onDragEnd();
-        },
-        onTap: () {
-          // TODO-medium Introduce shape and x and y getters
-          // changeShape(getNextShape(widget.data.shape ?? ControlShape.circle));
-        },
-        child: Control(
-          height: widget.scale * widget.data.height,
-          width: widget.scale * widget.data.width,
-          label: widget.label,
-          shape: widget.data.shape,
-        ));
-    var effectiveOffset = (dragOffset ?? widget.offset);
-    var scaledEffectiveOffset =
-        effectiveOffset.scale(widget.scale, widget.scale);
+    var control = Control(
+      height: widget.scale * widget.data.height,
+      width: widget.scale * widget.data.width,
+      label: widget.label,
+      shape: widget.data.shape,
+    );
+    var draggable = Draggable(
+      child: control,
+      childWhenDragging: SizedBox.shrink(),
+      feedback: control,
+      onDragEnd: (details) {
+        final RenderBox box = widget.stackKey.currentContext.findRenderObject();
+        var localDetailsOffset = box.globalToLocal(details.offset);
+        var newOffset = Offset(
+          localDetailsOffset.dx / widget.scale,
+          localDetailsOffset.dy / widget.scale,
+        );
+        _onDragEnd(newOffset);
+      },
+    );
     return Positioned(
-      top: scaledEffectiveOffset.dy,
-      left: scaledEffectiveOffset.dx,
+      top: widget.offset.dy * widget.scale,
+      left: widget.offset.dx * widget.scale,
       child: draggable,
     );
+  }
+
+  void _onDragEnd(Offset offset) {
+    var alignedToGrid = alignOffsetToGrid(offset, 10, 10);
+    notifyControlDataChanged(x: alignedToGrid.dx, y: alignedToGrid.dy);
   }
 }
 
