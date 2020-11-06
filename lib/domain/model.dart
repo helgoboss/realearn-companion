@@ -36,22 +36,28 @@ class Controller {
   final List<Mapping> mappings;
   CustomControllerData customData;
 
-  ControlData findControlData(String mappingId) {
-    return (customData?.companion?.controls ?? const {})[mappingId];
+  // TODO-low Take care in constructor that mappings and customData is never
+  //  null instead of doing null checks everywhere!
+  Controller({this.id, this.name, this.mappings, this.customData});
+
+  List<ControlData> get controls {
+    return customData?.companion?.controls ?? const [];
   }
 
-  void updateControlData(String mappingId, ControlData data) {
+  void updateControlData(ControlData data) {
     if (customData == null) {
       customData = CustomControllerData();
     }
-    customData.updateControlData(mappingId, data);
+    customData.updateControlData(data);
+  }
+
+  Mapping findMappingById(String mappingId) {
+    return mappings.firstWhere((m) => m.id == mappingId);
   }
 
   Size calcTotalSize() {
     return customData?.calcTotalSize() ?? Size.zero;
   }
-
-  Controller({this.id, this.name, this.mappings, this.customData});
 
   factory Controller.fromJson(Map<String, dynamic> json) =>
       _$ControllerFromJson(json);
@@ -75,37 +81,40 @@ class CustomControllerData {
   factory CustomControllerData.fromJson(Map<String, dynamic> json) =>
       _$CustomControllerDataFromJson(json);
 
+  // TODO-low Take care in constructor that mappings and customData is never
+  //  null instead of doing null checks everywhere!
   CustomControllerData({this.companion});
 
   Size calcTotalSize() {
     return companion?.calcTotalSize() ?? Size.zero;
   }
 
-  void updateControlData(String mappingId, ControlData data) {
+  void updateControlData(ControlData data) {
     if (companion == null) {
       companion = CompanionControllerData();
     }
-    companion.updateControlData(mappingId, data);
+    companion.updateControlData(data);
   }
 }
 
 @JsonSerializable(createToJson: true, nullable: true)
 class CompanionControllerData {
-  Map<String, ControlData> controls;
+  List<ControlData> controls;
 
   factory CompanionControllerData.fromJson(Map<String, dynamic> json) =>
       _$CompanionControllerDataFromJson(json);
 
-  CompanionControllerData({Map<String, ControlData> controls}) {
-    this.controls = controls ?? Map();
+  CompanionControllerData({List<ControlData> controls}) {
+    this.controls = controls ?? [];
   }
 
-  void updateControlData(String mappingId, ControlData data) {
-    controls[mappingId] = data;
+  void updateControlData(ControlData data) {
+    controls.removeWhere((c) => c.id == data.id);
+    controls.add(data);
   }
 
   Size calcTotalSize() {
-    return controls.values.fold(
+    return controls.fold(
         Size(0, 0),
         (Size prev, ControlData data) =>
             Size(max(prev.width, data.right), max(prev.height, data.bottom)));
@@ -118,6 +127,8 @@ enum ControlShape { rectangle, circle }
 
 @JsonSerializable(createToJson: true, nullable: true)
 class ControlData {
+  final String id;
+  final List<String> mappings;
   final ControlShape shape;
   final double x;
   final double y;
@@ -125,8 +136,9 @@ class ControlData {
   factory ControlData.fromJson(Map<String, dynamic> json) =>
       _$ControlDataFromJson(json);
 
-  ControlData({ControlShape shape, double x, double y})
-      : shape = shape ?? ControlShape.circle,
+  ControlData({this.id, List<String> mappings, ControlShape shape, double x, double y})
+      : mappings = mappings ?? [],
+        shape = shape ?? ControlShape.circle,
         x = x ?? 0.0,
         y = y ?? 0.0;
 

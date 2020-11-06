@@ -107,9 +107,9 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
           child: ControllerRoutingContainer(
             messages: messages,
             isInEditMode: isInEditMode,
-            onControlDataUpdated: (mappingId, data) {
+            onControlDataUpdated: (data) {
               setState(() {
-                controller.updateControlData(mappingId, data);
+                controller.updateControlData(data);
                 madeEdit = true;
               });
             },
@@ -127,7 +127,7 @@ class ControllerRoutingContainer extends StatefulWidget {
   final Stream<dynamic> messages;
   final bool isInEditMode;
   final Function(Controller controller) onControllerSwitched;
-  final Function(String mappingId, ControlData data) onControlDataUpdated;
+  final Function(ControlData data) onControlDataUpdated;
 
   const ControllerRoutingContainer({
     Key key,
@@ -155,8 +155,8 @@ class ControllerRoutingContainerState
       controller: widget.controller,
       routing: routing,
       isInEditMode: widget.isInEditMode,
-      onControlDataUpdate: (mappingId, data) {
-        widget.onControlDataUpdated(mappingId, data);
+      onControlDataUpdate: (data) {
+        widget.onControlDataUpdated(data);
       },
     );
   }
@@ -204,7 +204,7 @@ class ControllerRoutingWidget extends StatelessWidget {
   final Controller controller;
   final ControllerRouting routing;
   final bool isInEditMode;
-  final Function(String, ControlData) onControlDataUpdate;
+  final Function(ControlData) onControlDataUpdate;
 
   const ControllerRoutingWidget({
     Key key,
@@ -238,7 +238,7 @@ class ControllerRoutingCanvas extends StatelessWidget {
   final Controller controller;
   final ControllerRouting routing;
   final bool isInEditMode;
-  final Function(String, ControlData) onControlDataUpdate;
+  final Function(ControlData) onControlDataUpdate;
   final GlobalKey stackKey = GlobalKey();
 
   ControllerRoutingCanvas({
@@ -257,23 +257,22 @@ class ControllerRoutingCanvas extends StatelessWidget {
       var widthScale = constraints.maxWidth / controllerSize.width;
       var heightScale = constraints.maxHeight / controllerSize.height;
       var scale = math.min(widthScale, heightScale);
-      var controls = controller.mappings.map((m) {
-        var route = routing.routes[m.id];
-        var data =
-            controller.findControlData(m.id) ?? ControlData(x: 0.0, y: 0.0);
+      var controls = controller.controls.map((data) {
         if (isInEditMode) {
           return EditableControl(
-            label: m.name,
+            labels: data.mappings.map((mappingId) {
+              return controller.findMappingById(mappingId)?.name ?? "";
+            }).toList(),
             data: data,
             scale: scale,
             stackKey: stackKey,
-            onControlDataUpdate: (data) {
-              onControlDataUpdate(m.id, data);
-            },
+            onControlDataUpdate: onControlDataUpdate,
           );
         } else {
           return FixedControl(
-            label: route?.label ?? "",
+            labels: data.mappings.map((mappingId) {
+              return routing.routes[mappingId]?.label ?? "";
+            }).toList(),
             data: data,
             scale: scale,
           );
@@ -288,7 +287,7 @@ class ControllerRoutingCanvas extends StatelessWidget {
 }
 
 class EditableControl extends StatefulWidget {
-  final String label;
+  final List<String> labels;
   final ControlData data;
   final double scale;
   final Function(ControlData) onControlDataUpdate;
@@ -296,7 +295,7 @@ class EditableControl extends StatefulWidget {
 
   const EditableControl({
     Key key,
-    this.label,
+    this.labels,
     this.data,
     this.scale,
     this.onControlDataUpdate,
@@ -314,6 +313,8 @@ class EditableControl extends StatefulWidget {
 class EditableControlState extends State<EditableControl> {
   void notifyControlDataChanged({ControlShape shape, double x, double y}) {
     var data = ControlData(
+      id: widget.data.id,
+      mappings: widget.data.mappings,
       shape: shape ?? widget.data.shape,
       x: x ?? widget.data.x,
       y: y ?? widget.data.y,
@@ -326,7 +327,7 @@ class EditableControlState extends State<EditableControl> {
     var control = Control(
       height: widget.scale * widget.data.height,
       width: widget.scale * widget.data.width,
-      label: widget.label,
+      labels: widget.labels,
       shape: widget.data.shape,
     );
     var draggable = Draggable(
@@ -357,11 +358,11 @@ class EditableControlState extends State<EditableControl> {
 }
 
 class FixedControl extends StatelessWidget {
-  final String label;
+  final List<String> labels;
   final ControlData data;
   final double scale;
 
-  const FixedControl({Key key, this.label, this.data, this.scale})
+  const FixedControl({Key key, this.labels, this.data, this.scale})
       : super(key: key);
 
   @override
@@ -372,7 +373,7 @@ class FixedControl extends StatelessWidget {
         child: Control(
           height: scale * data.height,
           width: scale * data.width,
-          label: label,
+          labels: labels,
           shape: data.shape,
         ));
   }
@@ -381,10 +382,10 @@ class FixedControl extends StatelessWidget {
 class Control extends StatelessWidget {
   final double width;
   final double height;
-  final String label;
+  final List<String> labels;
   final ControlShape shape;
 
-  const Control({Key key, this.label, this.width, this.height, this.shape})
+  const Control({Key key, this.labels, this.width, this.height, this.shape})
       : super(key: key);
 
   @override
@@ -401,7 +402,7 @@ class Control extends StatelessWidget {
         fit: BoxFit.none,
         clipBehavior: Clip.none,
         child: Text(
-          label,
+          labels.join(' / '),
           style: theme.textTheme.button
               .copyWith(color: theme.colorScheme.onPrimary),
         ),

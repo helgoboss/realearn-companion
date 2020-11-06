@@ -48,10 +48,10 @@ CustomControllerData _$CustomControllerDataFromJson(Map<String, dynamic> json) {
 CompanionControllerData _$CompanionControllerDataFromJson(
     Map<String, dynamic> json) {
   return CompanionControllerData(
-    controls: (json['controls'] as Map<String, dynamic>)?.map(
-      (k, e) => MapEntry(k,
-          e == null ? null : ControlData.fromJson(e as Map<String, dynamic>)),
-    ),
+    controls: (json['controls'] as List)
+        ?.map((e) =>
+            e == null ? null : ControlData.fromJson(e as Map<String, dynamic>))
+        ?.toList(),
   );
 }
 
@@ -63,6 +63,8 @@ Map<String, dynamic> _$CompanionControllerDataToJson(
 
 ControlData _$ControlDataFromJson(Map<String, dynamic> json) {
   return ControlData(
+    id: json['id'] as String,
+    mappings: (json['mappings'] as List)?.map((e) => e as String)?.toList(),
     shape: _$enumDecodeNullable(_$ControlShapeEnumMap, json['shape']),
     x: (json['x'] as num)?.toDouble(),
     y: (json['y'] as num)?.toDouble(),
@@ -71,6 +73,8 @@ ControlData _$ControlDataFromJson(Map<String, dynamic> json) {
 
 Map<String, dynamic> _$ControlDataToJson(ControlData instance) =>
     <String, dynamic>{
+      'id': instance.id,
+      'mappings': instance.mappings,
       'shape': _$ControlShapeEnumMap[instance.shape],
       'x': instance.x,
       'y': instance.y,
