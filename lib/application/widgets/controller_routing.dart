@@ -95,7 +95,7 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
     var controllerRoutingTopic =
         "/realearn/session/$sessionId/controller-routing";
     return NormalScaffold(
-      padding: EdgeInsets.all(10),
+      padding: EdgeInsets.all(20),
       appBar: appBarIsVisible ? controllerRoutingAppBar() : null,
       child: ConnectionBuilder(
         connectionData: widget.connectionData,
