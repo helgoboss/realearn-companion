@@ -462,7 +462,6 @@ class Control extends StatelessWidget {
               position: textTwoInside
                   ? CircularTextPosition.inside
                   : CircularTextPosition.outside,
-              backgroundPaint: Paint()..color = backgroundColor,
               children: [
                   TextItem(
                     text: Text(

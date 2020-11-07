@@ -34,7 +34,7 @@ class NormalScaffold extends StatelessWidget {
             alignment: Alignment.center,
             padding: padding,
             child: child,
-            // In dark mode black might look better than the SVG background
+            // TODO-high In dark mode black might look better than the SVG background
             // color: Colors.black
           )
         ],
