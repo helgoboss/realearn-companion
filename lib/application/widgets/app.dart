@@ -16,16 +16,14 @@ class AppWidget extends StatelessWidget {
       theme: ThemeData(
         brightness: Brightness.light,
         primarySwatch: Colors.deepPurple,
-        accentColor: Colors.cyanAccent,
-        // visualDensity: VisualDensity.adaptivePlatformDensity,
+        accentColor: Colors.redAccent.shade700,
       ),
       darkTheme: ThemeData(
         brightness: Brightness.dark,
         primarySwatch: Colors.orange,
-        accentColor: Colors.red,
-        // visualDensity: VisualDensity.adaptivePlatformDensity,
+        accentColor: Colors.amberAccent,
       ),
-      themeMode: ThemeMode.dark,
+      themeMode: ThemeMode.light,
       onGenerateRoute: App.instance.router.generator,
     );
   }

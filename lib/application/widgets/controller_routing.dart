@@ -413,19 +413,25 @@ class Control extends StatelessWidget {
     var backgroundColor = theme.colorScheme.primary;
     var inside = false;
     var baseTextStyle = TextStyle(
-      fontSize: 40,
-      color:
-          inside ? theme.colorScheme.onPrimary : theme.colorScheme.onSurface,
+      fontSize: inside ? 50 : 60,
+      color: inside ? theme.colorScheme.primaryVariant : theme.colorScheme.onSurface,
       fontWeight: FontWeight.bold,
     );
-    double space = inside ? 15 : 10;
+    double space = inside ? 18 : 13;
     var textOneStyle = baseTextStyle;
-    var textTwoStyle = baseTextStyle;
+    var textTwoStyle = baseTextStyle.copyWith(
+      color: inside ? theme.colorScheme.secondaryVariant : theme.colorScheme.secondary,
+    );
     if (shape == ControlShape.circle) {
       return Container(
         width: width,
         height: height,
         child: CircularText(
+          radius: 125,
+          position: inside
+              ? CircularTextPosition.inside
+              : CircularTextPosition.outside,
+          backgroundPaint: Paint()..color = backgroundColor,
           children: [
             TextItem(
               text: Text(
@@ -449,11 +455,6 @@ class Control extends StatelessWidget {
                 direction: CircularTextDirection.anticlockwise,
               ),
           ],
-          radius: 125,
-          position: inside
-              ? CircularTextPosition.inside
-              : CircularTextPosition.outside,
-          backgroundPaint: Paint()..color = backgroundColor,
         ),
       );
     } else {
