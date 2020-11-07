@@ -4,6 +4,7 @@ import 'dart:developer';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_circular_text/circular_text.dart';
 import 'package:realearn_companion/application/repositories/controller.dart';
 import 'package:realearn_companion/domain/connection.dart';
 import 'package:realearn_companion/domain/model.dart';
@@ -409,45 +410,81 @@ class Control extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var theme = Theme.of(context);
-    return Container(
-      width: width,
-      height: height,
-      // clipBehavior: Clip.none,
-      child: FittedBox(
-        fit: BoxFit.none,
-        clipBehavior: Clip.none,
-        child: Column(children: [
-          Text(
-            labels[0],
-            style: theme.textTheme.button,
-          ),
-          Container(
-            width: width,
-            height: height,
-            decoration: new BoxDecoration(
-              color: theme.colorScheme.primary,
-              shape: mapControlShapeToBoxShape(shape ?? ControlShape.circle),
+    var backgroundColor = theme.colorScheme.primary;
+    var inside = false;
+    var baseTextStyle = TextStyle(
+      fontSize: 40,
+      color:
+          inside ? theme.colorScheme.onPrimary : theme.colorScheme.onSurface,
+      fontWeight: FontWeight.bold,
+    );
+    double space = inside ? 15 : 10;
+    var textOneStyle = baseTextStyle;
+    var textTwoStyle = baseTextStyle;
+    if (shape == ControlShape.circle) {
+      return Container(
+        width: width,
+        height: height,
+        child: CircularText(
+          children: [
+            TextItem(
+              text: Text(
+                labels[0],
+                style: textOneStyle,
+              ),
+              space: space,
+              startAngle: -90,
+              startAngleAlignment: StartAngleAlignment.center,
+              direction: CircularTextDirection.clockwise,
             ),
-          ),
-          if (labels.length > 1)
+            if (labels.length > 1)
+              TextItem(
+                text: Text(
+                  labels[1],
+                  style: textTwoStyle,
+                ),
+                space: space,
+                startAngle: 90,
+                startAngleAlignment: StartAngleAlignment.center,
+                direction: CircularTextDirection.anticlockwise,
+              ),
+          ],
+          radius: 125,
+          position: inside
+              ? CircularTextPosition.inside
+              : CircularTextPosition.outside,
+          backgroundPaint: Paint()..color = backgroundColor,
+        ),
+      );
+    } else {
+      return Container(
+        width: width,
+        height: height,
+        child: FittedBox(
+          fit: BoxFit.none,
+          clipBehavior: Clip.none,
+          child: Column(children: [
             Text(
-              labels[1],
+              labels[0],
               style: theme.textTheme.button,
             ),
-        ]),
-      ),
-    );
-  }
-}
-
-BoxShape mapControlShapeToBoxShape(ControlShape controlShape) {
-  switch (controlShape) {
-    case ControlShape.circle:
-      return BoxShape.circle;
-    case ControlShape.rectangle:
-      return BoxShape.rectangle;
-    default:
-      throw UnsupportedError("Unknown value $controlShape");
+            Container(
+              width: width,
+              height: height,
+              decoration: new BoxDecoration(
+                color: backgroundColor,
+                shape: BoxShape.rectangle,
+              ),
+            ),
+            if (labels.length > 1)
+              Text(
+                labels[1],
+                style: theme.textTheme.button,
+              ),
+          ]),
+        ),
+      );
+    }
   }
 }
 

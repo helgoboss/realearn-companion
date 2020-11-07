@@ -22,9 +22,10 @@ class AppWidget extends StatelessWidget {
       darkTheme: ThemeData(
         brightness: Brightness.dark,
         primarySwatch: Colors.orange,
+        accentColor: Colors.red,
         // visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      themeMode: ThemeMode.light,
+      themeMode: ThemeMode.dark,
       onGenerateRoute: App.instance.router.generator,
     );
   }
