@@ -418,6 +418,7 @@ class Control extends StatelessWidget {
     var baseTextStyle = TextStyle(
       fontWeight: FontWeight.bold,
     );
+    double radius = 125;
     double insideSpace = 18;
     double outsideSpace = 13;
     var textOneStyle = baseTextStyle.copyWith(
@@ -439,7 +440,7 @@ class Control extends StatelessWidget {
         child: Stack(
           children: [
             CircularText(
-              radius: 125,
+              radius: radius,
               position: textOneInside
                   ? CircularTextPosition.inside
                   : CircularTextPosition.outside,
@@ -458,7 +459,7 @@ class Control extends StatelessWidget {
               ],
             ),
             if (labels.length > 1) CircularText(
-              radius: 125,
+              radius: radius,
               position: textTwoInside
                   ? CircularTextPosition.inside
                   : CircularTextPosition.outside,
