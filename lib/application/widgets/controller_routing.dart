@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:math' as math;
+import 'package:uuid/uuid.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_circular_text/circular_text.dart';
@@ -11,6 +12,8 @@ import 'package:realearn_companion/domain/model.dart';
 
 import 'connection_builder.dart';
 import 'normal_scaffold.dart';
+
+var uuid = Uuid();
 
 class ControllerRoutingPage extends StatefulWidget {
   final ConnectionData connectionData;
@@ -258,7 +261,11 @@ class ControllerRoutingCanvas extends StatelessWidget {
       var widthScale = constraints.maxWidth / controllerSize.width;
       var heightScale = constraints.maxHeight / controllerSize.height;
       var scale = math.min(widthScale, heightScale);
+      var remainingMappings = [...controller.mappings];
       var controls = controller.controls.map((data) {
+        for (var mappingId in data.mappings) {
+          remainingMappings.removeWhere((m) => m.id == mappingId);
+        }
         if (isInEditMode) {
           return EditableControl(
             labels: data.mappings.map((mappingId) {
@@ -281,9 +288,92 @@ class ControllerRoutingCanvas extends StatelessWidget {
       }).toList();
       return Stack(
         key: stackKey,
-        children: controls,
+        children: [
+          ...controls,
+          if (isInEditMode)
+            Positioned(
+              top: 0,
+              left: 0,
+              child: ControlBag(
+                stackKey: stackKey,
+                mappings: remainingMappings,
+                onControlDataUpdate: onControlDataUpdate,
+                scale: scale,
+              ),
+            ),
+        ],
       );
     });
+  }
+}
+
+class ControlBag extends StatelessWidget {
+  final Function(ControlData) onControlDataUpdate;
+  final List<Mapping> mappings;
+  final GlobalKey stackKey;
+  final double scale;
+
+  const ControlBag({
+    Key key,
+    this.onControlDataUpdate,
+    this.mappings,
+    this.stackKey,
+    this.scale,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    var theme = Theme.of(context);
+    var bag = Stack(children: [
+      Icon(
+        Icons.shopping_bag,
+        color: theme.colorScheme.onSurface.withOpacity(0.2),
+        size: 100,
+      ),
+      ...mappings.map((m) {
+        var potentialControl = Control(
+          labels: [m.name],
+          width: 50,
+          height: 50,
+          shape: ControlShape.circle,
+        );
+        return Draggable(
+          childWhenDragging: SizedBox.shrink(),
+          feedback: potentialControl,
+          child: potentialControl,
+          onDragEnd: (details) {
+            var finalPos = getFinalDragPosition(
+              globalPosition: details.offset,
+              stackKey: stackKey,
+              scale: scale,
+            );
+            var newData = ControlData(
+              id: uuid.v4(),
+              mappings: [m.id],
+              x: finalPos.dx,
+              y: finalPos.dy,
+            );
+            onControlDataUpdate(newData);
+          },
+        );
+      })
+    ]);
+    return DragTarget<ControlData>(
+      builder: (context, candidateData, rejectedData) {
+        if (candidateData.length > 0) {
+          return Transform.scale(
+            scale: 2,
+            child: bag,
+          );
+        }
+        return bag;
+      },
+      onWillAccept: (data) => true,
+      onAccept: (data) {
+        var orphanControl = data.copyWith(mappings: []);
+        onControlDataUpdate(orphanControl);
+      },
+    );
   }
 }
 
@@ -352,13 +442,13 @@ class EditableControlState extends State<EditableControl> {
         if (details.wasAccepted) {
           return;
         }
-        final RenderBox box = widget.stackKey.currentContext.findRenderObject();
-        var localDetailsOffset = box.globalToLocal(details.offset);
-        var newOffset = Offset(
-          localDetailsOffset.dx / widget.scale,
-          localDetailsOffset.dy / widget.scale,
+        var finalPos = getFinalDragPosition(
+          globalPosition: details.offset,
+          stackKey: widget.stackKey,
+          scale: widget.scale,
         );
-        _onDragEnd(newOffset);
+        var newData = widget.data.copyWith(x: finalPos.dx, y: finalPos.dy);
+        widget.onControlDataUpdate(newData);
       },
     );
     return Positioned(
@@ -366,13 +456,6 @@ class EditableControlState extends State<EditableControl> {
       left: widget.offset.dx * widget.scale,
       child: draggable,
     );
-  }
-
-  void _onDragEnd(Offset offset) {
-    var alignedToGrid = alignOffsetToGrid(offset, 10, 10);
-    var newData =
-        widget.data.copyWith(x: alignedToGrid.dx, y: alignedToGrid.dy);
-    widget.onControlDataUpdate(newData);
   }
 }
 
@@ -458,12 +541,13 @@ class Control extends StatelessWidget {
                 ),
               ],
             ),
-            if (labels.length > 1) CircularText(
-              radius: radius,
-              position: textTwoInside
-                  ? CircularTextPosition.inside
-                  : CircularTextPosition.outside,
-              children: [
+            if (labels.length > 1)
+              CircularText(
+                radius: radius,
+                position: textTwoInside
+                    ? CircularTextPosition.inside
+                    : CircularTextPosition.outside,
+                children: [
                   TextItem(
                     text: Text(
                       labels[1],
@@ -474,8 +558,8 @@ class Control extends StatelessWidget {
                     startAngleAlignment: StartAngleAlignment.center,
                     direction: CircularTextDirection.anticlockwise,
                   ),
-              ],
-            )
+                ],
+              )
           ],
         ),
       );
@@ -520,4 +604,18 @@ Offset alignOffsetToGrid(Offset offset, double xGridSize, double yGridSize) {
 
 double roundNumberToGridSize(double number, double gridSize) {
   return (number / gridSize).roundToDouble() * gridSize;
+}
+
+Offset getFinalDragPosition({
+  GlobalKey stackKey,
+  Offset globalPosition,
+  double scale,
+}) {
+  final RenderBox box = stackKey.currentContext.findRenderObject();
+  var localPosition = box.globalToLocal(globalPosition);
+  var newOffset = Offset(
+    localPosition.dx / scale,
+    localPosition.dy / scale,
+  );
+  return alignOffsetToGrid(newOffset, 10, 10);
 }
