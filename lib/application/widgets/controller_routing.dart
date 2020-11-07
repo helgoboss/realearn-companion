@@ -311,17 +311,6 @@ class EditableControl extends StatefulWidget {
 }
 
 class EditableControlState extends State<EditableControl> {
-  void notifyControlDataChanged({ControlShape shape, double x, double y}) {
-    var data = ControlData(
-      id: widget.data.id,
-      mappings: widget.data.mappings,
-      shape: shape ?? widget.data.shape,
-      x: x ?? widget.data.x,
-      y: y ?? widget.data.y,
-    );
-    widget.onControlDataUpdate(data);
-  }
-
   @override
   Widget build(BuildContext context) {
     var control = Control(
@@ -330,11 +319,38 @@ class EditableControlState extends State<EditableControl> {
       labels: widget.labels,
       shape: widget.data.shape,
     );
-    var draggable = Draggable(
-      child: control,
+    var draggable = Draggable<ControlData>(
+      data: widget.data,
+      child: DragTarget<ControlData>(
+        builder: (context, candidateData, rejectedData) {
+          if (candidateData.length > 0) {
+            return Transform.scale(
+              scale: 2,
+              child: control,
+            );
+          }
+          return control;
+        },
+        onWillAccept: (data) {
+          return data.mappings.length == 1 && widget.data.mappings.length == 1;
+        },
+        onAccept: (data) {
+          var fatControl = widget.data.copyWith(
+            mappings: [...widget.data.mappings, ...data.mappings],
+          );
+          var orphanControl = data.copyWith(
+            mappings: [],
+          );
+          widget.onControlDataUpdate(fatControl);
+          widget.onControlDataUpdate(orphanControl);
+        },
+      ),
       childWhenDragging: SizedBox.shrink(),
       feedback: control,
       onDragEnd: (details) {
+        if (details.wasAccepted) {
+          return;
+        }
         final RenderBox box = widget.stackKey.currentContext.findRenderObject();
         var localDetailsOffset = box.globalToLocal(details.offset);
         var newOffset = Offset(
@@ -353,7 +369,9 @@ class EditableControlState extends State<EditableControl> {
 
   void _onDragEnd(Offset offset) {
     var alignedToGrid = alignOffsetToGrid(offset, 10, 10);
-    notifyControlDataChanged(x: alignedToGrid.dx, y: alignedToGrid.dy);
+    var newData =
+        widget.data.copyWith(x: alignedToGrid.dx, y: alignedToGrid.dy);
+    widget.onControlDataUpdate(newData);
   }
 }
 
@@ -394,18 +412,29 @@ class Control extends StatelessWidget {
     return Container(
       width: width,
       height: height,
-      decoration: new BoxDecoration(
-        color: theme.colorScheme.primary,
-        shape: mapControlShapeToBoxShape(shape ?? ControlShape.circle),
-      ),
+      // clipBehavior: Clip.none,
       child: FittedBox(
         fit: BoxFit.none,
         clipBehavior: Clip.none,
-        child: Text(
-          labels.join(' / '),
-          style: theme.textTheme.button
-              .copyWith(color: theme.colorScheme.onPrimary),
-        ),
+        child: Column(children: [
+          Text(
+            labels[0],
+            style: theme.textTheme.button,
+          ),
+          Container(
+            width: width,
+            height: height,
+            decoration: new BoxDecoration(
+              color: theme.colorScheme.primary,
+              shape: mapControlShapeToBoxShape(shape ?? ControlShape.circle),
+            ),
+          ),
+          if (labels.length > 1)
+            Text(
+              labels[1],
+              style: theme.textTheme.button,
+            ),
+        ]),
       ),
     );
   }

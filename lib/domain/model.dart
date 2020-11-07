@@ -1,4 +1,5 @@
-import 'dart:math';
+import 'dart:developer';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -110,14 +111,19 @@ class CompanionControllerData {
 
   void updateControlData(ControlData data) {
     controls.removeWhere((c) => c.id == data.id);
-    controls.add(data);
+    if (!data.mappings.isEmpty) {
+      controls.add(data);
+    }
   }
 
   Size calcTotalSize() {
     return controls.fold(
-        Size(0, 0),
-        (Size prev, ControlData data) =>
-            Size(max(prev.width, data.right), max(prev.height, data.bottom)));
+      Size(0, 0),
+      (Size prev, ControlData data) => Size(
+        math.max(prev.width, data.right),
+        math.max(prev.height, data.bottom),
+      ),
+    );
   }
 
   Map<String, dynamic> toJson() => _$CompanionControllerDataToJson(this);
@@ -136,7 +142,8 @@ class ControlData {
   factory ControlData.fromJson(Map<String, dynamic> json) =>
       _$ControlDataFromJson(json);
 
-  ControlData({this.id, List<String> mappings, ControlShape shape, double x, double y})
+  ControlData(
+      {this.id, List<String> mappings, ControlShape shape, double x, double y})
       : mappings = mappings ?? [],
         shape = shape ?? ControlShape.circle,
         x = x ?? 0.0,
@@ -151,6 +158,21 @@ class ControlData {
   double get bottom => y + height;
 
   Map<String, dynamic> toJson() => _$ControlDataToJson(this);
+
+  ControlData copyWith({
+    List<String> mappings,
+    ControlShape shape,
+    double x,
+    double y,
+  }) {
+    return ControlData(
+      id: this.id,
+      mappings: mappings ?? this.mappings,
+      shape: shape ?? this.shape,
+      x: x ?? this.x,
+      y: y ?? this.y,
+    );
+  }
 }
 
 @JsonSerializable(createToJson: false, nullable: true)
