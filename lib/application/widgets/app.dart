@@ -23,7 +23,7 @@ class AppWidget extends StatelessWidget {
         primarySwatch: Colors.orange,
         accentColor: Colors.amberAccent,
       ),
-      themeMode: ThemeMode.light,
+      themeMode: ThemeMode.dark,
       onGenerateRoute: App.instance.router.generator,
     );
   }

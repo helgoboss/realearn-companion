@@ -222,7 +222,7 @@ class ControllerRoutingWidget extends StatelessWidget {
     }
     return InteractiveViewer(
       panEnabled: true,
-      boundaryMargin: EdgeInsets.zero,
+      boundaryMargin: EdgeInsets.all(0),
       minScale: 0.5,
       maxScale: 4,
       child: ControllerRoutingCanvas(
@@ -411,49 +411,71 @@ class Control extends StatelessWidget {
   Widget build(BuildContext context) {
     var theme = Theme.of(context);
     var backgroundColor = theme.colorScheme.primary;
-    var inside = false;
+    var textOneInside = false;
+    var textTwoInside = false;
+    double insideFontSize = 50;
+    double outsideFontSize = 60;
     var baseTextStyle = TextStyle(
-      fontSize: inside ? 50 : 60,
-      color: inside ? theme.colorScheme.primaryVariant : theme.colorScheme.onSurface,
       fontWeight: FontWeight.bold,
     );
-    double space = inside ? 18 : 13;
-    var textOneStyle = baseTextStyle;
+    double insideSpace = 18;
+    double outsideSpace = 13;
+    var textOneStyle = baseTextStyle.copyWith(
+      fontSize: textOneInside ? insideFontSize : outsideFontSize,
+      color: textOneInside
+          ? theme.colorScheme.onPrimary
+          : theme.colorScheme.onSurface,
+    );
     var textTwoStyle = baseTextStyle.copyWith(
-      color: inside ? theme.colorScheme.secondaryVariant : theme.colorScheme.secondary,
+      fontSize: textTwoInside ? insideFontSize : outsideFontSize,
+      color: textTwoInside
+          ? theme.colorScheme.onBackground
+          : theme.colorScheme.secondary,
     );
     if (shape == ControlShape.circle) {
       return Container(
         width: width,
         height: height,
-        child: CircularText(
-          radius: 125,
-          position: inside
-              ? CircularTextPosition.inside
-              : CircularTextPosition.outside,
-          backgroundPaint: Paint()..color = backgroundColor,
+        child: Stack(
           children: [
-            TextItem(
-              text: Text(
-                labels[0],
-                style: textOneStyle,
-              ),
-              space: space,
-              startAngle: -90,
-              startAngleAlignment: StartAngleAlignment.center,
-              direction: CircularTextDirection.clockwise,
-            ),
-            if (labels.length > 1)
-              TextItem(
-                text: Text(
-                  labels[1],
-                  style: textTwoStyle,
+            CircularText(
+              radius: 125,
+              position: textOneInside
+                  ? CircularTextPosition.inside
+                  : CircularTextPosition.outside,
+              backgroundPaint: Paint()..color = backgroundColor,
+              children: [
+                TextItem(
+                  text: Text(
+                    labels[0],
+                    style: textOneStyle,
+                  ),
+                  space: textOneInside ? insideSpace : outsideSpace,
+                  startAngle: -90,
+                  startAngleAlignment: StartAngleAlignment.center,
+                  direction: CircularTextDirection.clockwise,
                 ),
-                space: space,
-                startAngle: 90,
-                startAngleAlignment: StartAngleAlignment.center,
-                direction: CircularTextDirection.anticlockwise,
-              ),
+              ],
+            ),
+            if (labels.length > 1) CircularText(
+              radius: 125,
+              position: textTwoInside
+                  ? CircularTextPosition.inside
+                  : CircularTextPosition.outside,
+              backgroundPaint: Paint()..color = backgroundColor,
+              children: [
+                  TextItem(
+                    text: Text(
+                      labels[1],
+                      style: textTwoStyle,
+                    ),
+                    space: textTwoInside ? insideSpace : outsideSpace,
+                    startAngle: 90,
+                    startAngleAlignment: StartAngleAlignment.center,
+                    direction: CircularTextDirection.anticlockwise,
+                  ),
+              ],
+            )
           ],
         ),
       );
