@@ -98,7 +98,7 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
     var controllerRoutingTopic =
         "/realearn/session/$sessionId/controller-routing";
     return NormalScaffold(
-      padding: EdgeInsets.all(20),
+      padding: EdgeInsets.zero,
       appBar: appBarIsVisible ? controllerRoutingAppBar() : null,
       child: ConnectionBuilder(
         connectionData: widget.connectionData,
@@ -204,13 +204,16 @@ class ControllerRoutingContainerState
   }
 }
 
+var controlCanvasPadding = EdgeInsets.all(20);
+
 class ControllerRoutingWidget extends StatelessWidget {
   final Controller controller;
   final ControllerRouting routing;
   final bool isInEditMode;
   final Function(ControlData) onControlDataUpdate;
+  final GlobalKey stackKey = GlobalKey();
 
-  const ControllerRoutingWidget({
+  ControllerRoutingWidget({
     Key key,
     this.controller,
     this.routing,
@@ -223,87 +226,92 @@ class ControllerRoutingWidget extends StatelessWidget {
     if (controller == null || routing == null) {
       return Center(child: Text("Loading..."));
     }
-    return InteractiveViewer(
-      panEnabled: true,
-      boundaryMargin: EdgeInsets.all(0),
-      minScale: 0.5,
-      maxScale: 4,
-      child: ControllerRoutingCanvas(
-        controller: controller,
-        routing: routing,
-        isInEditMode: isInEditMode,
-        onControlDataUpdate: onControlDataUpdate,
-      ),
-    );
-  }
-}
-
-class ControllerRoutingCanvas extends StatelessWidget {
-  final Controller controller;
-  final ControllerRouting routing;
-  final bool isInEditMode;
-  final Function(ControlData) onControlDataUpdate;
-  final GlobalKey stackKey = GlobalKey();
-
-  ControllerRoutingCanvas({
-    Key key,
-    this.controller,
-    this.routing,
-    this.isInEditMode,
-    this.onControlDataUpdate,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
+    var isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
     var controllerSize = controller.calcTotalSize();
-    return LayoutBuilder(
-        builder: (BuildContext context, BoxConstraints constraints) {
-      var widthScale = constraints.maxWidth / controllerSize.width;
-      var heightScale = constraints.maxHeight / controllerSize.height;
-      var scale = math.min(widthScale, heightScale);
-      var remainingMappings = [...controller.mappings];
-      var controls = controller.controls.map((data) {
-        for (var mappingId in data.mappings) {
-          remainingMappings.removeWhere((m) => m.id == mappingId);
-        }
-        if (isInEditMode) {
-          return EditableControl(
-            labels: data.mappings.map((mappingId) {
-              return controller.findMappingById(mappingId)?.name ?? "";
-            }).toList(),
-            data: data,
-            scale: scale,
-            stackKey: stackKey,
-            onControlDataUpdate: onControlDataUpdate,
-          );
-        } else {
-          return FixedControl(
-            labels: data.mappings.map((mappingId) {
-              return routing.routes[mappingId]?.label ?? "";
-            }).toList(),
-            data: data,
-            scale: scale,
-          );
-        }
+    Widget createControlBag({Axis direction}) {
+      var remainingMappings = controller.mappings.where((m) {
+        return !controller.controls.any((c) => c.mappings.contains(m.id));
       }).toList();
-      return Stack(
-        key: stackKey,
-        children: [
-          ...controls,
-          if (isInEditMode)
-            Positioned(
-              top: 0,
-              left: 0,
-              child: ControlBag(
-                stackKey: stackKey,
-                mappings: remainingMappings,
-                onControlDataUpdate: onControlDataUpdate,
-                scale: scale,
-              ),
-            ),
-        ],
+      return ControlBag(
+        direction: direction,
+        stackKey: stackKey,
+        mappings: remainingMappings,
+        onControlDataUpdate: onControlDataUpdate,
       );
-    });
+    }
+
+    return Flex(
+      direction: isPortrait ? Axis.vertical : Axis.horizontal,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Expanded(
+          child: Padding(
+            padding: controlCanvasPadding,
+            child: InteractiveViewer(
+              panEnabled: true,
+              boundaryMargin: EdgeInsets.all(0),
+              minScale: 1.0,
+              maxScale: 4,
+              child: LayoutBuilder(
+                  builder: (BuildContext context, BoxConstraints constraints) {
+                var widthScale = constraints.maxWidth / controllerSize.width;
+                var heightScale = constraints.maxHeight / controllerSize.height;
+                var scale = math.min(widthScale, heightScale);
+                var controls = controller.controls.map((data) {
+                  if (isInEditMode) {
+                    return EditableControl(
+                      labels: data.mappings.map((mappingId) {
+                        return controller.findMappingById(mappingId)?.name ??
+                            "";
+                      }).toList(),
+                      data: data,
+                      scale: scale,
+                      stackKey: stackKey,
+                      onControlDataUpdate: onControlDataUpdate,
+                    );
+                  } else {
+                    return FixedControl(
+                      labels: data.mappings.map((mappingId) {
+                        return routing.routes[mappingId]?.label ?? "";
+                      }).toList(),
+                      data: data,
+                      scale: scale,
+                    );
+                  }
+                }).toList();
+                return DragTarget<String>(
+                  builder: (context, candidateData, rejectedData) {
+                    return Stack(
+                      key: stackKey,
+                      children: controls,
+                    );
+                  },
+                  onWillAccept: (data) => true,
+                  onAcceptWithDetails: (details) {
+                    var finalPos = getFinalDragPosition(
+                      globalPosition: details.offset,
+                      stackKey: stackKey,
+                      scale: scale,
+                    );
+                    var newData = ControlData(
+                      id: uuid.v4(),
+                      mappings: [details.data],
+                      x: finalPos.dx,
+                      y: finalPos.dy,
+                    );
+                    onControlDataUpdate(newData);
+                  },
+                );
+              }),
+            ),
+          ),
+        ),
+        if (isInEditMode)
+          createControlBag(
+            direction: isPortrait ? Axis.horizontal : Axis.vertical,
+          )
+      ],
+    );
   }
 }
 
@@ -311,62 +319,63 @@ class ControlBag extends StatelessWidget {
   final Function(ControlData) onControlDataUpdate;
   final List<Mapping> mappings;
   final GlobalKey stackKey;
-  final double scale;
+  final Axis direction;
 
   const ControlBag({
     Key key,
     this.onControlDataUpdate,
     this.mappings,
     this.stackKey,
-    this.scale,
+    this.direction,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    var theme = Theme.of(context);
-    var bag = Stack(children: [
-      Icon(
-        Icons.shopping_bag,
-        color: theme.colorScheme.onSurface.withOpacity(0.2),
-        size: 100,
-      ),
-      ...mappings.map((m) {
-        var potentialControl = Control(
-          labels: [m.name],
-          width: 50,
-          height: 50,
-          shape: ControlShape.circle,
-        );
-        return Draggable(
-          childWhenDragging: SizedBox.shrink(),
-          feedback: potentialControl,
-          child: potentialControl,
-          onDragEnd: (details) {
-            var finalPos = getFinalDragPosition(
-              globalPosition: details.offset,
-              stackKey: stackKey,
-              scale: scale,
-            );
-            var newData = ControlData(
-              id: uuid.v4(),
-              mappings: [m.id],
-              x: finalPos.dx,
-              y: finalPos.dy,
-            );
-            onControlDataUpdate(newData);
-          },
-        );
-      })
-    ]);
+    Widget createBag({bool isAccepting}) {
+      return Container(
+        padding: controlCanvasPadding,
+        width: direction == Axis.vertical ? 100 : null,
+        height: direction == Axis.horizontal ? 100 : null,
+        color: isAccepting
+            ? Colors.grey.withOpacity(0.3)
+            : Colors.grey.withOpacity(0.1),
+        child: SingleChildScrollView(
+          scrollDirection: direction,
+          child: Flex(
+            direction: direction,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: mappings.map((m) {
+              Widget createPotentialControl({Color fillColor}) {
+                return Control(
+                  labels: [m.name],
+                  width: 50,
+                  height: 50,
+                  shape: ControlShape.circle,
+                  fillColor: fillColor
+                );
+              }
+
+              var normalPotentialControl = createPotentialControl();
+              return Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Draggable<String>(
+                  data: m.id,
+                  childWhenDragging: createPotentialControl(
+                    fillColor: Colors.grey,
+                  ),
+                  feedback: normalPotentialControl,
+                  child: normalPotentialControl,
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+      );
+    }
+
     return DragTarget<ControlData>(
       builder: (context, candidateData, rejectedData) {
-        if (candidateData.length > 0) {
-          return Transform.scale(
-            scale: 2,
-            child: bag,
-          );
-        }
-        return bag;
+        return createBag(isAccepting: candidateData.length > 0);
       },
       onWillAccept: (data) => true,
       onAccept: (data) {
@@ -486,14 +495,21 @@ class Control extends StatelessWidget {
   final double height;
   final List<String> labels;
   final ControlShape shape;
+  final Color fillColor;
 
-  const Control({Key key, this.labels, this.width, this.height, this.shape})
-      : super(key: key);
+  const Control({
+    Key key,
+    this.labels,
+    this.width,
+    this.height,
+    this.shape,
+    this.fillColor,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     var theme = Theme.of(context);
-    var backgroundColor = theme.colorScheme.primary;
+    var backgroundColor = fillColor ?? theme.colorScheme.primary;
     var textOneInside = false;
     var textTwoInside = false;
     double insideFontSize = 50;
