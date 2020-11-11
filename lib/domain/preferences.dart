@@ -13,6 +13,7 @@ class AppPreferences extends ChangeNotifier {
   bool highContrastEnabled;
   bool backgroundImageEnabled;
   bool gridEnabled;
+  ControlAppearance controlAppearance;
 
   static Future<AppPreferences> load() async {
     var prefs = await SharedPreferences.getInstance();
@@ -32,10 +33,12 @@ class AppPreferences extends ChangeNotifier {
     bool highContrastEnabled,
     bool backgroundImageEnabled,
     bool gridEnabled,
+    ControlAppearance controlAppearance,
   })  : themeMode = themeMode ?? ThemeMode.system,
         highContrastEnabled = highContrastEnabled ?? false,
         backgroundImageEnabled = backgroundImageEnabled ?? true,
-        gridEnabled = gridEnabled ?? false;
+        gridEnabled = gridEnabled ?? false,
+        controlAppearance = controlAppearance ?? ControlAppearance.filled;
 
   Map<String, dynamic> toJson() => _$AppPreferencesToJson(this);
 
@@ -59,6 +62,11 @@ class AppPreferences extends ChangeNotifier {
     _notifyAndSave();
   }
 
+  void switchControlAppearance() {
+    controlAppearance = getNextControlAppearance(controlAppearance);
+    _notifyAndSave();
+  }
+
   void _notifyAndSave() {
     notifyListeners();
     _save();
@@ -72,8 +80,18 @@ class AppPreferences extends ChangeNotifier {
   }
 }
 
-ThemeMode getNextThemeMode(ThemeMode currentMode) {
-  return ThemeMode.values[(currentMode.index + 1) % ThemeMode.values.length];
+enum ControlAppearance {
+  filled,
+  outlined,
+}
+
+ThemeMode getNextThemeMode(ThemeMode value) {
+  return ThemeMode.values[(value.index + 1) % ThemeMode.values.length];
+}
+
+ControlAppearance getNextControlAppearance(ControlAppearance value) {
+  return ControlAppearance
+      .values[(value.index + 1) % ControlAppearance.values.length];
 }
 
 @JsonSerializable(nullable: true)

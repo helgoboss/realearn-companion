@@ -101,7 +101,7 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
                         return ListTile(
                           leading: Icon(getThemeModeIcon(prefs.themeMode)),
                           onTap: prefs.switchThemeMode,
-                          title: Text('Switch theme mode'),
+                          title: Text('Theme mode'),
                         );
                       },
                     ),
@@ -126,6 +126,17 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
                               prefs.backgroundImageEnabled ? Icons.done : null),
                           onTap: prefs.toggleBackgroundImage,
                           title: Text('Background image'),
+                        );
+                      },
+                    ),
+                  ),
+                  PopupMenuItem(
+                    child: Consumer<AppPreferences>(
+                      builder: (context, prefs, child) {
+                        return ListTile(
+                          leading: Icon(getControlAppearanceIcon(prefs.controlAppearance)),
+                          onTap: prefs.switchControlAppearance,
+                          title: Text('Control appearance'),
                         );
                       },
                     ),
@@ -598,7 +609,8 @@ class Control extends StatelessWidget {
           ? theme.colorScheme.onBackground
           : theme.colorScheme.secondary,
     );
-    var strokeOnly = true;
+    var prefs = context.watch<AppPreferences>();
+    var strokeOnly = prefs.controlAppearance == ControlAppearance.outlined;
     var divider = 5;
     double strokeWidth = 5;
     if (shape == ControlShape.circle) {
@@ -715,8 +727,8 @@ Offset getFinalDragPosition({
   return alignOffsetToGrid(newOffset, gridSize, gridSize);
 }
 
-IconData getThemeModeIcon(ThemeMode themeMode) {
-  switch (themeMode) {
+IconData getThemeModeIcon(ThemeMode value) {
+  switch (value) {
     case ThemeMode.system:
       return Icons.brightness_auto;
     case ThemeMode.light:
@@ -726,6 +738,11 @@ IconData getThemeModeIcon(ThemeMode themeMode) {
   }
 }
 
-String getThemeModeLabel(ThemeMode value) {
-  return value.toString().split('.').last;
+IconData getControlAppearanceIcon(ControlAppearance value) {
+  switch (value) {
+    case ControlAppearance.filled:
+      return Icons.fiber_manual_record;
+    case ControlAppearance.outlined:
+      return Icons.fiber_manual_record_outlined;
+  }
 }

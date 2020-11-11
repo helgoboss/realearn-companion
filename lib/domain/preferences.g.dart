@@ -12,6 +12,8 @@ AppPreferences _$AppPreferencesFromJson(Map<String, dynamic> json) {
     highContrastEnabled: json['highContrastEnabled'] as bool,
     backgroundImageEnabled: json['backgroundImageEnabled'] as bool,
     gridEnabled: json['gridEnabled'] as bool,
+    controlAppearance: _$enumDecodeNullable(
+        _$ControlAppearanceEnumMap, json['controlAppearance']),
   );
 }
 
@@ -21,6 +23,8 @@ Map<String, dynamic> _$AppPreferencesToJson(AppPreferences instance) =>
       'highContrastEnabled': instance.highContrastEnabled,
       'backgroundImageEnabled': instance.backgroundImageEnabled,
       'gridEnabled': instance.gridEnabled,
+      'controlAppearance':
+          _$ControlAppearanceEnumMap[instance.controlAppearance],
     };
 
 T _$enumDecode<T>(
@@ -59,6 +63,11 @@ const _$ThemeModeEnumMap = {
   ThemeMode.system: 'system',
   ThemeMode.light: 'light',
   ThemeMode.dark: 'dark',
+};
+
+const _$ControlAppearanceEnumMap = {
+  ControlAppearance.filled: 'filled',
+  ControlAppearance.outlined: 'outlined',
 };
 
 RecentConnection _$RecentConnectionFromJson(Map<String, dynamic> json) {
