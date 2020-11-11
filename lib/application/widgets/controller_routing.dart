@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:math' as math;
+import 'package:provider/provider.dart';
+import 'package:realearn_companion/domain/preferences.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:flutter/material.dart';
@@ -72,6 +74,7 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
     AppBar controllerRoutingAppBar() {
       var theme = Theme.of(context);
       return AppBar(
+        // TODO-high Show controller name here
         title: Text("Controller Routing"),
         actions: [
           IconButton(
@@ -88,7 +91,48 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
                 enterEditMode();
               }
             },
-          )
+          ),
+          PopupMenuButton<String>(
+            onSelected: (value) {},
+            itemBuilder: (BuildContext context) {
+              var iconRowItem = PopupMenuItem<String>(
+                value: "Icons",
+                child: Row(
+                  children: <Widget>[
+                    Consumer<AppPreferences>(
+                      builder: (context, prefs, child) {
+                        var theme = Theme.of(context);
+                        return IconButton(
+                          icon: Icon(getThemeModeIcon(prefs.themeMode)),
+                          color: theme.colorScheme.onSurface,
+                          onPressed: prefs.switchThemeMode,
+                          tooltip: "Dark/light/system mode",
+                        );
+                      },
+                    ),
+                    Consumer<AppPreferences>(
+                      builder: (context, prefs, child) {
+                        var theme = Theme.of(context);
+                        return IconButton(
+                          icon: Icon(Icons.monochrome_photos),
+                          color: theme.colorScheme.onSurface,
+                          onPressed: prefs.toggleHighContrast,
+                          tooltip: "Toggle high contrast",
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              );
+              var mainItems = {'Logout', 'Settings'}.map((String choice) {
+                return PopupMenuItem<String>(
+                  value: choice,
+                  child: Text(choice),
+                );
+              }).toList();
+              return [iconRowItem, ...mainItems];
+            },
+          ),
         ],
       );
     }
@@ -347,12 +391,11 @@ class ControlBag extends StatelessWidget {
             children: mappings.map((m) {
               Widget createPotentialControl({Color fillColor}) {
                 return Control(
-                  labels: [m.name],
-                  width: 50,
-                  height: 50,
-                  shape: ControlShape.circle,
-                  fillColor: fillColor
-                );
+                    labels: [m.name],
+                    width: 50,
+                    height: 50,
+                    shape: ControlShape.circle,
+                    fillColor: fillColor);
               }
 
               var normalPotentialControl = createPotentialControl();
@@ -509,7 +552,7 @@ class Control extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var theme = Theme.of(context);
-    var backgroundColor = fillColor ?? theme.colorScheme.primary;
+    var mainColor = fillColor ?? theme.colorScheme.primary;
     var textOneInside = false;
     var textTwoInside = false;
     double insideFontSize = 50;
@@ -532,10 +575,14 @@ class Control extends StatelessWidget {
           ? theme.colorScheme.onBackground
           : theme.colorScheme.secondary,
     );
+    var strokeOnly = true;
+    var divider = 5;
+    double strokeWidth = 5;
     if (shape == ControlShape.circle) {
+      var actualWidth = strokeOnly ? width - strokeWidth / divider : width;
       return Container(
-        width: width,
-        height: height,
+        width: actualWidth,
+        height: actualWidth,
         child: Stack(
           children: [
             CircularText(
@@ -543,7 +590,10 @@ class Control extends StatelessWidget {
               position: textOneInside
                   ? CircularTextPosition.inside
                   : CircularTextPosition.outside,
-              backgroundPaint: Paint()..color = backgroundColor,
+              backgroundPaint: Paint()
+                ..color = mainColor
+                ..style = strokeOnly ? PaintingStyle.stroke : PaintingStyle.fill
+                ..strokeWidth = strokeWidth,
               children: [
                 TextItem(
                   text: Text(
@@ -589,20 +639,24 @@ class Control extends StatelessWidget {
           child: Column(children: [
             Text(
               labels[0],
-              style: theme.textTheme.button,
+              style: textOneStyle.copyWith(fontSize: outsideFontSize / divider),
             ),
             Container(
               width: width,
               height: height,
               decoration: new BoxDecoration(
-                color: backgroundColor,
+                color: strokeOnly ? null : mainColor,
+                border:
+                    Border.all(width: strokeWidth / divider, color: mainColor),
                 shape: BoxShape.rectangle,
+                borderRadius: BorderRadius.all(Radius.circular(10)),
               ),
             ),
             if (labels.length > 1)
               Text(
                 labels[1],
-                style: theme.textTheme.button,
+                style:
+                    textTwoStyle.copyWith(fontSize: outsideFontSize / divider),
               ),
           ]),
         ),
@@ -634,4 +688,15 @@ Offset getFinalDragPosition({
     localPosition.dy / scale,
   );
   return alignOffsetToGrid(newOffset, 10, 10);
+}
+
+IconData getThemeModeIcon(ThemeMode themeMode) {
+  switch (themeMode) {
+    case ThemeMode.system:
+      return Icons.brightness_auto;
+    case ThemeMode.light:
+      return Icons.brightness_7;
+    case ThemeMode.dark:
+      return Icons.brightness_1;
+  }
 }

@@ -1,7 +1,64 @@
+import 'dart:convert';
+
+import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:realearn_companion/domain/connection.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 part 'preferences.g.dart';
+
+@JsonSerializable(nullable: true)
+class AppPreferences extends ChangeNotifier {
+  ThemeMode themeMode;
+  bool highContrast;
+
+  static Future<AppPreferences> load() async {
+    var prefs = await SharedPreferences.getInstance();
+    var jsonString = await prefs.getString('preferences');
+    if (jsonString == null) {
+      return AppPreferences();
+    }
+    var jsonMap = jsonDecode(jsonString);
+    return AppPreferences.fromJson(jsonMap);
+  }
+
+  factory AppPreferences.fromJson(Map<String, dynamic> json) =>
+      _$AppPreferencesFromJson(json);
+
+  AppPreferences({
+    ThemeMode themeMode,
+    bool highContrast,
+  })  : themeMode = themeMode ?? ThemeMode.system,
+        highContrast = highContrast ?? false;
+
+  Map<String, dynamic> toJson() => _$AppPreferencesToJson(this);
+
+  void switchThemeMode() {
+    themeMode = getNextThemeMode(themeMode);
+    _notifyAndSave();
+  }
+
+  void toggleHighContrast() {
+    highContrast = !highContrast;
+    _notifyAndSave();
+  }
+
+  void _notifyAndSave() {
+    notifyListeners();
+    _save();
+  }
+
+  void _save() async {
+    var jsonMap = toJson();
+    var jsonString = jsonEncode(jsonMap);
+    var prefs = await SharedPreferences.getInstance();
+    await prefs.setString('preferences', jsonString);
+  }
+}
+
+ThemeMode getNextThemeMode(ThemeMode currentMode) {
+  return ThemeMode.values[(currentMode.index + 1) % ThemeMode.values.length];
+}
 
 @JsonSerializable(nullable: true)
 class RecentConnection {
@@ -11,12 +68,13 @@ class RecentConnection {
   final String sessionId;
   final String certContent;
 
-  RecentConnection(
-      {this.host,
-      this.httpPort,
-      this.httpsPort,
-      this.sessionId,
-      this.certContent});
+  RecentConnection({
+    this.host,
+    this.httpPort,
+    this.httpsPort,
+    this.sessionId,
+    this.certContent,
+  });
 
   factory RecentConnection.fromJson(Map<String, dynamic> json) =>
       _$RecentConnectionFromJson(json);

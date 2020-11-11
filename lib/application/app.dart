@@ -26,6 +26,7 @@ class App {
 
   static App get instance => _instance;
 
+  // TODO-high Keep this as part of AppPreferences
   Future<ConnectionDataPalette> loadLastConnection() async {
     var prefs = await SharedPreferences.getInstance();
     var jsonStrings = await prefs.getStringList('recentConnections');
