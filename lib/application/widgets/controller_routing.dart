@@ -74,67 +74,67 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
     AppBar controllerRoutingAppBar() {
       var theme = Theme.of(context);
       return AppBar(
-        // TODO-high Show controller name here
-        title: Text("Controller Routing"),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.save),
-            onPressed: madeEdit ? saveController : null,
-          ),
-          IconButton(
-            icon: Icon(Icons.edit),
-            color: isInEditMode ? theme.accentColor : null,
-            onPressed: () {
-              if (isInEditMode) {
-                leaveEditMode();
-              } else {
-                enterEditMode();
-              }
-            },
-          ),
-          PopupMenuButton<String>(
-            onSelected: (value) {},
-            itemBuilder: (BuildContext context) {
-              var iconRowItem = PopupMenuItem<String>(
-                value: "Icons",
-                child: Row(
-                  children: <Widget>[
-                    Consumer<AppPreferences>(
+          // TODO-high Show controller name here
+          title: Text("Controller Routing"),
+          actions: [
+            IconButton(
+              icon: Icon(Icons.save),
+              onPressed: madeEdit ? saveController : null,
+            ),
+            IconButton(
+              icon: Icon(Icons.edit),
+              color: isInEditMode ? theme.accentColor : null,
+              onPressed: () {
+                if (isInEditMode) {
+                  leaveEditMode();
+                } else {
+                  enterEditMode();
+                }
+              },
+            ),
+            PopupMenuButton(
+              onSelected: (MenuCommand result) {
+                var prefs = context.read<AppPreferences>();
+                switch (result) {
+                  case MenuCommand.switchThemeMode:
+                    prefs.switchThemeMode();
+                    break;
+                  case MenuCommand.toggleHighContrast:
+                    prefs.toggleHighContrast();
+                    break;
+                }
+              },
+              itemBuilder: (BuildContext context) {
+                return <PopupMenuEntry<MenuCommand>>[
+                  PopupMenuItem(
+                    value: MenuCommand.switchThemeMode,
+                    child: Consumer<AppPreferences>(
                       builder: (context, prefs, child) {
-                        var theme = Theme.of(context);
-                        return IconButton(
-                          icon: Icon(getThemeModeIcon(prefs.themeMode)),
-                          color: theme.colorScheme.onSurface,
-                          onPressed: prefs.switchThemeMode,
-                          tooltip: "Dark/light/system mode",
+                        return ListTile(
+                          leading: Icon(getThemeModeIcon(prefs.themeMode)),
+                          onTap: prefs.switchThemeMode,
+                          title: Text('Switch theme mode'),
                         );
                       },
                     ),
-                    Consumer<AppPreferences>(
+                  ),
+                  const PopupMenuDivider(),
+                  PopupMenuItem(
+                    value: MenuCommand.toggleHighContrast,
+                    child: Consumer<AppPreferences>(
                       builder: (context, prefs, child) {
-                        var theme = Theme.of(context);
-                        return IconButton(
-                          icon: Icon(Icons.monochrome_photos),
-                          color: theme.colorScheme.onSurface,
-                          onPressed: prefs.toggleHighContrast,
-                          tooltip: "Toggle high contrast",
+                        return ListTile(
+                          leading: Icon(prefs.highContrast ? Icons.done : null),
+                          onTap: prefs.toggleHighContrast,
+                          title: Text('High contrast'),
                         );
                       },
                     ),
-                  ],
-                ),
-              );
-              var mainItems = {'Logout', 'Settings'}.map((String choice) {
-                return PopupMenuItem<String>(
-                  value: choice,
-                  child: Text(choice),
-                );
-              }).toList();
-              return [iconRowItem, ...mainItems];
-            },
-          ),
-        ],
-      );
+                  ),
+                ];
+              },
+            ),
+          ]);
     }
 
     var sessionId = widget.connectionData.sessionId;
@@ -168,6 +168,11 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
       ),
     );
   }
+}
+
+enum MenuCommand {
+  switchThemeMode,
+  toggleHighContrast,
 }
 
 class ControllerRoutingContainer extends StatefulWidget {
@@ -699,4 +704,8 @@ IconData getThemeModeIcon(ThemeMode themeMode) {
     case ThemeMode.dark:
       return Icons.brightness_1;
   }
+}
+
+String getThemeModeLabel(ThemeMode value) {
+  return value.toString().split('.').last;
 }
