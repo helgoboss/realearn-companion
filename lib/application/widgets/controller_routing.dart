@@ -110,7 +110,8 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
                     child: Consumer<AppPreferences>(
                       builder: (context, prefs, child) {
                         return ListTile(
-                          leading: Icon(prefs.highContrastEnabled ? Icons.done : null),
+                          leading: Icon(
+                              prefs.highContrastEnabled ? Icons.done : null),
                           onTap: prefs.toggleHighContrast,
                           title: Text('High contrast'),
                         );
@@ -121,9 +122,21 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
                     child: Consumer<AppPreferences>(
                       builder: (context, prefs, child) {
                         return ListTile(
-                          leading: Icon(prefs.backgroundImageEnabled ? Icons.done : null),
+                          leading: Icon(
+                              prefs.backgroundImageEnabled ? Icons.done : null),
                           onTap: prefs.toggleBackgroundImage,
                           title: Text('Background image'),
+                        );
+                      },
+                    ),
+                  ),
+                  PopupMenuItem(
+                    child: Consumer<AppPreferences>(
+                      builder: (context, prefs, child) {
+                        return ListTile(
+                          leading: Icon(prefs.gridEnabled ? Icons.done : null),
+                          onTap: prefs.toggleGrid,
+                          title: Text('Grid'),
                         );
                       },
                     ),
@@ -320,28 +333,41 @@ class ControllerRoutingWidget extends StatelessWidget {
                     );
                   }
                 }).toList();
-                return DragTarget<String>(
-                  builder: (context, candidateData, rejectedData) {
-                    return Stack(
-                      key: stackKey,
-                      children: controls,
+                return Consumer<AppPreferences>(
+                  builder: (context, prefs, child) {
+                    return GridPaper(
+                      divisions: 1,
+                      subdivisions: 1,
+                      interval: gridSize * scale,
+                      color: prefs.gridEnabled
+                          ? Colors.grey
+                          : Colors.transparent,
+                      child: child,
                     );
                   },
-                  onWillAccept: (data) => true,
-                  onAcceptWithDetails: (details) {
-                    var finalPos = getFinalDragPosition(
-                      globalPosition: details.offset,
-                      stackKey: stackKey,
-                      scale: scale,
-                    );
-                    var newData = ControlData(
-                      id: uuid.v4(),
-                      mappings: [details.data],
-                      x: finalPos.dx,
-                      y: finalPos.dy,
-                    );
-                    onControlDataUpdate(newData);
-                  },
+                  child: DragTarget<String>(
+                    builder: (context, candidateData, rejectedData) {
+                      return Stack(
+                        key: stackKey,
+                        children: controls,
+                      );
+                    },
+                    onWillAccept: (data) => true,
+                    onAcceptWithDetails: (details) {
+                      var finalPos = getFinalDragPosition(
+                        globalPosition: details.offset,
+                        stackKey: stackKey,
+                        scale: scale,
+                      );
+                      var newData = ControlData(
+                        id: uuid.v4(),
+                        mappings: [details.data],
+                        x: finalPos.dx,
+                        y: finalPos.dy,
+                      );
+                      onControlDataUpdate(newData);
+                    },
+                  ),
                 );
               }),
             ),
@@ -673,6 +699,8 @@ double roundNumberToGridSize(double number, double gridSize) {
   return (number / gridSize).roundToDouble() * gridSize;
 }
 
+const double gridSize = 50;
+
 Offset getFinalDragPosition({
   GlobalKey stackKey,
   Offset globalPosition,
@@ -684,7 +712,7 @@ Offset getFinalDragPosition({
     localPosition.dx / scale,
     localPosition.dy / scale,
   );
-  return alignOffsetToGrid(newOffset, 10, 10);
+  return alignOffsetToGrid(newOffset, gridSize, gridSize);
 }
 
 IconData getThemeModeIcon(ThemeMode themeMode) {

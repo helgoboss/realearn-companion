@@ -11,6 +11,7 @@ AppPreferences _$AppPreferencesFromJson(Map<String, dynamic> json) {
     themeMode: _$enumDecodeNullable(_$ThemeModeEnumMap, json['themeMode']),
     highContrastEnabled: json['highContrastEnabled'] as bool,
     backgroundImageEnabled: json['backgroundImageEnabled'] as bool,
+    gridEnabled: json['gridEnabled'] as bool,
   );
 }
 
@@ -19,6 +20,7 @@ Map<String, dynamic> _$AppPreferencesToJson(AppPreferences instance) =>
       'themeMode': _$ThemeModeEnumMap[instance.themeMode],
       'highContrastEnabled': instance.highContrastEnabled,
       'backgroundImageEnabled': instance.backgroundImageEnabled,
+      'gridEnabled': instance.gridEnabled,
     };
 
 T _$enumDecode<T>(

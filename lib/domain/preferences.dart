@@ -12,6 +12,7 @@ class AppPreferences extends ChangeNotifier {
   ThemeMode themeMode;
   bool highContrastEnabled;
   bool backgroundImageEnabled;
+  bool gridEnabled;
 
   static Future<AppPreferences> load() async {
     var prefs = await SharedPreferences.getInstance();
@@ -30,9 +31,11 @@ class AppPreferences extends ChangeNotifier {
     ThemeMode themeMode,
     bool highContrastEnabled,
     bool backgroundImageEnabled,
+    bool gridEnabled,
   })  : themeMode = themeMode ?? ThemeMode.system,
         highContrastEnabled = highContrastEnabled ?? false,
-        backgroundImageEnabled = backgroundImageEnabled ?? true;
+        backgroundImageEnabled = backgroundImageEnabled ?? true,
+        gridEnabled = gridEnabled ?? false;
 
   Map<String, dynamic> toJson() => _$AppPreferencesToJson(this);
 
@@ -48,6 +51,11 @@ class AppPreferences extends ChangeNotifier {
 
   void toggleBackgroundImage() {
     backgroundImageEnabled = !backgroundImageEnabled;
+    _notifyAndSave();
+  }
+
+  void toggleGrid() {
+    gridEnabled = !gridEnabled;
     _notifyAndSave();
   }
 
