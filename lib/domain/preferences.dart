@@ -10,7 +10,8 @@ part 'preferences.g.dart';
 @JsonSerializable(nullable: true)
 class AppPreferences extends ChangeNotifier {
   ThemeMode themeMode;
-  bool highContrast;
+  bool highContrastEnabled;
+  bool backgroundImageEnabled;
 
   static Future<AppPreferences> load() async {
     var prefs = await SharedPreferences.getInstance();
@@ -27,9 +28,11 @@ class AppPreferences extends ChangeNotifier {
 
   AppPreferences({
     ThemeMode themeMode,
-    bool highContrast,
+    bool highContrastEnabled,
+    bool backgroundImageEnabled,
   })  : themeMode = themeMode ?? ThemeMode.system,
-        highContrast = highContrast ?? false;
+        highContrastEnabled = highContrastEnabled ?? false,
+        backgroundImageEnabled = backgroundImageEnabled ?? true;
 
   Map<String, dynamic> toJson() => _$AppPreferencesToJson(this);
 
@@ -39,7 +42,12 @@ class AppPreferences extends ChangeNotifier {
   }
 
   void toggleHighContrast() {
-    highContrast = !highContrast;
+    highContrastEnabled = !highContrastEnabled;
+    _notifyAndSave();
+  }
+
+  void toggleBackgroundImage() {
+    backgroundImageEnabled = !backgroundImageEnabled;
     _notifyAndSave();
   }
 

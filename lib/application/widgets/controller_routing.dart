@@ -93,21 +93,9 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
               },
             ),
             PopupMenuButton(
-              onSelected: (MenuCommand result) {
-                var prefs = context.read<AppPreferences>();
-                switch (result) {
-                  case MenuCommand.switchThemeMode:
-                    prefs.switchThemeMode();
-                    break;
-                  case MenuCommand.toggleHighContrast:
-                    prefs.toggleHighContrast();
-                    break;
-                }
-              },
               itemBuilder: (BuildContext context) {
-                return <PopupMenuEntry<MenuCommand>>[
+                return <PopupMenuEntry>[
                   PopupMenuItem(
-                    value: MenuCommand.switchThemeMode,
                     child: Consumer<AppPreferences>(
                       builder: (context, prefs, child) {
                         return ListTile(
@@ -118,15 +106,24 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
                       },
                     ),
                   ),
-                  const PopupMenuDivider(),
                   PopupMenuItem(
-                    value: MenuCommand.toggleHighContrast,
                     child: Consumer<AppPreferences>(
                       builder: (context, prefs, child) {
                         return ListTile(
-                          leading: Icon(prefs.highContrast ? Icons.done : null),
+                          leading: Icon(prefs.highContrastEnabled ? Icons.done : null),
                           onTap: prefs.toggleHighContrast,
                           title: Text('High contrast'),
+                        );
+                      },
+                    ),
+                  ),
+                  PopupMenuItem(
+                    child: Consumer<AppPreferences>(
+                      builder: (context, prefs, child) {
+                        return ListTile(
+                          leading: Icon(prefs.backgroundImageEnabled ? Icons.done : null),
+                          onTap: prefs.toggleBackgroundImage,
+                          title: Text('Background image'),
                         );
                       },
                     ),
@@ -168,11 +165,6 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
       ),
     );
   }
-}
-
-enum MenuCommand {
-  switchThemeMode,
-  toggleHighContrast,
 }
 
 class ControllerRoutingContainer extends StatefulWidget {

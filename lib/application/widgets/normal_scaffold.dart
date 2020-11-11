@@ -26,31 +26,29 @@ class NormalScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var useBackground = true;
-    var theme = Theme.of(context);
-    var isDark = theme.brightness == Brightness.dark;
     return Scaffold(
       appBar: appBar,
-      body: Stack(
-        children: [
-          if (useBackground) Center(child: Background()),
-          Consumer<AppPreferences>(
-            child: this.child,
-            builder: (context, prefs, child) {
-              return Container(
-                alignment: Alignment.center,
-                padding: padding,
-                child: child,
-                color: prefs.highContrast
-                    ? (isDark
-                        ? theme.primaryColorDark
-                        : theme.primaryColorLight)
-                    : null,
-              );
-            },
-          )
-        ],
-      ),
+      body: Consumer<AppPreferences>(
+          child: this.child,
+          builder: (context, prefs, child) {
+            var theme = Theme.of(context);
+            var isDark = theme.brightness == Brightness.dark;
+            return Stack(
+              children: [
+                if (prefs.backgroundImageEnabled) Center(child: Background()),
+                Container(
+                  alignment: Alignment.center,
+                  padding: padding,
+                  child: child,
+                  color: prefs.highContrastEnabled
+                      ? (isDark
+                          ? theme.primaryColorDark
+                          : theme.primaryColorLight)
+                      : null,
+                )
+              ],
+            );
+          }),
     );
   }
 }

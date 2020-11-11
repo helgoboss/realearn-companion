@@ -9,14 +9,16 @@ part of 'preferences.dart';
 AppPreferences _$AppPreferencesFromJson(Map<String, dynamic> json) {
   return AppPreferences(
     themeMode: _$enumDecodeNullable(_$ThemeModeEnumMap, json['themeMode']),
-    highContrast: json['highContrast'] as bool,
+    highContrastEnabled: json['highContrastEnabled'] as bool,
+    backgroundImageEnabled: json['backgroundImageEnabled'] as bool,
   );
 }
 
 Map<String, dynamic> _$AppPreferencesToJson(AppPreferences instance) =>
     <String, dynamic>{
       'themeMode': _$ThemeModeEnumMap[instance.themeMode],
-      'highContrast': instance.highContrast,
+      'highContrastEnabled': instance.highContrastEnabled,
+      'backgroundImageEnabled': instance.backgroundImageEnabled,
     };
 
 T _$enumDecode<T>(
