@@ -35,19 +35,20 @@ class NormalScaffold extends StatelessWidget {
         children: [
           if (useBackground) Center(child: Background()),
           Consumer<AppPreferences>(
-              child: child,
-              builder: (context, prefs, child) {
-                return Container(
-                  alignment: Alignment.center,
-                  padding: padding,
-                  child: child,
-                  color: prefs.highContrast
-                      ? (isDark
-                          ? theme.primaryColorDark
-                          : theme.primaryColorLight)
-                      : null,
-                );
-              })
+            child: this.child,
+            builder: (context, prefs, child) {
+              return Container(
+                alignment: Alignment.center,
+                padding: padding,
+                child: child,
+                color: prefs.highContrast
+                    ? (isDark
+                        ? theme.primaryColorDark
+                        : theme.primaryColorLight)
+                    : null,
+              );
+            },
+          )
         ],
       ),
     );

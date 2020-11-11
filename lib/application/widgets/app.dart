@@ -26,22 +26,23 @@ class AppWidget extends StatelessWidget {
             ChangeNotifierProvider(create: (context) => snapshot.data),
           ],
           child: Consumer<AppPreferences>(
-              builder: (context, prefs, _) => MaterialApp(
-                    title: 'ReaLearn Companion',
-                    debugShowCheckedModeBanner: false,
-                    theme: ThemeData(
-                      brightness: Brightness.light,
-                      primarySwatch: Colors.deepPurple,
-                      accentColor: Colors.redAccent.shade700,
-                    ),
-                    darkTheme: ThemeData(
-                      brightness: Brightness.dark,
-                      primarySwatch: Colors.orange,
-                      accentColor: Colors.amberAccent,
-                    ),
-                    themeMode: prefs.themeMode,
-                    onGenerateRoute: App.instance.router.generator,
-                  )),
+            builder: (context, prefs, _) => MaterialApp(
+              title: 'ReaLearn Companion',
+              debugShowCheckedModeBanner: false,
+              theme: ThemeData(
+                brightness: Brightness.light,
+                primarySwatch: Colors.deepPurple,
+                accentColor: Colors.redAccent.shade700,
+              ),
+              darkTheme: ThemeData(
+                brightness: Brightness.dark,
+                primarySwatch: Colors.orange,
+                accentColor: Colors.amberAccent,
+              ),
+              themeMode: prefs.themeMode,
+              onGenerateRoute: App.instance.router.generator,
+            ),
+          ),
         );
       },
     );
