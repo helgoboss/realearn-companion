@@ -629,12 +629,11 @@ class FixedControl extends StatelessWidget {
         top: scale * data.y,
         left: scale * data.x,
         child: Control(
-          height: scale * data.height,
-          width: scale * data.width,
-          labels: labels,
-          shape: data.shape,
-          scale: scale
-        ));
+            height: scale * data.height,
+            width: scale * data.width,
+            labels: labels,
+            shape: data.shape,
+            scale: scale));
   }
 }
 
@@ -741,39 +740,27 @@ class Control extends StatelessWidget {
       Widget createText(String label, TextStyle baseStyle) {
         return Text(
           label,
-          overflow: TextOverflow.visible,
           softWrap: false,
           style: baseStyle.copyWith(fontSize: outsideFontSize / divider),
         );
       }
-      final textDistance = 20 * scale;
-      return Container(
-          width: width,
-          height: height,
-          decoration: new BoxDecoration(
-            color: strokeOnly ? null : mainColor,
-            border: Border.all(width: strokeWidth / divider, color: mainColor),
-            borderRadius: BorderRadius.all(Radius.circular(10)),
+
+      return Column(
+        children: [
+          createText(labels[0], textOneStyle),
+          Container(
+            width: width,
+            height: height,
+            decoration: new BoxDecoration(
+              color: strokeOnly ? null : mainColor,
+              border:
+                  Border.all(width: strokeWidth / divider, color: mainColor),
+              borderRadius: BorderRadius.all(Radius.circular(10)),
+            ),
           ),
-          child: Stack(
-            children: [
-              Transform.translate(
-                offset: Offset(0, -textDistance),
-                child: Align(
-                  alignment: Alignment.topCenter,
-                  child: createText(labels[0], textOneStyle),
-                ),
-              ),
-              if (labels.length > 1)
-                Transform.translate(
-                  offset: Offset(0, textDistance),
-                  child: Align(
-                    alignment: Alignment.bottomCenter,
-                    child: createText(labels[1], textOneStyle),
-                  ),
-                ),
-            ],
-          ));
+          if (labels.length > 1) createText(labels[1], textTwoStyle)
+        ],
+      );
     }
   }
 }
