@@ -593,13 +593,13 @@ class EditableControlState extends State<EditableControl> {
       child: GestureDetector(
         onTap: () {
           showDialog(
+            context: context,
+            builder: (BuildContext context) => createControlDialog(
               context: context,
-              builder: (BuildContext context) => createControlDialog(
-                    context: context,
-                    controlLabels: control.labels,
-                    controllerModel: widget.controllerModel,
-                    control: widget.data,
-                  ));
+              title: control.labels[0],
+              controlId: widget.data.id,
+            ),
+          );
         },
         child: draggable,
       ),
@@ -609,57 +609,76 @@ class EditableControlState extends State<EditableControl> {
 
 AlertDialog createControlDialog({
   BuildContext context,
-  List<String> controlLabels,
-  ControllerModel controllerModel,
-  ControlData control,
+  String title,
+  String controlId,
 }) {
+  final controllerModel = context.watch<ControllerModel>();
+  var control = controllerModel.findControlById(controlId);
   final theme = Theme.of(context);
+  int controlSize = 40;
   return AlertDialog(
     backgroundColor: theme.dialogBackgroundColor.withOpacity(0.75),
-    title: Text(controlLabels[0]),
+    title: Text(title),
     content: SingleChildScrollView(
       child: Table(
         defaultVerticalAlignment: TableCellVerticalAlignment.middle,
         children: [
           TableRow(
             children: [
+              Text("Shape"),
+              Center(
+                child: GestureDetector(
+                  onTap: () => controllerModel.switchControlShape(controlId),
+                  child: control.shape == ControlShape.circle
+                      ? CircularControl(diameter: controlSize)
+                      : RectangularControl(width: controlSize, height: controlSize),
+                ),
+              )
+            ],
+          ),
+          TableRow(
+            children: [
               Text("Width"),
-              Wrap(
-                children: [
-                  IconButton(
-                    icon: Icon(Icons.remove_circle),
-                    onPressed: () {
-                      controllerModel.decreaseControlWidth(control);
-                    },
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.add_circle),
-                    onPressed: () {
-                      controllerModel.increaseControlWidth(control);
-                    },
-                  ),
-                ],
+              Center(
+                child: Wrap(
+                  children: [
+                    IconButton(
+                      icon: Icon(Icons.remove_circle),
+                      onPressed: () {
+                        controllerModel.decreaseControlWidth(controlId);
+                      },
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.add_circle),
+                      onPressed: () {
+                        controllerModel.increaseControlWidth(controlId);
+                      },
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
           TableRow(
             children: [
               Text("Height"),
-              Wrap(
-                children: [
-                  IconButton(
-                    icon: Icon(Icons.remove_circle),
-                    onPressed: () {
-                      controllerModel.decreaseControlHeight(control);
-                    },
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.add_circle),
-                    onPressed: () {
-                      controllerModel.increaseControlHeight(control);
-                    },
-                  ),
-                ],
+              Center(
+                child: Wrap(
+                  children: [
+                    IconButton(
+                      icon: Icon(Icons.remove_circle),
+                      onPressed: () {
+                        controllerModel.decreaseControlHeight(controlId);
+                      },
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.add_circle),
+                      onPressed: () {
+                        controllerModel.increaseControlHeight(controlId);
+                      },
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -853,12 +872,12 @@ class RectangularControl extends StatelessWidget {
 
   const RectangularControl({
     Key key,
-    @required this.appearance,
-    @required this.labels,
+    this.appearance = ControlAppearance.filled,
+    this.labels = const [],
     @required this.width,
     @required this.height,
-    @required this.labelOnePosition,
-    @required this.labelTwoPosition,
+    this.labelOnePosition = RectangularControlLabelPosition.aboveTop,
+    this.labelTwoPosition = RectangularControlLabelPosition.belowBottom,
   }) : super(key: key);
 
   @override
@@ -880,7 +899,7 @@ class RectangularControl extends StatelessWidget {
 
     return Column(
       children: [
-        createText(labels[0], props.textOneStyle),
+        if (labels.length > 0) createText(labels[0], props.textOneStyle),
         Container(
           width: width.toDouble(),
           height: height.toDouble(),
@@ -908,11 +927,11 @@ class CircularControl extends StatelessWidget {
 
   const CircularControl({
     Key key,
-    @required this.appearance,
-    @required this.labels,
+    this.appearance = ControlAppearance.filled,
+    this.labels = const [''],
     @required this.diameter,
-    @required this.labelOnePosition,
-    @required this.labelTwoPosition,
+    this.labelOnePosition = CircularControlLabelPosition.aboveTop,
+    this.labelTwoPosition = CircularControlLabelPosition.belowBottom,
   }) : super(key: key);
 
   @override
@@ -923,17 +942,18 @@ class CircularControl extends StatelessWidget {
       appearance: appearance,
       theme: Theme.of(context),
     );
-    var actualWidth = props.strokeOnly
-        ? diameter - props.strokeWidth / props.divider
-        : diameter;
+    double actualDiameter = props.strokeOnly
+        ? diameter.toDouble() - props.strokeWidth / props.divider
+        : diameter.toDouble();
     double radius = 125;
     double insideSpace = 18;
     double outsideSpace = 13;
     return Container(
-      width: actualWidth,
-      height: actualWidth,
+      width: actualDiameter,
+      height: actualDiameter,
       child: Stack(
         children: [
+          if (labels.length > 0)
           CircularText(
             radius: radius,
             position: props.textOneIsInside
@@ -941,7 +961,8 @@ class CircularControl extends StatelessWidget {
                 : CircularTextPosition.outside,
             backgroundPaint: Paint()
               ..color = props.mainColor
-              ..style = props.strokeOnly ? PaintingStyle.stroke : PaintingStyle.fill
+              ..style =
+                  props.strokeOnly ? PaintingStyle.stroke : PaintingStyle.fill
               ..strokeWidth = props.strokeWidth,
             children: [
               TextItem(

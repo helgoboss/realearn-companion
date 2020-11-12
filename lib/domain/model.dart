@@ -47,23 +47,23 @@ class ControllerModel extends ChangeNotifier {
     _notifyAndMarkDirty();
   }
 
-  void increaseControlWidth(ControlData control) {
-    _controller.increaseControlWidth(control);
+  void increaseControlWidth(String controlId) {
+    _controller.increaseControlWidth(findControlById(controlId));
     _notifyAndMarkDirty();
   }
 
-  void decreaseControlWidth(ControlData control) {
-    _controller.decreaseControlWidth(control);
+  void decreaseControlWidth(String controlId) {
+    _controller.decreaseControlWidth(findControlById(controlId));
     _notifyAndMarkDirty();
   }
 
-  void increaseControlHeight(ControlData control) {
-    _controller.increaseControlHeight(control);
+  void increaseControlHeight(String controlId) {
+    _controller.increaseControlHeight(findControlById(controlId));
     _notifyAndMarkDirty();
   }
 
-  void decreaseControlHeight(ControlData control) {
-    _controller.decreaseControlHeight(control);
+  void decreaseControlHeight(String controlId) {
+    _controller.decreaseControlHeight(findControlById(controlId));
     _notifyAndMarkDirty();
   }
 
@@ -90,6 +90,15 @@ class ControllerModel extends ChangeNotifier {
   void moveControl(ControlData control, int x, int y) {
     _controller.moveControl(control, x, y);
     _notifyAndMarkDirty();
+  }
+
+  void switchControlShape(String controlId) {
+    findControlById(controlId).switchShape();
+    _notifyAndMarkDirty();
+  }
+
+  ControlData findControlById(String controlId) {
+    return _controller.customData.companion.findById(controlId);
   }
 
   void _notifyAndMarkDirty() {
@@ -159,6 +168,8 @@ class Controller {
   void addControl(ControlData control) {
     customData.companion.addControl(control);
   }
+
+  // TODO-medium Refactor other methods to take IDs as well
   void removeControl(String controlId) {
     customData.companion.removeControl(controlId);
   }
@@ -271,6 +282,10 @@ class CompanionControllerData {
     control.alignPositionToGrid(gridSize);
   }
 
+  ControlData findById(String controlId) {
+    return controls.firstWhere((c) => c.id == controlId);
+  }
+
   Map<String, dynamic> toJson() => _$CompanionControllerDataToJson(this);
 }
 
@@ -333,6 +348,14 @@ class ControlData {
     this.x = math.max(0, x);
     this.y = math.max(0, y);
   }
+
+  void switchShape() {
+    shape = getNextControlShape(shape);
+  }
+}
+
+ControlShape getNextControlShape(ControlShape value) {
+  return ControlShape.values[(value.index + 1) % ControlShape.values.length];
 }
 
 int roundNumberToGridSize(int number, int gridSize) {
