@@ -262,7 +262,6 @@ class ControllerRoutingContainerState
   @override
   Widget build(BuildContext context) {
     return ControllerRoutingWidget(
-      controller: widget.controller,
       routing: routing,
       isInEditMode: widget.isInEditMode,
       onControlDataUpdate: (data) {
@@ -313,7 +312,6 @@ class ControllerRoutingContainerState
 var controlCanvasPadding = EdgeInsets.all(20);
 
 class ControllerRoutingWidget extends StatelessWidget {
-  final Controller controller;
   final ControllerRouting routing;
   final bool isInEditMode;
   final Function(ControlData) onControlDataUpdate;
@@ -321,7 +319,6 @@ class ControllerRoutingWidget extends StatelessWidget {
 
   ControllerRoutingWidget({
     Key key,
-    this.controller,
     this.routing,
     this.isInEditMode,
     this.onControlDataUpdate,
@@ -329,6 +326,8 @@ class ControllerRoutingWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final controllerModel = context.watch<ControllerModel>();
+    final controller = controllerModel.controller;
     if (controller == null || routing == null) {
       return Center(child: Text("Loading..."));
     }
@@ -390,6 +389,7 @@ class ControllerRoutingWidget extends StatelessWidget {
                               gridSize: controller.gridSize,
                               stackKey: stackKey,
                               onControlDataUpdate: onControlDataUpdate,
+                              controllerModel: controllerModel,
                             );
                           } else {
                             return FixedControl(
@@ -534,6 +534,7 @@ class EditableControl extends StatefulWidget {
   final Function(ControlData) onControlDataUpdate;
   final GlobalKey stackKey;
   final int gridSize;
+  final ControllerModel controllerModel;
 
   const EditableControl({
     Key key,
@@ -543,6 +544,7 @@ class EditableControl extends StatefulWidget {
     this.onControlDataUpdate,
     this.stackKey,
     this.gridSize,
+    this.controllerModel,
   }) : super(key: key);
 
   @override
@@ -612,7 +614,15 @@ class EditableControlState extends State<EditableControl> {
       left: widget.offset.dx * widget.scale,
       child: GestureDetector(
         onTap: () {
-          openControlDialog(context: context, controlLabels: control.labels);
+          showDialog(
+              context: context,
+              builder: (BuildContext context) => createControlDialog(
+                    context: context,
+                    controlLabels: control.labels,
+                    onControlDataUpdate: widget.onControlDataUpdate,
+                    controllerModel: widget.controllerModel,
+                    control: widget.data,
+                  ));
         },
         child: draggable,
       ),
@@ -620,10 +630,15 @@ class EditableControlState extends State<EditableControl> {
   }
 }
 
-AlertDialog openControlDialog(
-    {BuildContext context, List<String> controlLabels}) {
+AlertDialog createControlDialog({
+  BuildContext context,
+  List<String> controlLabels,
+  Function(ControlData) onControlDataUpdate,
+  ControllerModel controllerModel,
+  ControlData control,
+}) {
   final theme = Theme.of(context);
-  var dialog = AlertDialog(
+  return AlertDialog(
     backgroundColor: theme.dialogBackgroundColor.withOpacity(0.75),
     title: Text(controlLabels[0]),
     content: SingleChildScrollView(
@@ -641,7 +656,9 @@ AlertDialog openControlDialog(
                   ),
                   IconButton(
                     icon: Icon(Icons.add_circle),
-                    onPressed: () {},
+                    onPressed: () {
+                      controllerModel.increaseControlWidth(control);
+                    },
                   ),
                 ],
               ),
@@ -659,7 +676,6 @@ AlertDialog openControlDialog(
       ),
     ],
   );
-  showDialog(context: context, builder: (BuildContext context) => dialog);
 }
 
 class FixedControl extends StatelessWidget {

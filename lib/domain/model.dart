@@ -34,34 +34,36 @@ class ControllerModel extends ChangeNotifier {
 
   void set controller(Controller controller) {
     this._controller = controller;
-    this._controllerHasEdits = false;
-    notifyListeners();
+    _notifyAndMarkDirty();
   }
 
   void updateControlData(ControlData data) {
-    assert(_controller != null);
     _controller.updateControlData(data);
-    _controllerHasEdits = true;
-    notifyListeners();
+    _notifyAndMarkDirty();
   }
 
   void increaseGridSize() {
-    assert(_controller != null);
     _controller.increaseGridSize();
-    _controllerHasEdits = true;
-    notifyListeners();
+    _notifyAndMarkDirty();
   }
 
   void decreaseGridSize() {
-    assert(_controller != null);
     _controller.decreaseGridSize();
+    _notifyAndMarkDirty();
+  }
+
+  void increaseControlWidth(ControlData control) {
+    _controller.increaseControlWidth(control);
+    _notifyAndMarkDirty();
+  }
+
+  void alignControlPositionsToGrid() {
+    _controller.alignControlPositionsToGrid();
     _controllerHasEdits = true;
     notifyListeners();
   }
 
-  void alignControlPositionsToGrid() {
-    assert(_controller != null);
-    _controller.alignControlPositionsToGrid();
+  void _notifyAndMarkDirty() {
     _controllerHasEdits = true;
     notifyListeners();
   }
@@ -112,6 +114,10 @@ class Controller {
   void alignControlPositionsToGrid() {
     customData.companion.alignControlPositionsToGrid();
   }
+
+  void increaseControlWidth(ControlData control) {
+    customData.companion.increaseControlWidth(control);
+  }
 }
 
 @JsonSerializable(createToJson: false, nullable: true)
@@ -139,13 +145,18 @@ class CustomControllerData {
 @JsonSerializable(createToJson: true, nullable: true)
 class CompanionControllerData {
   int gridSize;
+  int gridDivisionCount;
   List<ControlData> controls;
 
   factory CompanionControllerData.fromJson(Map<String, dynamic> json) =>
       _$CompanionControllerDataFromJson(json);
 
-  CompanionControllerData({int gridSize, List<ControlData> controls})
-      : gridSize = gridSize ?? 10,
+  CompanionControllerData({
+    int gridSize,
+    int gridDivisionCount,
+    List<ControlData> controls,
+  })  : gridSize = gridSize ?? 10,
+        gridDivisionCount = gridDivisionCount ?? 2,
         controls = controls ?? [];
 
   void updateControlData(ControlData data) {
@@ -174,6 +185,13 @@ class CompanionControllerData {
     gridSize = nextSize < 0 ? 10 : nextSize;
   }
 
+  void increaseControlWidth(ControlData control) {
+    var updated = control.copyWith(
+      width: control.width + (gridSize / gridDivisionCount).toInt(),
+    );
+    updateControlData(updated);
+  }
+
   void alignControlPositionsToGrid() {
     var stableControls = [...controls];
     for (var c in stableControls) {
@@ -195,20 +213,26 @@ class ControlData {
   final ControlShape shape;
   final int x;
   final int y;
+  final int width;
+  final int height;
 
   factory ControlData.fromJson(Map<String, dynamic> json) =>
       _$ControlDataFromJson(json);
 
-  ControlData(
-      {this.id, List<String> mappings, ControlShape shape, num x, num y})
-      : mappings = mappings ?? [],
+  ControlData({
+    this.id,
+    List<String> mappings,
+    ControlShape shape,
+    num x,
+    num y,
+    num width,
+    num height,
+  })  : mappings = mappings ?? [],
         shape = shape ?? ControlShape.circle,
         x = x.toInt() ?? 0,
-        y = y.toInt() ?? 0;
-
-  int get width => 50;
-
-  int get height => 50;
+        y = y.toInt() ?? 0,
+        width = width?.toInt() ?? 50,
+        height = height?.toInt() ?? 50;
 
   int get right => x + width;
 
@@ -228,6 +252,8 @@ class ControlData {
     ControlShape shape,
     int x,
     int y,
+    int height,
+    int width,
   }) {
     return ControlData(
       id: this.id,
@@ -235,6 +261,8 @@ class ControlData {
       shape: shape ?? this.shape,
       x: x ?? this.x,
       y: y ?? this.y,
+      height: height ?? this.height,
+      width: width ?? this.width,
     );
   }
 }
