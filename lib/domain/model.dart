@@ -299,10 +299,10 @@ class ControlData {
     num height,
   })  : mappings = mappings ?? [],
         shape = shape ?? ControlShape.circle,
-        x = x.toInt() ?? 0,
-        y = y.toInt() ?? 0,
-        width = width?.toInt() ?? 50,
-        height = height?.toInt() ?? 50;
+        x = math.max(0, x.toInt() ?? 0),
+        y = math.max(0, y.toInt() ?? 0),
+        width = math.max(10, width?.toInt() ?? 50),
+        height = math.max(10, height?.toInt() ?? 50);
 
   int get right => x + width;
 
@@ -330,8 +330,8 @@ class ControlData {
   }
 
   void moveTo(int x, int y) {
-    this.x = x;
-    this.y = y;
+    this.x = math.max(0, x);
+    this.y = math.max(0, y);
   }
 }
 
