@@ -37,11 +37,6 @@ class ControllerModel extends ChangeNotifier {
     _notifyAndMarkDirty();
   }
 
-  void updateControlData(ControlData data) {
-    _controller.updateControlData(data);
-    _notifyAndMarkDirty();
-  }
-
   void increaseGridSize() {
     _controller.increaseGridSize();
     _notifyAndMarkDirty();
@@ -57,10 +52,44 @@ class ControllerModel extends ChangeNotifier {
     _notifyAndMarkDirty();
   }
 
+  void decreaseControlWidth(ControlData control) {
+    _controller.decreaseControlWidth(control);
+    _notifyAndMarkDirty();
+  }
+
+  void increaseControlHeight(ControlData control) {
+    _controller.increaseControlHeight(control);
+    _notifyAndMarkDirty();
+  }
+
+  void decreaseControlHeight(ControlData control) {
+    _controller.decreaseControlHeight(control);
+    _notifyAndMarkDirty();
+  }
+
   void alignControlPositionsToGrid() {
     _controller.alignControlPositionsToGrid();
-    _controllerHasEdits = true;
-    notifyListeners();
+    _notifyAndMarkDirty();
+  }
+
+  void addControl(ControlData control) {
+    _controller.addControl(control);
+    _notifyAndMarkDirty();
+  }
+
+  void removeControl(String controlId) {
+    _controller.removeControl(controlId);
+    _notifyAndMarkDirty();
+  }
+
+  void uniteControls(ControlData survivor, ControlData donator) {
+    _controller.uniteControls(survivor, donator);
+    _notifyAndMarkDirty();
+  }
+
+  void moveControl(ControlData control, int x, int y) {
+    _controller.moveControl(control, x, y);
+    _notifyAndMarkDirty();
   }
 
   void _notifyAndMarkDirty() {
@@ -85,10 +114,6 @@ class Controller {
 
   List<ControlData> get controls {
     return customData.companion.controls;
-  }
-
-  void updateControlData(ControlData data) {
-    customData.companion.updateControlData(data);
   }
 
   Mapping findMappingById(String mappingId) {
@@ -117,6 +142,33 @@ class Controller {
 
   void increaseControlWidth(ControlData control) {
     customData.companion.increaseControlWidth(control);
+  }
+
+  void decreaseControlWidth(ControlData control) {
+    customData.companion.decreaseControlWidth(control);
+  }
+
+  void increaseControlHeight(ControlData control) {
+    customData.companion.increaseControlHeight(control);
+  }
+
+  void decreaseControlHeight(ControlData control) {
+    customData.companion.decreaseControlHeight(control);
+  }
+
+  void addControl(ControlData control) {
+    customData.companion.addControl(control);
+  }
+  void removeControl(String controlId) {
+    customData.companion.removeControl(controlId);
+  }
+
+  void uniteControls(ControlData survivor, ControlData donator) {
+    customData.companion.uniteControls(survivor, donator);
+  }
+
+  void moveControl(ControlData control, int x, int y) {
+    customData.companion.moveControl(control, x, y);
   }
 }
 
@@ -159,11 +211,13 @@ class CompanionControllerData {
         gridDivisionCount = gridDivisionCount ?? 2,
         controls = controls ?? [];
 
-  void updateControlData(ControlData data) {
-    controls.removeWhere((c) => c.id == data.id);
-    if (!data.mappings.isEmpty) {
-      controls.add(data);
-    }
+  void addControl(ControlData control) {
+    control.alignPositionToGrid(gridSize);
+    controls.add(control);
+  }
+
+  void removeControl(String controlId) {
+    controls.removeWhere((control) => control.id == controlId);
   }
 
   Size calcTotalSize() {
@@ -186,19 +240,35 @@ class CompanionControllerData {
   }
 
   void increaseControlWidth(ControlData control) {
-    var updated = control.copyWith(
-      width: control.width + (gridSize / gridDivisionCount).toInt(),
-    );
-    updateControlData(updated);
+    control.adjustControlWidth(gridSize ~/ gridDivisionCount);
+  }
+
+  void decreaseControlWidth(ControlData control) {
+    control.adjustControlWidth(-gridSize ~/ gridDivisionCount);
+  }
+
+  void increaseControlHeight(ControlData control) {
+    control.adjustControlHeight(gridSize ~/ gridDivisionCount);
+  }
+
+  void decreaseControlHeight(ControlData control) {
+    control.adjustControlHeight(-gridSize ~/ gridDivisionCount);
   }
 
   void alignControlPositionsToGrid() {
-    var stableControls = [...controls];
-    for (var c in stableControls) {
-      // TODO-medium A bit weird to have ControlData immutable and this not?
-      var updated = c.withPositionAlignedToGrid(gridSize);
-      updateControlData(updated);
+    for (var c in controls) {
+      c.alignPositionToGrid(gridSize);
     }
+  }
+
+  void uniteControls(ControlData survivor, ControlData donator) {
+    survivor.addMapping(donator.mappings.first);
+    removeControl(donator.id);
+  }
+
+  void moveControl(ControlData control, int x, int y) {
+    control.moveTo(x, y);
+    control.alignPositionToGrid(gridSize);
   }
 
   Map<String, dynamic> toJson() => _$CompanionControllerDataToJson(this);
@@ -209,12 +279,12 @@ enum ControlShape { rectangle, circle }
 @JsonSerializable(createToJson: true, nullable: true)
 class ControlData {
   final String id;
-  final List<String> mappings;
-  final ControlShape shape;
-  final int x;
-  final int y;
-  final int width;
-  final int height;
+  List<String> mappings;
+  ControlShape shape;
+  int x;
+  int y;
+  int width;
+  int height;
 
   factory ControlData.fromJson(Map<String, dynamic> json) =>
       _$ControlDataFromJson(json);
@@ -240,30 +310,28 @@ class ControlData {
 
   Map<String, dynamic> toJson() => _$ControlDataToJson(this);
 
-  ControlData withPositionAlignedToGrid(int gridSize) {
-    return copyWith(
-      x: roundNumberToGridSize(x, gridSize),
-      y: roundNumberToGridSize(y, gridSize),
-    );
+  void addMapping(String mappingId) {
+    mappings.add(mappingId);
   }
 
-  ControlData copyWith({
-    List<String> mappings,
-    ControlShape shape,
-    int x,
-    int y,
-    int height,
-    int width,
-  }) {
-    return ControlData(
-      id: this.id,
-      mappings: mappings ?? this.mappings,
-      shape: shape ?? this.shape,
-      x: x ?? this.x,
-      y: y ?? this.y,
-      height: height ?? this.height,
-      width: width ?? this.width,
-    );
+  void alignPositionToGrid(int gridSize) {
+    x = roundNumberToGridSize(x, gridSize);
+    y = roundNumberToGridSize(y, gridSize);
+  }
+
+  void adjustControlWidth(int amount) {
+    final newWidth = width + amount;
+    width = newWidth < 10 ? 10 : newWidth;
+  }
+
+  void adjustControlHeight(int amount) {
+    final newHeight = height + amount;
+    height = newHeight < 10 ? 10 : newHeight;
+  }
+
+  void moveTo(int x, int y) {
+    this.x = x;
+    this.y = y;
   }
 }
 

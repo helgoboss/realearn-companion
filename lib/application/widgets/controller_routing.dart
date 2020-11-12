@@ -155,24 +155,25 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
                                 Icon(prefs.gridEnabled ? Icons.done : null),
                             onTap: prefs.toggleGrid,
                             title: Text('Grid'),
-                          );
-                        },
-                      ),
-                    ),
-                  if (isInEditMode)
-                    PopupMenuItem(
-                      child: Consumer<ControllerModel>(
-                        builder: (context, model, child) {
-                          return ListTile(
-                            leading: IconButton(
-                              icon: Icon(Icons.remove_circle),
-                              onPressed: model.decreaseGridSize,
-                            ),
-                            onTap: () {},
-                            title: Text('Grid size'),
-                            trailing: IconButton(
-                              icon: Icon(Icons.add_circle),
-                              onPressed: model.increaseGridSize,
+                            trailing: Wrap(
+                              children: [
+                                IconButton(
+                                  icon: Icon(Icons.remove_circle),
+                                  onPressed: () {
+                                    context
+                                        .read<ControllerModel>()
+                                        .decreaseGridSize();
+                                  },
+                                ),
+                                IconButton(
+                                  icon: Icon(Icons.add_circle),
+                                  onPressed: () {
+                                    context
+                                        .read<ControllerModel>()
+                                        .increaseGridSize();
+                                  },
+                                ),
+                              ],
                             ),
                           );
                         },
@@ -211,20 +212,17 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
           topics: [controllerTopic, controllerRoutingTopic],
           builder: (BuildContext context, Stream<dynamic> messages) {
             return GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () {
-                  toggleAppBar();
-                },
-                child: ControllerRoutingContainer(
-                  messages: messages,
-                  isInEditMode: isInEditMode,
-                  // TODO-medium Not necessary anymore now that we use Provider
-                  onControlDataUpdated: (data) {
-                    controllerModel.updateControlData(data);
-                  },
-                  controller: controllerModel.controller,
-                  onControllerSwitched: setController,
-                ));
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
+                toggleAppBar();
+              },
+              child: ControllerRoutingContainer(
+                messages: messages,
+                isInEditMode: isInEditMode,
+                controller: controllerModel.controller,
+                onControllerSwitched: setController,
+              ),
+            );
           },
         ),
       );
@@ -237,7 +235,6 @@ class ControllerRoutingContainer extends StatefulWidget {
   final Stream<dynamic> messages;
   final bool isInEditMode;
   final Function(Controller controller) onControllerSwitched;
-  final Function(ControlData data) onControlDataUpdated;
 
   const ControllerRoutingContainer({
     Key key,
@@ -245,7 +242,6 @@ class ControllerRoutingContainer extends StatefulWidget {
     this.isInEditMode,
     this.controller,
     this.onControllerSwitched,
-    this.onControlDataUpdated,
   }) : super(key: key);
 
   @override
@@ -264,9 +260,6 @@ class ControllerRoutingContainerState
     return ControllerRoutingWidget(
       routing: routing,
       isInEditMode: widget.isInEditMode,
-      onControlDataUpdate: (data) {
-        widget.onControlDataUpdated(data);
-      },
     );
   }
 
@@ -314,14 +307,12 @@ var controlCanvasPadding = EdgeInsets.all(20);
 class ControllerRoutingWidget extends StatelessWidget {
   final ControllerRouting routing;
   final bool isInEditMode;
-  final Function(ControlData) onControlDataUpdate;
   final GlobalKey stackKey = GlobalKey();
 
   ControllerRoutingWidget({
     Key key,
     this.routing,
     this.isInEditMode,
-    this.onControlDataUpdate,
   }) : super(key: key);
 
   @override
@@ -341,7 +332,6 @@ class ControllerRoutingWidget extends StatelessWidget {
         direction: direction,
         stackKey: stackKey,
         mappings: remainingMappings,
-        onControlDataUpdate: onControlDataUpdate,
       );
     }
 
@@ -388,7 +378,6 @@ class ControllerRoutingWidget extends StatelessWidget {
                               scale: scale,
                               gridSize: controller.gridSize,
                               stackKey: stackKey,
-                              onControlDataUpdate: onControlDataUpdate,
                               controllerModel: controllerModel,
                             );
                           } else {
@@ -433,8 +422,8 @@ class ControllerRoutingWidget extends StatelessWidget {
                                 mappings: [details.data],
                                 x: finalPos.dx.toInt(),
                                 y: finalPos.dy.toInt(),
-                              ).withPositionAlignedToGrid(controller.gridSize);
-                              onControlDataUpdate(newData);
+                              );
+                              controllerModel.addControl(newData);
                             },
                           ),
                         );
@@ -456,14 +445,12 @@ class ControllerRoutingWidget extends StatelessWidget {
 }
 
 class ControlBag extends StatelessWidget {
-  final Function(ControlData) onControlDataUpdate;
   final List<Mapping> mappings;
   final GlobalKey stackKey;
   final Axis direction;
 
   const ControlBag({
     Key key,
-    this.onControlDataUpdate,
     this.mappings,
     this.stackKey,
     this.direction,
@@ -520,8 +507,8 @@ class ControlBag extends StatelessWidget {
       },
       onWillAccept: (data) => true,
       onAccept: (data) {
-        var orphanControl = data.copyWith(mappings: []);
-        onControlDataUpdate(orphanControl);
+        final controllerModel = context.read<ControllerModel>();
+        controllerModel.removeControl(data.id);
       },
     );
   }
@@ -531,7 +518,6 @@ class EditableControl extends StatefulWidget {
   final List<String> labels;
   final ControlData data;
   final double scale;
-  final Function(ControlData) onControlDataUpdate;
   final GlobalKey stackKey;
   final int gridSize;
   final ControllerModel controllerModel;
@@ -541,7 +527,6 @@ class EditableControl extends StatefulWidget {
     this.labels,
     this.data,
     this.scale,
-    this.onControlDataUpdate,
     this.stackKey,
     this.gridSize,
     this.controllerModel,
@@ -581,14 +566,8 @@ class EditableControlState extends State<EditableControl> {
           return data.mappings.length == 1 && widget.data.mappings.length == 1;
         },
         onAccept: (data) {
-          var fatControl = widget.data.copyWith(
-            mappings: [...widget.data.mappings, ...data.mappings],
-          );
-          var orphanControl = data.copyWith(
-            mappings: [],
-          );
-          widget.onControlDataUpdate(fatControl);
-          widget.onControlDataUpdate(orphanControl);
+          final controllerModel = context.read<ControllerModel>();
+          controllerModel.uniteControls(widget.data, data);
         },
       ),
       childWhenDragging: SizedBox.shrink(),
@@ -603,10 +582,9 @@ class EditableControlState extends State<EditableControl> {
           stackKey: widget.stackKey,
           scale: widget.scale,
         );
-        var newData = widget.data
-            .copyWith(x: finalPos.dx.toInt(), y: finalPos.dy.toInt())
-            .withPositionAlignedToGrid(widget.gridSize);
-        widget.onControlDataUpdate(newData);
+        final controllerModel = context.read<ControllerModel>();
+        controllerModel.moveControl(
+            widget.data, finalPos.dx.toInt(), finalPos.dy.toInt());
       },
     );
     return Positioned(
@@ -619,7 +597,6 @@ class EditableControlState extends State<EditableControl> {
               builder: (BuildContext context) => createControlDialog(
                     context: context,
                     controlLabels: control.labels,
-                    onControlDataUpdate: widget.onControlDataUpdate,
                     controllerModel: widget.controllerModel,
                     control: widget.data,
                   ));
@@ -633,7 +610,6 @@ class EditableControlState extends State<EditableControl> {
 AlertDialog createControlDialog({
   BuildContext context,
   List<String> controlLabels,
-  Function(ControlData) onControlDataUpdate,
   ControllerModel controllerModel,
   ControlData control,
 }) {
@@ -652,12 +628,35 @@ AlertDialog createControlDialog({
                 children: [
                   IconButton(
                     icon: Icon(Icons.remove_circle),
-                    onPressed: () {},
+                    onPressed: () {
+                      controllerModel.decreaseControlWidth(control);
+                    },
                   ),
                   IconButton(
                     icon: Icon(Icons.add_circle),
                     onPressed: () {
                       controllerModel.increaseControlWidth(control);
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
+          TableRow(
+            children: [
+              Text("Height"),
+              Wrap(
+                children: [
+                  IconButton(
+                    icon: Icon(Icons.remove_circle),
+                    onPressed: () {
+                      controllerModel.decreaseControlHeight(control);
+                    },
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.add_circle),
+                    onPressed: () {
+                      controllerModel.increaseControlHeight(control);
                     },
                   ),
                 ],
