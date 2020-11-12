@@ -32,8 +32,6 @@ class ControllerRoutingPage extends StatefulWidget {
 class ControllerRoutingPageState extends State<ControllerRoutingPage> {
   bool appBarIsVisible = true;
   bool isInEditMode = false;
-  bool madeEdit = false;
-  Controller controller = null;
 
   void toggleAppBar() {
     setState(() {
@@ -54,105 +52,144 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
   }
 
   void saveController() async {
-    await ControllerRepository(widget.connectionData).save(controller);
+    var controllerModel = this.context.read<ControllerModel>();
+    await ControllerRepository(widget.connectionData)
+        .save(controllerModel.controller);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text("Saved controller layout")),
     );
-    setState(() {
-      madeEdit = false;
-    });
   }
 
   void setController(Controller controller) {
-    setState(() {
-      this.controller = controller;
-    });
+    var controllerModel = this.context.read<ControllerModel>();
+    controllerModel.controller = controller;
   }
 
   @override
   Widget build(BuildContext context) {
-    AppBar controllerRoutingAppBar() {
+    AppBar controllerRoutingAppBar(ControllerModel controllerModel) {
       var theme = Theme.of(context);
       return AppBar(
           // TODO-high Show controller name here
           title: Text("Controller Routing"),
           actions: [
-            IconButton(
-              icon: Icon(Icons.save),
-              onPressed: madeEdit ? saveController : null,
-            ),
-            IconButton(
-              icon: Icon(Icons.edit),
-              color: isInEditMode ? theme.accentColor : null,
-              onPressed: () {
-                if (isInEditMode) {
-                  leaveEditMode();
-                } else {
-                  enterEditMode();
-                }
-              },
-            ),
+            if (controllerModel.controller != null)
+              IconButton(
+                icon: Icon(Icons.save),
+                onPressed:
+                    controllerModel.controllerHasEdits ? saveController : null,
+              ),
+            if (controllerModel.controller != null)
+              IconButton(
+                icon: Icon(Icons.edit),
+                color: isInEditMode ? theme.accentColor : null,
+                onPressed: () {
+                  if (isInEditMode) {
+                    leaveEditMode();
+                  } else {
+                    enterEditMode();
+                  }
+                },
+              ),
             PopupMenuButton(
               itemBuilder: (BuildContext context) {
                 return <PopupMenuEntry>[
-                  PopupMenuItem(
-                    child: Consumer<AppPreferences>(
-                      builder: (context, prefs, child) {
-                        return ListTile(
-                          leading: Icon(getThemeModeIcon(prefs.themeMode)),
-                          onTap: prefs.switchThemeMode,
-                          title: Text('Theme mode'),
-                        );
-                      },
+                  if (!isInEditMode)
+                    PopupMenuItem(
+                      child: Consumer<AppPreferences>(
+                        builder: (context, prefs, child) {
+                          return ListTile(
+                            leading: Icon(getThemeModeIcon(prefs.themeMode)),
+                            onTap: prefs.switchThemeMode,
+                            title: Text('Theme mode'),
+                          );
+                        },
+                      ),
                     ),
-                  ),
-                  PopupMenuItem(
-                    child: Consumer<AppPreferences>(
-                      builder: (context, prefs, child) {
-                        return ListTile(
-                          leading: Icon(
-                              prefs.highContrastEnabled ? Icons.done : null),
-                          onTap: prefs.toggleHighContrast,
-                          title: Text('High contrast'),
-                        );
-                      },
+                  if (!isInEditMode)
+                    PopupMenuItem(
+                      child: Consumer<AppPreferences>(
+                        builder: (context, prefs, child) {
+                          return ListTile(
+                            leading: Icon(
+                                prefs.highContrastEnabled ? Icons.done : null),
+                            onTap: prefs.toggleHighContrast,
+                            title: Text('High contrast'),
+                          );
+                        },
+                      ),
                     ),
-                  ),
-                  PopupMenuItem(
-                    child: Consumer<AppPreferences>(
-                      builder: (context, prefs, child) {
-                        return ListTile(
-                          leading: Icon(
-                              prefs.backgroundImageEnabled ? Icons.done : null),
-                          onTap: prefs.toggleBackgroundImage,
-                          title: Text('Background image'),
-                        );
-                      },
+                  if (!isInEditMode)
+                    PopupMenuItem(
+                      child: Consumer<AppPreferences>(
+                        builder: (context, prefs, child) {
+                          return ListTile(
+                            leading: Icon(prefs.backgroundImageEnabled
+                                ? Icons.done
+                                : null),
+                            onTap: prefs.toggleBackgroundImage,
+                            title: Text('Background image'),
+                          );
+                        },
+                      ),
                     ),
-                  ),
-                  PopupMenuItem(
-                    child: Consumer<AppPreferences>(
-                      builder: (context, prefs, child) {
-                        return ListTile(
-                          leading: Icon(getControlAppearanceIcon(
-                              prefs.controlAppearance)),
-                          onTap: prefs.switchControlAppearance,
-                          title: Text('Control appearance'),
-                        );
-                      },
+                  if (!isInEditMode)
+                    PopupMenuItem(
+                      child: Consumer<AppPreferences>(
+                        builder: (context, prefs, child) {
+                          return ListTile(
+                            leading: Icon(getControlAppearanceIcon(
+                                prefs.controlAppearance)),
+                            onTap: prefs.switchControlAppearance,
+                            title: Text('Control appearance'),
+                          );
+                        },
+                      ),
                     ),
-                  ),
-                  PopupMenuItem(
-                    child: Consumer<AppPreferences>(
-                      builder: (context, prefs, child) {
-                        return ListTile(
-                          leading: Icon(prefs.gridEnabled ? Icons.done : null),
-                          onTap: prefs.toggleGrid,
-                          title: Text('Grid'),
-                        );
-                      },
+                  if (isInEditMode)
+                    PopupMenuItem(
+                      child: Consumer<AppPreferences>(
+                        builder: (context, prefs, child) {
+                          return ListTile(
+                            leading:
+                                Icon(prefs.gridEnabled ? Icons.done : null),
+                            onTap: prefs.toggleGrid,
+                            title: Text('Grid'),
+                          );
+                        },
+                      ),
                     ),
-                  ),
+                  if (isInEditMode)
+                    PopupMenuItem(
+                      child: Consumer<ControllerModel>(
+                        builder: (context, model, child) {
+                          return ListTile(
+                            leading: IconButton(
+                              icon: Icon(Icons.exposure_minus_1),
+                              onPressed: model.decreaseGridSize,
+                            ),
+                            onTap: () {},
+                            title: Text('Grid'),
+                            trailing: IconButton(
+                              icon: Icon(Icons.plus_one),
+                              onPressed: model.increaseGridSize,
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  if (isInEditMode)
+                    PopupMenuItem(
+                      child: Consumer<ControllerModel>(
+                        builder: (context, prefs, child) {
+                          return ListTile(
+                            leading: Icon(Icons.vertical_align_bottom),
+                            onTap: controllerModel.alignControlPositionsToGrid,
+                            title: Text('Align controls to grid'),
+                          );
+                        },
+                      ),
+                    ),
                 ];
               },
             ),
@@ -163,34 +200,35 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
     var controllerTopic = "/realearn/session/$sessionId/controller";
     var controllerRoutingTopic =
         "/realearn/session/$sessionId/controller-routing";
-    return NormalScaffold(
-      padding: EdgeInsets.zero,
-      appBar: appBarIsVisible ? controllerRoutingAppBar() : null,
-      child: ConnectionBuilder(
-        connectionData: widget.connectionData,
-        topics: [controllerTopic, controllerRoutingTopic],
-        builder: (BuildContext context, Stream<dynamic> messages) {
-          return GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () {
-              toggleAppBar();
-            },
-            child: ControllerRoutingContainer(
-              messages: messages,
-              isInEditMode: isInEditMode,
-              onControlDataUpdated: (data) {
-                setState(() {
-                  controller.updateControlData(data);
-                  madeEdit = true;
-                });
-              },
-              controller: controller,
-              onControllerSwitched: setController,
-            ),
-          );
-        },
-      ),
-    );
+    return Consumer<ControllerModel>(
+        builder: (context, controllerModel, child) {
+      return NormalScaffold(
+        padding: EdgeInsets.zero,
+        appBar:
+            appBarIsVisible ? controllerRoutingAppBar(controllerModel) : null,
+        child: ConnectionBuilder(
+          connectionData: widget.connectionData,
+          topics: [controllerTopic, controllerRoutingTopic],
+          builder: (BuildContext context, Stream<dynamic> messages) {
+            return GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () {
+                  toggleAppBar();
+                },
+                child: ControllerRoutingContainer(
+                  messages: messages,
+                  isInEditMode: isInEditMode,
+                  // TODO-medium Not necessary anymore now that we use Provider
+                  onControlDataUpdated: (data) {
+                    controllerModel.updateControlData(data);
+                  },
+                  controller: controllerModel.controller,
+                  onControllerSwitched: setController,
+                ));
+          },
+        ),
+      );
+    });
   }
 }
 
@@ -333,7 +371,6 @@ class ControllerRoutingWidget extends StatelessWidget {
                       maxScale: 4,
                       child: LayoutBuilder(builder:
                           (BuildContext context, BoxConstraints constraints) {
-                        log(constraints.maxHeight.toString());
                         var widthScale =
                             constraints.maxWidth / controllerSize.width;
                         var heightScale =
@@ -350,6 +387,7 @@ class ControllerRoutingWidget extends StatelessWidget {
                               }).toList(),
                               data: data,
                               scale: scale,
+                              gridSize: controller.gridSize,
                               stackKey: stackKey,
                               onControlDataUpdate: onControlDataUpdate,
                             );
@@ -368,8 +406,8 @@ class ControllerRoutingWidget extends StatelessWidget {
                             return GridPaper(
                               divisions: 1,
                               subdivisions: 1,
-                              interval: gridSize * scale,
-                              color: prefs.gridEnabled
+                              interval: controller.gridSize * scale,
+                              color: isInEditMode && prefs.gridEnabled
                                   ? Colors.grey
                                   : Colors.transparent,
                               child: child,
@@ -385,6 +423,7 @@ class ControllerRoutingWidget extends StatelessWidget {
                             onWillAccept: (data) => true,
                             onAcceptWithDetails: (details) {
                               var finalPos = getFinalDragPosition(
+                                gridSize: controller.gridSize,
                                 globalPosition: details.offset,
                                 stackKey: stackKey,
                                 scale: scale,
@@ -392,9 +431,9 @@ class ControllerRoutingWidget extends StatelessWidget {
                               var newData = ControlData(
                                 id: uuid.v4(),
                                 mappings: [details.data],
-                                x: finalPos.dx,
-                                y: finalPos.dy,
-                              );
+                                x: finalPos.dx.toInt(),
+                                y: finalPos.dy.toInt(),
+                              ).withPositionAlignedToGrid(controller.gridSize);
                               onControlDataUpdate(newData);
                             },
                           ),
@@ -448,11 +487,13 @@ class ControlBag extends StatelessWidget {
             children: mappings.map((m) {
               Widget createPotentialControl({Color fillColor}) {
                 return Control(
-                    labels: [m.name],
-                    width: 50,
-                    height: 50,
-                    shape: ControlShape.circle,
-                    fillColor: fillColor);
+                  labels: [m.name],
+                  width: 50,
+                  height: 50,
+                  shape: ControlShape.circle,
+                  fillColor: fillColor,
+                  scale: 1.0,
+                );
               }
 
               var normalPotentialControl = createPotentialControl();
@@ -492,6 +533,7 @@ class EditableControl extends StatefulWidget {
   final double scale;
   final Function(ControlData) onControlDataUpdate;
   final GlobalKey stackKey;
+  final int gridSize;
 
   const EditableControl({
     Key key,
@@ -500,6 +542,7 @@ class EditableControl extends StatefulWidget {
     this.scale,
     this.onControlDataUpdate,
     this.stackKey,
+    this.gridSize,
   }) : super(key: key);
 
   @override
@@ -507,7 +550,7 @@ class EditableControl extends StatefulWidget {
     return EditableControlState();
   }
 
-  Offset get offset => Offset(data.x, data.y);
+  Offset get offset => Offset(data.x.toDouble(), data.y.toDouble());
 }
 
 class EditableControlState extends State<EditableControl> {
@@ -518,6 +561,7 @@ class EditableControlState extends State<EditableControl> {
       width: widget.scale * widget.data.width,
       labels: widget.labels,
       shape: widget.data.shape,
+      scale: widget.scale,
     );
     var draggable = Draggable<ControlData>(
       data: widget.data,
@@ -552,11 +596,14 @@ class EditableControlState extends State<EditableControl> {
           return;
         }
         var finalPos = getFinalDragPosition(
+          gridSize: widget.gridSize,
           globalPosition: details.offset,
           stackKey: widget.stackKey,
           scale: widget.scale,
         );
-        var newData = widget.data.copyWith(x: finalPos.dx, y: finalPos.dy);
+        var newData = widget.data
+            .copyWith(x: finalPos.dx.toInt(), y: finalPos.dy.toInt())
+            .withPositionAlignedToGrid(widget.gridSize);
         widget.onControlDataUpdate(newData);
       },
     );
@@ -586,6 +633,7 @@ class FixedControl extends StatelessWidget {
           width: scale * data.width,
           labels: labels,
           shape: data.shape,
+          scale: scale
         ));
   }
 }
@@ -596,6 +644,7 @@ class Control extends StatelessWidget {
   final List<String> labels;
   final ControlShape shape;
   final Color fillColor;
+  final double scale;
 
   const Control({
     Key key,
@@ -604,6 +653,7 @@ class Control extends StatelessWidget {
     this.height,
     this.shape,
     this.fillColor,
+    this.scale,
   }) : super(key: key);
 
   @override
@@ -688,66 +738,58 @@ class Control extends StatelessWidget {
         ),
       );
     } else {
+      Widget createText(String label, TextStyle baseStyle) {
+        return Text(
+          label,
+          overflow: TextOverflow.visible,
+          softWrap: false,
+          style: baseStyle.copyWith(fontSize: outsideFontSize / divider),
+        );
+      }
+      final textDistance = 20 * scale;
       return Container(
-        width: width,
-        height: height,
-        child: FittedBox(
-          fit: BoxFit.none,
-          clipBehavior: Clip.none,
-          child: Column(children: [
-            Text(
-              labels[0],
-              style: textOneStyle.copyWith(fontSize: outsideFontSize / divider),
-            ),
-            Container(
-              width: width,
-              height: height,
-              decoration: new BoxDecoration(
-                color: strokeOnly ? null : mainColor,
-                border:
-                    Border.all(width: strokeWidth / divider, color: mainColor),
-                shape: BoxShape.rectangle,
-                borderRadius: BorderRadius.all(Radius.circular(10)),
+          width: width,
+          height: height,
+          decoration: new BoxDecoration(
+            color: strokeOnly ? null : mainColor,
+            border: Border.all(width: strokeWidth / divider, color: mainColor),
+            borderRadius: BorderRadius.all(Radius.circular(10)),
+          ),
+          child: Stack(
+            children: [
+              Transform.translate(
+                offset: Offset(0, -textDistance),
+                child: Align(
+                  alignment: Alignment.topCenter,
+                  child: createText(labels[0], textOneStyle),
+                ),
               ),
-            ),
-            if (labels.length > 1)
-              Text(
-                labels[1],
-                style:
-                    textTwoStyle.copyWith(fontSize: outsideFontSize / divider),
-              ),
-          ]),
-        ),
-      );
+              if (labels.length > 1)
+                Transform.translate(
+                  offset: Offset(0, textDistance),
+                  child: Align(
+                    alignment: Alignment.bottomCenter,
+                    child: createText(labels[1], textOneStyle),
+                  ),
+                ),
+            ],
+          ));
     }
   }
 }
 
-Offset alignOffsetToGrid(Offset offset, double xGridSize, double yGridSize) {
-  return Offset(
-    roundNumberToGridSize(offset.dx, xGridSize),
-    roundNumberToGridSize(offset.dy, yGridSize),
-  );
-}
-
-double roundNumberToGridSize(double number, double gridSize) {
-  return (number / gridSize).roundToDouble() * gridSize;
-}
-
-const double gridSize = 50;
-
 Offset getFinalDragPosition({
+  int gridSize,
   GlobalKey stackKey,
   Offset globalPosition,
   double scale,
 }) {
   final RenderBox box = stackKey.currentContext.findRenderObject();
   var localPosition = box.globalToLocal(globalPosition);
-  var newOffset = Offset(
+  return Offset(
     localPosition.dx / scale,
     localPosition.dy / scale,
   );
-  return alignOffsetToGrid(newOffset, gridSize, gridSize);
 }
 
 IconData getThemeModeIcon(ThemeMode value) {

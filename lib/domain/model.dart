@@ -19,15 +19,52 @@ class RealearnEvent {
 }
 
 class ControllerModel extends ChangeNotifier {
-  final Controller controller;
+  Controller _controller = null;
+  bool _controllerHasEdits = false;
 
-  ControllerModel(this.controller);
-}
+  ControllerModel();
 
-class ControllerRoutingModel extends ChangeNotifier {
-  final ControllerRouting controllerRouting;
+  Controller get controller {
+    return _controller;
+  }
 
-  ControllerRoutingModel(this.controllerRouting);
+  bool get controllerHasEdits {
+    return _controllerHasEdits;
+  }
+
+  void set controller(Controller controller) {
+    this._controller = controller;
+    this._controllerHasEdits = false;
+    notifyListeners();
+  }
+
+  void updateControlData(ControlData data) {
+    assert(_controller != null);
+    _controller.updateControlData(data);
+    _controllerHasEdits = true;
+    notifyListeners();
+  }
+
+  void increaseGridSize() {
+    assert(_controller != null);
+    _controller.increaseGridSize();
+    _controllerHasEdits = true;
+    notifyListeners();
+  }
+
+  void decreaseGridSize() {
+    assert(_controller != null);
+    _controller.decreaseGridSize();
+    _controllerHasEdits = true;
+    notifyListeners();
+  }
+
+  void alignControlPositionsToGrid() {
+    assert(_controller != null);
+    _controller.alignControlPositionsToGrid();
+    _controllerHasEdits = true;
+    notifyListeners();
+  }
 }
 
 @JsonSerializable(createToJson: false, nullable: true)
@@ -37,19 +74,19 @@ class Controller {
   final List<Mapping> mappings;
   CustomControllerData customData;
 
-  // TODO-low Take care in constructor that mappings and customData is never
-  //  null instead of doing null checks everywhere!
-  Controller({this.id, this.name, this.mappings, this.customData});
+  factory Controller.fromJson(Map<String, dynamic> json) =>
+      _$ControllerFromJson(json);
+
+  Controller(
+      {this.id, this.name, this.mappings, CustomControllerData customData})
+      : customData = customData ?? CustomControllerData();
 
   List<ControlData> get controls {
-    return customData?.companion?.controls ?? const [];
+    return customData.companion.controls;
   }
 
   void updateControlData(ControlData data) {
-    if (customData == null) {
-      customData = CustomControllerData();
-    }
-    customData.updateControlData(data);
+    customData.companion.updateControlData(data);
   }
 
   Mapping findMappingById(String mappingId) {
@@ -57,11 +94,24 @@ class Controller {
   }
 
   Size calcTotalSize() {
-    return customData?.calcTotalSize() ?? Size.zero;
+    return customData.companion.calcTotalSize() ?? Size.zero;
   }
 
-  factory Controller.fromJson(Map<String, dynamic> json) =>
-      _$ControllerFromJson(json);
+  int get gridSize {
+    return customData.companion.gridSize;
+  }
+
+  void increaseGridSize() {
+    customData.companion.increaseGridSize();
+  }
+
+  void decreaseGridSize() {
+    customData.companion.decreaseGridSize();
+  }
+
+  void alignControlPositionsToGrid() {
+    customData.companion.alignControlPositionsToGrid();
+  }
 }
 
 @JsonSerializable(createToJson: false, nullable: true)
@@ -82,32 +132,21 @@ class CustomControllerData {
   factory CustomControllerData.fromJson(Map<String, dynamic> json) =>
       _$CustomControllerDataFromJson(json);
 
-  // TODO-low Take care in constructor that mappings and customData is never
-  //  null instead of doing null checks everywhere!
-  CustomControllerData({this.companion});
-
-  Size calcTotalSize() {
-    return companion?.calcTotalSize() ?? Size.zero;
-  }
-
-  void updateControlData(ControlData data) {
-    if (companion == null) {
-      companion = CompanionControllerData();
-    }
-    companion.updateControlData(data);
-  }
+  CustomControllerData({CompanionControllerData companion})
+      : companion = companion ?? CompanionControllerData();
 }
 
 @JsonSerializable(createToJson: true, nullable: true)
 class CompanionControllerData {
+  int gridSize;
   List<ControlData> controls;
 
   factory CompanionControllerData.fromJson(Map<String, dynamic> json) =>
       _$CompanionControllerDataFromJson(json);
 
-  CompanionControllerData({List<ControlData> controls}) {
-    this.controls = controls ?? [];
-  }
+  CompanionControllerData({int gridSize, List<ControlData> controls})
+      : gridSize = gridSize ?? 10,
+        controls = controls ?? [];
 
   void updateControlData(ControlData data) {
     controls.removeWhere((c) => c.id == data.id);
@@ -120,10 +159,28 @@ class CompanionControllerData {
     return controls.fold(
       Size(0, 0),
       (Size prev, ControlData data) => Size(
-        math.max(prev.width, data.right),
-        math.max(prev.height, data.bottom),
+        math.max(prev.width, data.right.toDouble()),
+        math.max(prev.height, data.bottom.toDouble()),
       ),
     );
+  }
+
+  void increaseGridSize() {
+    gridSize += 10;
+  }
+
+  void decreaseGridSize() {
+    int nextSize = gridSize - 10;
+    gridSize = nextSize < 0 ? 10 : nextSize;
+  }
+
+  void alignControlPositionsToGrid() {
+    var stableControls = [...controls];
+    for (var c in stableControls) {
+      // TODO-medium A bit weird to have ControlData immutable and this not?
+      var updated = c.withPositionAlignedToGrid(gridSize);
+      updateControlData(updated);
+    }
   }
 
   Map<String, dynamic> toJson() => _$CompanionControllerDataToJson(this);
@@ -136,34 +193,41 @@ class ControlData {
   final String id;
   final List<String> mappings;
   final ControlShape shape;
-  final double x;
-  final double y;
+  final int x;
+  final int y;
 
   factory ControlData.fromJson(Map<String, dynamic> json) =>
       _$ControlDataFromJson(json);
 
   ControlData(
-      {this.id, List<String> mappings, ControlShape shape, double x, double y})
+      {this.id, List<String> mappings, ControlShape shape, num x, num y})
       : mappings = mappings ?? [],
         shape = shape ?? ControlShape.circle,
-        x = x ?? 0.0,
-        y = y ?? 0.0;
+        x = x.toInt() ?? 0,
+        y = y.toInt() ?? 0;
 
-  double get width => 50.0;
+  int get width => 50;
 
-  double get height => 50.0;
+  int get height => 50;
 
-  double get right => x + width;
+  int get right => x + width;
 
-  double get bottom => y + height;
+  int get bottom => y + height;
 
   Map<String, dynamic> toJson() => _$ControlDataToJson(this);
+
+  ControlData withPositionAlignedToGrid(int gridSize) {
+    return copyWith(
+      x: roundNumberToGridSize(x, gridSize),
+      y: roundNumberToGridSize(y, gridSize),
+    );
+  }
 
   ControlData copyWith({
     List<String> mappings,
     ControlShape shape,
-    double x,
-    double y,
+    int x,
+    int y,
   }) {
     return ControlData(
       id: this.id,
@@ -173,6 +237,10 @@ class ControlData {
       y: y ?? this.y,
     );
   }
+}
+
+int roundNumberToGridSize(int number, int gridSize) {
+  return (number.toDouble() / gridSize).round() * gridSize;
 }
 
 @JsonSerializable(createToJson: false, nullable: true)

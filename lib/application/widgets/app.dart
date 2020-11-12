@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:realearn_companion/application/widgets/splash_screen.dart';
+import 'package:realearn_companion/domain/model.dart';
 import 'package:realearn_companion/domain/preferences.dart';
 
 import '../app.dart';
@@ -24,6 +25,7 @@ class AppWidget extends StatelessWidget {
         return MultiProvider(
           providers: [
             ChangeNotifierProvider(create: (context) => snapshot.data),
+            ChangeNotifierProvider(create: (context) => ControllerModel()),
           ],
           child: Consumer<AppPreferences>(
             builder: (context, prefs, _) => MaterialApp(
