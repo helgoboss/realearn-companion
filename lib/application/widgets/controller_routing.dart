@@ -544,8 +544,8 @@ class EditableControlState extends State<EditableControl> {
   @override
   Widget build(BuildContext context) {
     var control = Control(
-      height: widget.scale * widget.data.height,
-      width: widget.scale * widget.data.width,
+      height: (widget.scale * widget.data.height).toInt(),
+      width: (widget.scale * widget.data.width).toInt(),
       labels: widget.labels,
       shape: widget.data.shape,
       scale: widget.scale,
@@ -691,8 +691,8 @@ class FixedControl extends StatelessWidget {
       top: scale * data.y,
       left: scale * data.x,
       child: Control(
-        height: scale * data.height,
-        width: scale * data.width,
+        height: (scale * data.height).toInt(),
+        width: (scale * data.width).toInt(),
         labels: labels,
         shape: data.shape,
         scale: scale,
@@ -702,8 +702,8 @@ class FixedControl extends StatelessWidget {
 }
 
 class Control extends StatelessWidget {
-  final double width;
-  final double height;
+  final int width;
+  final int height;
   final List<String> labels;
   final ControlShape shape;
   final Color fillColor;
@@ -721,10 +721,10 @@ class Control extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var theme = Theme.of(context);
-    var mainColor = fillColor ?? theme.colorScheme.primary;
     var textOneInside = false;
     var textTwoInside = false;
+    var theme = Theme.of(context);
+    var mainColor = fillColor ?? theme.colorScheme.primary;
     double insideFontSize = 50;
     double outsideFontSize = 60;
     var baseTextStyle = TextStyle(
@@ -801,31 +801,146 @@ class Control extends StatelessWidget {
         ),
       );
     } else {
-      Widget createText(String label, TextStyle baseStyle) {
-        return Text(
-          label,
-          softWrap: false,
-          style: baseStyle.copyWith(fontSize: outsideFontSize / divider),
-        );
-      }
-
-      return Column(
-        children: [
-          createText(labels[0], textOneStyle),
-          Container(
-            width: width,
-            height: height,
-            decoration: new BoxDecoration(
-              color: strokeOnly ? null : mainColor,
-              border:
-                  Border.all(width: strokeWidth / divider, color: mainColor),
-              borderRadius: BorderRadius.all(Radius.circular(10)),
-            ),
-          ),
-          if (labels.length > 1) createText(labels[1], textTwoStyle)
-        ],
+      return RectangularControl(
+        labelOnePosition: RectangularControlLabelPosition.onTop,
+        labelTwoPosition: RectangularControlLabelPosition.belowBottom,
+        width: width,
+        height: height,
+        appearance: prefs.controlAppearance,
+        labels: labels,
       );
     }
+  }
+}
+
+class DerivedControlProps {
+  final ThemeData theme;
+  final bool textOneIsInside;
+  final bool textTwoIsInside;
+  final ControlAppearance appearance;
+  final Color enforcedFillColor;
+
+  DerivedControlProps({
+    @required this.textOneIsInside,
+    @required this.textTwoIsInside,
+    @required this.appearance,
+    @required this.theme,
+    this.enforcedFillColor,
+  });
+
+  double get insideFontSize => 50;
+
+  double get outsideFontSize => 60;
+
+  Color get mainColor => enforcedFillColor ?? theme.colorScheme.primary;
+
+  TextStyle get baseTextStyle => TextStyle(
+        fontWeight: FontWeight.bold,
+      );
+
+  TextStyle get textOneStyle => baseTextStyle.copyWith(
+        fontSize: textOneIsInside ? insideFontSize : outsideFontSize,
+        color: textOneIsInside
+            ? theme.colorScheme.onPrimary
+            : theme.colorScheme.onSurface,
+      );
+
+  TextStyle get textTwoStyle => baseTextStyle.copyWith(
+        fontSize: textTwoIsInside ? insideFontSize : outsideFontSize,
+        color: textTwoIsInside
+            ? theme.colorScheme.onBackground
+            : theme.colorScheme.secondary,
+      );
+
+  bool get strokeOnly => appearance == ControlAppearance.outlined;
+
+  double get divider => 5;
+
+  double get strokeWidth => 5;
+}
+
+enum RectangularControlLabelPosition {
+  aboveTop,
+  onTop,
+  belowTop,
+  center,
+  aboveBottom,
+  onBottom,
+  belowBottom,
+  leftToLeft,
+  onLeft,
+  rightToLeft,
+  leftToRight,
+  onRight,
+  rightToRight,
+}
+
+bool labelPositionIsInside(RectangularControlLabelPosition pos) {
+  switch (pos) {
+    case RectangularControlLabelPosition.belowTop:
+    case RectangularControlLabelPosition.center:
+    case RectangularControlLabelPosition.aboveBottom:
+    case RectangularControlLabelPosition.rightToLeft:
+    case RectangularControlLabelPosition.leftToRight:
+      return true;
+    default:
+      return false;
+  }
+}
+
+class RectangularControl extends StatelessWidget {
+  final int width;
+  final int height;
+  final ControlAppearance appearance;
+  final List<String> labels;
+  final RectangularControlLabelPosition labelOnePosition;
+  final RectangularControlLabelPosition labelTwoPosition;
+
+  const RectangularControl({
+    Key key,
+    @required this.appearance,
+    @required this.labels,
+    @required this.width,
+    @required this.height,
+    @required this.labelOnePosition,
+    @required this.labelTwoPosition,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final props = DerivedControlProps(
+      textOneIsInside: labelPositionIsInside(labelOnePosition),
+      textTwoIsInside: labelPositionIsInside(labelTwoPosition),
+      appearance: appearance,
+      theme: Theme.of(context),
+    );
+    Widget createText(String label, TextStyle baseStyle) {
+      return Text(
+        label,
+        softWrap: false,
+        style:
+            baseStyle.copyWith(fontSize: props.outsideFontSize / props.divider),
+      );
+    }
+
+    return Column(
+      children: [
+        createText(labels[0], props.textOneStyle),
+        Container(
+          width: width.toDouble(),
+          height: height.toDouble(),
+          decoration: new BoxDecoration(
+            color: props.strokeOnly ? null : props.mainColor,
+            border: Border.all(
+              width: props.strokeWidth / props.divider,
+              color: props.mainColor,
+            ),
+            borderRadius: BorderRadius.all(Radius.circular(10)),
+          ),
+        ),
+        if (labels.length > 1) createText(labels[1], props.textTwoStyle)
+      ],
+    );
   }
 }
 
