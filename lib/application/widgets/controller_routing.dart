@@ -134,7 +134,8 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
                     child: Consumer<AppPreferences>(
                       builder: (context, prefs, child) {
                         return ListTile(
-                          leading: Icon(getControlAppearanceIcon(prefs.controlAppearance)),
+                          leading: Icon(getControlAppearanceIcon(
+                              prefs.controlAppearance)),
                           onTap: prefs.switchControlAppearance,
                           title: Text('Control appearance'),
                         );
@@ -168,24 +169,26 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
       child: ConnectionBuilder(
         connectionData: widget.connectionData,
         topics: [controllerTopic, controllerRoutingTopic],
-        builder: (BuildContext context, Stream<dynamic> messages) =>
-            GestureDetector(
-          onTap: () {
-            toggleAppBar();
-          },
-          child: ControllerRoutingContainer(
-            messages: messages,
-            isInEditMode: isInEditMode,
-            onControlDataUpdated: (data) {
-              setState(() {
-                controller.updateControlData(data);
-                madeEdit = true;
-              });
+        builder: (BuildContext context, Stream<dynamic> messages) {
+          return GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () {
+              toggleAppBar();
             },
-            controller: controller,
-            onControllerSwitched: setController,
-          ),
-        ),
+            child: ControllerRoutingContainer(
+              messages: messages,
+              isInEditMode: isInEditMode,
+              onControlDataUpdated: (data) {
+                setState(() {
+                  controller.updateControlData(data);
+                  madeEdit = true;
+                });
+              },
+              controller: controller,
+              onControllerSwitched: setController,
+            ),
+          );
+        },
       ),
     );
   }
@@ -310,77 +313,97 @@ class ControllerRoutingWidget extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Expanded(
-          child: Padding(
-            padding: controlCanvasPadding,
-            child: InteractiveViewer(
-              panEnabled: true,
-              boundaryMargin: EdgeInsets.all(0),
-              minScale: 1.0,
-              maxScale: 4,
-              child: LayoutBuilder(
-                  builder: (BuildContext context, BoxConstraints constraints) {
-                var widthScale = constraints.maxWidth / controllerSize.width;
-                var heightScale = constraints.maxHeight / controllerSize.height;
-                var scale = math.min(widthScale, heightScale);
-                var controls = controller.controls.map((data) {
-                  if (isInEditMode) {
-                    return EditableControl(
-                      labels: data.mappings.map((mappingId) {
-                        return controller.findMappingById(mappingId)?.name ??
-                            "";
-                      }).toList(),
-                      data: data,
-                      scale: scale,
-                      stackKey: stackKey,
-                      onControlDataUpdate: onControlDataUpdate,
-                    );
-                  } else {
-                    return FixedControl(
-                      labels: data.mappings.map((mappingId) {
-                        return routing.routes[mappingId]?.label ?? "";
-                      }).toList(),
-                      data: data,
-                      scale: scale,
-                    );
-                  }
-                }).toList();
-                return Consumer<AppPreferences>(
-                  builder: (context, prefs, child) {
-                    return GridPaper(
-                      divisions: 1,
-                      subdivisions: 1,
-                      interval: gridSize * scale,
-                      color: prefs.gridEnabled
-                          ? Colors.grey
-                          : Colors.transparent,
-                      child: child,
-                    );
-                  },
-                  child: DragTarget<String>(
-                    builder: (context, candidateData, rejectedData) {
-                      return Stack(
-                        key: stackKey,
-                        children: controls,
-                      );
-                    },
-                    onWillAccept: (data) => true,
-                    onAcceptWithDetails: (details) {
-                      var finalPos = getFinalDragPosition(
-                        globalPosition: details.offset,
-                        stackKey: stackKey,
-                        scale: scale,
-                      );
-                      var newData = ControlData(
-                        id: uuid.v4(),
-                        mappings: [details.data],
-                        x: finalPos.dx,
-                        y: finalPos.dy,
-                      );
-                      onControlDataUpdate(newData);
-                    },
+          child: Center(
+            child: LayoutBuilder(
+              builder: (BuildContext context, BoxConstraints constraints) {
+                var widthFactor = constraints.maxWidth / controllerSize.width;
+                var heightFactor =
+                    constraints.maxHeight / controllerSize.height;
+                return Container(
+                  width:
+                      isPortrait ? null : controllerSize.width * heightFactor,
+                  height:
+                      isPortrait ? controllerSize.height * widthFactor : null,
+                  child: Padding(
+                    padding: controlCanvasPadding,
+                    child: InteractiveViewer(
+                      panEnabled: true,
+                      boundaryMargin: EdgeInsets.all(0),
+                      minScale: 1.0,
+                      maxScale: 4,
+                      child: LayoutBuilder(builder:
+                          (BuildContext context, BoxConstraints constraints) {
+                        log(constraints.maxHeight.toString());
+                        var widthScale =
+                            constraints.maxWidth / controllerSize.width;
+                        var heightScale =
+                            constraints.maxHeight / controllerSize.height;
+                        var scale = math.min(widthScale, heightScale);
+                        var controls = controller.controls.map((data) {
+                          if (isInEditMode) {
+                            return EditableControl(
+                              labels: data.mappings.map((mappingId) {
+                                return controller
+                                        .findMappingById(mappingId)
+                                        ?.name ??
+                                    "";
+                              }).toList(),
+                              data: data,
+                              scale: scale,
+                              stackKey: stackKey,
+                              onControlDataUpdate: onControlDataUpdate,
+                            );
+                          } else {
+                            return FixedControl(
+                              labels: data.mappings.map((mappingId) {
+                                return routing.routes[mappingId]?.label ?? "";
+                              }).toList(),
+                              data: data,
+                              scale: scale,
+                            );
+                          }
+                        }).toList();
+                        return Consumer<AppPreferences>(
+                          builder: (context, prefs, child) {
+                            return GridPaper(
+                              divisions: 1,
+                              subdivisions: 1,
+                              interval: gridSize * scale,
+                              color: prefs.gridEnabled
+                                  ? Colors.grey
+                                  : Colors.transparent,
+                              child: child,
+                            );
+                          },
+                          child: DragTarget<String>(
+                            builder: (context, candidateData, rejectedData) {
+                              return Stack(
+                                key: stackKey,
+                                children: controls,
+                              );
+                            },
+                            onWillAccept: (data) => true,
+                            onAcceptWithDetails: (details) {
+                              var finalPos = getFinalDragPosition(
+                                globalPosition: details.offset,
+                                stackKey: stackKey,
+                                scale: scale,
+                              );
+                              var newData = ControlData(
+                                id: uuid.v4(),
+                                mappings: [details.data],
+                                x: finalPos.dx,
+                                y: finalPos.dy,
+                              );
+                              onControlDataUpdate(newData);
+                            },
+                          ),
+                        );
+                      }),
+                    ),
                   ),
                 );
-              }),
+              },
             ),
           ),
         ),
