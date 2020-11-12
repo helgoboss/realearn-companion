@@ -165,13 +165,13 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
                         builder: (context, model, child) {
                           return ListTile(
                             leading: IconButton(
-                              icon: Icon(Icons.exposure_minus_1),
+                              icon: Icon(Icons.remove_circle),
                               onPressed: model.decreaseGridSize,
                             ),
                             onTap: () {},
-                            title: Text('Grid'),
+                            title: Text('Grid size'),
                             trailing: IconButton(
-                              icon: Icon(Icons.plus_one),
+                              icon: Icon(Icons.add_circle),
                               onPressed: model.increaseGridSize,
                             ),
                           );
@@ -610,9 +610,56 @@ class EditableControlState extends State<EditableControl> {
     return Positioned(
       top: widget.offset.dy * widget.scale,
       left: widget.offset.dx * widget.scale,
-      child: draggable,
+      child: GestureDetector(
+        onTap: () {
+          openControlDialog(context: context, controlLabels: control.labels);
+        },
+        child: draggable,
+      ),
     );
   }
+}
+
+AlertDialog openControlDialog(
+    {BuildContext context, List<String> controlLabels}) {
+  final theme = Theme.of(context);
+  var dialog = AlertDialog(
+    backgroundColor: theme.dialogBackgroundColor.withOpacity(0.75),
+    title: Text(controlLabels[0]),
+    content: SingleChildScrollView(
+      child: Table(
+        defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+        children: [
+          TableRow(
+            children: [
+              Text("Width"),
+              Wrap(
+                children: [
+                  IconButton(
+                    icon: Icon(Icons.remove_circle),
+                    onPressed: () {},
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.add_circle),
+                    onPressed: () {},
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
+    ),
+    actions: [
+      TextButton(
+        child: Text("Ok"),
+        onPressed: () {
+          Navigator.pop(context);
+        },
+      ),
+    ],
+  );
+  showDialog(context: context, builder: (BuildContext context) => dialog);
 }
 
 class FixedControl extends StatelessWidget {

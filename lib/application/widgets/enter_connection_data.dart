@@ -10,15 +10,17 @@ class EnterConnectionDataWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return NormalScaffold(
       child: SingleChildScrollView(
-        child: Column(children: [
-          Text(
-            "Please enter the connection data!",
-            style: Theme.of(context).textTheme.headline6,
-            textAlign: TextAlign.center,
-          ),
-          Space(),
-          EnterConnectionDataForm(),
-        ]),
+        child: Column(
+          children: [
+            Text(
+              "Please enter the connection data!",
+              style: Theme.of(context).textTheme.headline6,
+              textAlign: TextAlign.center,
+            ),
+            Space(),
+            EnterConnectionDataForm(),
+          ],
+        ),
       ),
     );
   }
