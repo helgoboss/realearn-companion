@@ -721,88 +721,18 @@ class Control extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var textOneInside = false;
-    var textTwoInside = false;
-    var theme = Theme.of(context);
-    var mainColor = fillColor ?? theme.colorScheme.primary;
-    double insideFontSize = 50;
-    double outsideFontSize = 60;
-    var baseTextStyle = TextStyle(
-      fontWeight: FontWeight.bold,
-    );
-    double radius = 125;
-    double insideSpace = 18;
-    double outsideSpace = 13;
-    var textOneStyle = baseTextStyle.copyWith(
-      fontSize: textOneInside ? insideFontSize : outsideFontSize,
-      color: textOneInside
-          ? theme.colorScheme.onPrimary
-          : theme.colorScheme.onSurface,
-    );
-    var textTwoStyle = baseTextStyle.copyWith(
-      fontSize: textTwoInside ? insideFontSize : outsideFontSize,
-      color: textTwoInside
-          ? theme.colorScheme.onBackground
-          : theme.colorScheme.secondary,
-    );
     var prefs = context.watch<AppPreferences>();
-    var strokeOnly = prefs.controlAppearance == ControlAppearance.outlined;
-    var divider = 5;
-    double strokeWidth = 5;
     if (shape == ControlShape.circle) {
-      var actualWidth = strokeOnly ? width - strokeWidth / divider : width;
-      return Container(
-        width: actualWidth,
-        height: actualWidth,
-        child: Stack(
-          children: [
-            CircularText(
-              radius: radius,
-              position: textOneInside
-                  ? CircularTextPosition.inside
-                  : CircularTextPosition.outside,
-              backgroundPaint: Paint()
-                ..color = mainColor
-                ..style = strokeOnly ? PaintingStyle.stroke : PaintingStyle.fill
-                ..strokeWidth = strokeWidth,
-              children: [
-                TextItem(
-                  text: Text(
-                    labels[0],
-                    style: textOneStyle,
-                  ),
-                  space: textOneInside ? insideSpace : outsideSpace,
-                  startAngle: -90,
-                  startAngleAlignment: StartAngleAlignment.center,
-                  direction: CircularTextDirection.clockwise,
-                ),
-              ],
-            ),
-            if (labels.length > 1)
-              CircularText(
-                radius: radius,
-                position: textTwoInside
-                    ? CircularTextPosition.inside
-                    : CircularTextPosition.outside,
-                children: [
-                  TextItem(
-                    text: Text(
-                      labels[1],
-                      style: textTwoStyle,
-                    ),
-                    space: textTwoInside ? insideSpace : outsideSpace,
-                    startAngle: 90,
-                    startAngleAlignment: StartAngleAlignment.center,
-                    direction: CircularTextDirection.anticlockwise,
-                  ),
-                ],
-              )
-          ],
-        ),
+      return CircularControl(
+        labelOnePosition: CircularControlLabelPosition.aboveTop,
+        labelTwoPosition: CircularControlLabelPosition.belowBottom,
+        diameter: width,
+        appearance: prefs.controlAppearance,
+        labels: labels,
       );
     } else {
       return RectangularControl(
-        labelOnePosition: RectangularControlLabelPosition.onTop,
+        labelOnePosition: RectangularControlLabelPosition.aboveTop,
         labelTwoPosition: RectangularControlLabelPosition.belowBottom,
         width: width,
         height: height,
@@ -875,13 +805,38 @@ enum RectangularControlLabelPosition {
   rightToRight,
 }
 
-bool labelPositionIsInside(RectangularControlLabelPosition pos) {
+bool rectangularLabelPositionIsInside(RectangularControlLabelPosition pos) {
   switch (pos) {
     case RectangularControlLabelPosition.belowTop:
     case RectangularControlLabelPosition.center:
     case RectangularControlLabelPosition.aboveBottom:
     case RectangularControlLabelPosition.rightToLeft:
     case RectangularControlLabelPosition.leftToRight:
+      return true;
+    default:
+      return false;
+  }
+}
+
+enum CircularControlLabelPosition {
+  aboveTop,
+  belowTop,
+  center,
+  aboveBottom,
+  belowBottom,
+  leftToLeft,
+  rightToLeft,
+  leftToRight,
+  rightToRight,
+}
+
+bool circularLabelPositionIsInside(CircularControlLabelPosition pos) {
+  switch (pos) {
+    case CircularControlLabelPosition.belowTop:
+    case CircularControlLabelPosition.center:
+    case CircularControlLabelPosition.aboveBottom:
+    case CircularControlLabelPosition.rightToLeft:
+    case CircularControlLabelPosition.leftToRight:
       return true;
     default:
       return false;
@@ -909,8 +864,8 @@ class RectangularControl extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final props = DerivedControlProps(
-      textOneIsInside: labelPositionIsInside(labelOnePosition),
-      textTwoIsInside: labelPositionIsInside(labelTwoPosition),
+      textOneIsInside: rectangularLabelPositionIsInside(labelOnePosition),
+      textTwoIsInside: rectangularLabelPositionIsInside(labelTwoPosition),
       appearance: appearance,
       theme: Theme.of(context),
     );
@@ -940,6 +895,88 @@ class RectangularControl extends StatelessWidget {
         ),
         if (labels.length > 1) createText(labels[1], props.textTwoStyle)
       ],
+    );
+  }
+}
+
+class CircularControl extends StatelessWidget {
+  final int diameter;
+  final ControlAppearance appearance;
+  final List<String> labels;
+  final CircularControlLabelPosition labelOnePosition;
+  final CircularControlLabelPosition labelTwoPosition;
+
+  const CircularControl({
+    Key key,
+    @required this.appearance,
+    @required this.labels,
+    @required this.diameter,
+    @required this.labelOnePosition,
+    @required this.labelTwoPosition,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final props = DerivedControlProps(
+      textOneIsInside: circularLabelPositionIsInside(labelOnePosition),
+      textTwoIsInside: circularLabelPositionIsInside(labelTwoPosition),
+      appearance: appearance,
+      theme: Theme.of(context),
+    );
+    var actualWidth = props.strokeOnly
+        ? diameter - props.strokeWidth / props.divider
+        : diameter;
+    double radius = 125;
+    double insideSpace = 18;
+    double outsideSpace = 13;
+    return Container(
+      width: actualWidth,
+      height: actualWidth,
+      child: Stack(
+        children: [
+          CircularText(
+            radius: radius,
+            position: props.textOneIsInside
+                ? CircularTextPosition.inside
+                : CircularTextPosition.outside,
+            backgroundPaint: Paint()
+              ..color = props.mainColor
+              ..style = props.strokeOnly ? PaintingStyle.stroke : PaintingStyle.fill
+              ..strokeWidth = props.strokeWidth,
+            children: [
+              TextItem(
+                text: Text(
+                  labels[0],
+                  style: props.textOneStyle,
+                ),
+                space: props.textOneIsInside ? insideSpace : outsideSpace,
+                startAngle: -90,
+                startAngleAlignment: StartAngleAlignment.center,
+                direction: CircularTextDirection.clockwise,
+              ),
+            ],
+          ),
+          if (labels.length > 1)
+            CircularText(
+              radius: radius,
+              position: props.textTwoIsInside
+                  ? CircularTextPosition.inside
+                  : CircularTextPosition.outside,
+              children: [
+                TextItem(
+                  text: Text(
+                    labels[1],
+                    style: props.textTwoStyle,
+                  ),
+                  space: props.textTwoIsInside ? insideSpace : outsideSpace,
+                  startAngle: 90,
+                  startAngleAlignment: StartAngleAlignment.center,
+                  direction: CircularTextDirection.anticlockwise,
+                ),
+              ],
+            )
+        ],
+      ),
     );
   }
 }
