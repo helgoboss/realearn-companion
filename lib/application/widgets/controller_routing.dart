@@ -626,14 +626,16 @@ class FixedControl extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Positioned(
-        top: scale * data.y,
-        left: scale * data.x,
-        child: Control(
-            height: scale * data.height,
-            width: scale * data.width,
-            labels: labels,
-            shape: data.shape,
-            scale: scale));
+      top: scale * data.y,
+      left: scale * data.x,
+      child: Control(
+        height: scale * data.height,
+        width: scale * data.width,
+        labels: labels,
+        shape: data.shape,
+        scale: scale,
+      ),
+    );
   }
 }
 
