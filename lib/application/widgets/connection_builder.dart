@@ -214,11 +214,21 @@ class ConnectionBuilderState extends State<ConnectionBuilder> {
   void notifyConnectionPossible() {
     App.instance.saveLastConnection(widget.connectionData.palette);
     var wsUrl = widget.connectionData.buildWebSocketUrl(widget.topics);
+    log("Connecting to $wsUrl ...");
+    var channel = WebSocketChannel.connect(wsUrl);
     setState(() {
-      var channel = WebSocketChannel.connect(wsUrl);
-      webSocketStream = channel.stream.tap((_) {}, onDone: () {
-        connect();
-      }).asBroadcastStream();
+      webSocketStream = channel.stream.tap(
+        (_) {
+          log("WebSocket message received");
+        },
+        onDone: () {
+          log("WebSocket connection closed");
+          connect();
+        },
+        onError: (e, trace) {
+          log("Error connecting to WebSocket");
+        }
+      ).asBroadcastStream();
       connectionStatus = ConnectionStatus.Connected;
       successfulConnectsCount += 1;
     });

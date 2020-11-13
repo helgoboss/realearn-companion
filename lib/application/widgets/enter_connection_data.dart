@@ -85,6 +85,7 @@ class EnterConnectionDataFormState extends State<EnterConnectionDataForm> {
           ),
           Space(),
           TextFormField(
+            controller: sessionIdController,
             decoration: InputDecoration(
                 filled: true,
                 labelText: 'ReaLearn session ID',

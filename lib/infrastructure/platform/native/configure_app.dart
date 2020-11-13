@@ -11,8 +11,26 @@ import '../../../application/app_config.dart';
 
 AppConfig configureApp() {
   HttpOverrides.global = new _CustomHttpOverrides();
-  // TODO-medium Set security platform correctly
-  return _NativeAppConfig(securityPlatform: SecurityPlatform.Android);
+
+  return _NativeAppConfig(securityPlatform: getNativeSecurityPlatform());
+}
+
+SecurityPlatform getNativeSecurityPlatform() {
+  if (Platform.isAndroid) {
+    return SecurityPlatform.Android;
+  }
+  if (Platform.isLinux) {
+    return SecurityPlatform.Linux;
+  }
+  if (Platform.isWindows) {
+    return SecurityPlatform.Windows;
+  }
+  if (Platform.isIOS) {
+    return SecurityPlatform.iOS;
+  }
+  if (Platform.isMacOS) {
+    return SecurityPlatform.macOS;
+  }
 }
 
 class _NativeAppConfig implements AppConfig {
@@ -20,8 +38,20 @@ class _NativeAppConfig implements AppConfig {
 
   _NativeAppConfig({this.securityPlatform});
 
-  // TODO-medium Android in latest versions requires TLS, iOS maybe not?
-  bool get useTls => true;
+  bool get useTls {
+    switch (securityPlatform) {
+      case SecurityPlatform.Android:
+        return true;
+      case SecurityPlatform.iOS:
+        return false;
+      case SecurityPlatform.Windows:
+        return false;
+      case SecurityPlatform.Linux:
+        return false;
+      case SecurityPlatform.macOS:
+        return false;
+    }
+  }
 
   @override
   NativeQrCodeScan scanQrCode(BuildContext context) {

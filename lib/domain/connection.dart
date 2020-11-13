@@ -19,7 +19,11 @@ class ConnectionDataPalette {
       @required this.httpsPort,
       @required this.sessionId,
       @required this.isGenerated,
-      this.certContent});
+      this.certContent})
+      : assert(host != null && host.isNotEmpty),
+        assert(httpPort != null && httpPort.isNotEmpty),
+        assert(httpsPort != null && httpsPort.isNotEmpty),
+        assert(sessionId != null && sessionId.isNotEmpty);
 
   bool isLocalhost() {
     return host == "localhost" || host == "127.0.0.1";
@@ -51,8 +55,7 @@ class ConnectionData {
 
   String get host => palette.host;
 
-  String get port =>
-      tls ? palette.httpsPort : palette.httpPort;
+  String get port => tls ? palette.httpsPort : palette.httpPort;
 
   String get certContent => palette.certContent;
 
@@ -64,5 +67,4 @@ class ConnectionData {
     var joinedTopics = topics.join(",");
     return wsBaseUri.resolve("/ws?topics=$joinedTopics");
   }
-
 }

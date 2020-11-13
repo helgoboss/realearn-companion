@@ -247,7 +247,7 @@ class CompanionControllerData {
 
   void decreaseGridSize() {
     int nextSize = gridSize - 10;
-    gridSize = nextSize < 0 ? 10 : nextSize;
+    gridSize = nextSize < 10 ? 10 : nextSize;
   }
 
   void increaseControlWidth(ControlData control) {
