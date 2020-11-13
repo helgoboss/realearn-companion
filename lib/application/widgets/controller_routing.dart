@@ -888,32 +888,39 @@ class RectangularControl extends StatelessWidget {
       appearance: appearance,
       theme: Theme.of(context),
     );
-    Widget createText(String label, TextStyle baseStyle) {
+    Widget createText(int index, TextStyle baseStyle) {
       return Text(
-        label,
+        index < labels.length ? labels[index] : '',
         softWrap: false,
         style:
             baseStyle.copyWith(fontSize: props.outsideFontSize / props.divider),
       );
     }
 
-    return Column(
-      children: [
-        if (labels.length > 0) createText(labels[0], props.textOneStyle),
-        Container(
-          width: width.toDouble(),
-          height: height.toDouble(),
-          decoration: new BoxDecoration(
-            color: props.strokeOnly ? null : props.mainColor,
-            border: Border.all(
-              width: props.strokeWidth / props.divider,
-              color: props.mainColor,
+    return SizedBox(
+      width: width.toDouble(),
+      height: height.toDouble(),
+      child: FittedBox(
+        fit: BoxFit.cover,
+        child: Column(
+          children: [
+            createText(0, props.textOneStyle),
+            Container(
+              width: width.toDouble(),
+              height: height.toDouble(),
+              decoration: new BoxDecoration(
+                color: props.strokeOnly ? null : props.mainColor,
+                border: Border.all(
+                  width: props.strokeWidth / props.divider,
+                  color: props.mainColor,
+                ),
+                borderRadius: BorderRadius.all(Radius.circular(10)),
+              ),
             ),
-            borderRadius: BorderRadius.all(Radius.circular(10)),
-          ),
+            createText(1, props.textTwoStyle)
+          ],
         ),
-        if (labels.length > 1) createText(labels[1], props.textTwoStyle)
-      ],
+      ),
     );
   }
 }
