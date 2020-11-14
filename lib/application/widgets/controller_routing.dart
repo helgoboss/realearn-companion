@@ -607,6 +607,21 @@ class EditableControlState extends State<EditableControl> {
   }
 }
 
+class SettingRowLabel extends StatelessWidget {
+  final String label;
+
+  const SettingRowLabel(this.label, {Key key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 50,
+      alignment: Alignment.centerLeft,
+      child: Text('$label:'),
+    );
+  }
+}
+
 AlertDialog createControlDialog({
   BuildContext context,
   String title,
@@ -615,74 +630,99 @@ AlertDialog createControlDialog({
   final controllerModel = context.watch<ControllerModel>();
   var control = controllerModel.findControlById(controlId);
   final theme = Theme.of(context);
-  int controlSize = 40;
+  int controlSize = 35;
   return AlertDialog(
     backgroundColor: theme.dialogBackgroundColor.withOpacity(0.75),
     title: Text(title),
     content: SingleChildScrollView(
-      child: Table(
-        defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-        children: [
-          TableRow(
-            children: [
-              Text("Shape"),
-              Center(
-                child: GestureDetector(
-                  onTap: () => controllerModel.switchControlShape(controlId),
-                  child: control.shape == ControlShape.circle
-                      ? CircularControl(diameter: controlSize)
-                      : RectangularControl(width: controlSize, height: controlSize),
-                ),
-              )
-            ],
-          ),
-          TableRow(
-            children: [
-              Text("Width"),
-              Center(
-                child: Wrap(
-                  children: [
-                    IconButton(
-                      icon: Icon(Icons.remove_circle),
-                      onPressed: () {
-                        controllerModel.decreaseControlWidth(controlId);
-                      },
+      child: Container(
+        width: 270,
+        child: Table(
+          defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+          defaultColumnWidth: IntrinsicColumnWidth(),
+          children: [
+            TableRow(
+              children: [
+                SettingRowLabel("Shape"),
+                Center(
+                  child: RawMaterialButton(
+                    constraints: BoxConstraints(
+                      minWidth: controlSize.toDouble() + 20,
+                      minHeight: controlSize.toDouble() + 20,
                     ),
-                    IconButton(
-                      icon: Icon(Icons.add_circle),
-                      onPressed: () {
-                        controllerModel.increaseControlWidth(controlId);
-                      },
-                    ),
-                  ],
-                ),
+                    shape: StadiumBorder(),
+                    onPressed: () =>
+                        controllerModel.switchControlShape(controlId),
+                    child: control.shape == ControlShape.circle
+                        ? CircularControl(diameter: controlSize)
+                        : RectangularControl(
+                            width: controlSize, height: controlSize),
+                  ),
+                )
+              ],
+            ),
+            createSettingRow(
+              label: 'Width',
+              child: MinusPlus(
+                onMinus: () => controllerModel.decreaseControlWidth(controlId),
+                onPlus: () => controllerModel.increaseControlWidth(controlId),
               ),
-            ],
-          ),
-          TableRow(
-            children: [
-              Text("Height"),
-              Center(
-                child: Wrap(
-                  children: [
-                    IconButton(
-                      icon: Icon(Icons.remove_circle),
-                      onPressed: () {
-                        controllerModel.decreaseControlHeight(controlId);
-                      },
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.add_circle),
-                      onPressed: () {
-                        controllerModel.increaseControlHeight(controlId);
-                      },
-                    ),
-                  ],
-                ),
+            ),
+            createSettingRow(
+              label: 'Height',
+              child: MinusPlus(
+                onMinus: () => controllerModel.decreaseControlHeight(controlId),
+                onPlus: () => controllerModel.increaseControlHeight(controlId),
               ),
-            ],
-          ),
-        ],
+            ),
+            createSettingRow(
+              label: 'Label 1 position',
+              child: ControlLabelPositionDropdownButton(
+                value: control.labelOne.position,
+                onChanged: (pos) {
+                  controllerModel.changeControl(controlId, (control) {
+                    control.labelOne.position = pos;
+                  });
+                },
+              ),
+            ),
+            createSettingRow(
+              label: 'Label 1 rotation',
+              child: RotationSlider(
+                angle: control.labelOne.angle,
+                onChanged: (angle) {
+                  controllerModel.changeControl(
+                    controlId,
+                    (c) => c.labelOne.angle = angle,
+                  );
+                },
+              ),
+            ),
+            createSettingRow(
+              label: 'Label 2 position',
+              child: ControlLabelPositionDropdownButton(
+                value: control.labelTwo.position,
+                onChanged: (pos) {
+                  controllerModel.changeControl(controlId, (control) {
+                    control.labelTwo.position = pos;
+                  });
+                },
+              ),
+            ),
+            createSettingRow(
+              label: 'Label 2 rotation',
+              child: RotationSlider(
+                angle: control.labelTwo.angle,
+                onChanged: (angle) {
+                  controllerModel.changeControl(
+                    controlId,
+                    (c) => c.labelTwo.angle = angle,
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     ),
     actions: [
@@ -743,16 +783,16 @@ class Control extends StatelessWidget {
     var prefs = context.watch<AppPreferences>();
     if (shape == ControlShape.circle) {
       return CircularControl(
-        labelOnePosition: CircularControlLabelPosition.aboveTop,
-        labelTwoPosition: CircularControlLabelPosition.belowBottom,
+        labelOnePosition: ControlLabelPosition.aboveTop,
+        labelTwoPosition: ControlLabelPosition.belowBottom,
         diameter: width,
         appearance: prefs.controlAppearance,
         labels: labels,
       );
     } else {
       return RectangularControl(
-        labelOnePosition: RectangularControlLabelPosition.aboveTop,
-        labelTwoPosition: RectangularControlLabelPosition.belowBottom,
+        labelOnePosition: ControlLabelPosition.aboveTop,
+        labelTwoPosition: ControlLabelPosition.belowBottom,
         width: width,
         height: height,
         appearance: prefs.controlAppearance,
@@ -808,54 +848,13 @@ class DerivedControlProps {
   double get strokeWidth => 5;
 }
 
-enum RectangularControlLabelPosition {
-  aboveTop,
-  onTop,
-  belowTop,
-  center,
-  aboveBottom,
-  onBottom,
-  belowBottom,
-  leftToLeft,
-  onLeft,
-  rightToLeft,
-  leftToRight,
-  onRight,
-  rightToRight,
-}
-
-bool rectangularLabelPositionIsInside(RectangularControlLabelPosition pos) {
+bool labelPositionIsInside(ControlLabelPosition pos) {
   switch (pos) {
-    case RectangularControlLabelPosition.belowTop:
-    case RectangularControlLabelPosition.center:
-    case RectangularControlLabelPosition.aboveBottom:
-    case RectangularControlLabelPosition.rightToLeft:
-    case RectangularControlLabelPosition.leftToRight:
-      return true;
-    default:
-      return false;
-  }
-}
-
-enum CircularControlLabelPosition {
-  aboveTop,
-  belowTop,
-  center,
-  aboveBottom,
-  belowBottom,
-  leftToLeft,
-  rightToLeft,
-  leftToRight,
-  rightToRight,
-}
-
-bool circularLabelPositionIsInside(CircularControlLabelPosition pos) {
-  switch (pos) {
-    case CircularControlLabelPosition.belowTop:
-    case CircularControlLabelPosition.center:
-    case CircularControlLabelPosition.aboveBottom:
-    case CircularControlLabelPosition.rightToLeft:
-    case CircularControlLabelPosition.leftToRight:
+    case ControlLabelPosition.belowTop:
+    case ControlLabelPosition.center:
+    case ControlLabelPosition.aboveBottom:
+    case ControlLabelPosition.rightOfLeft:
+    case ControlLabelPosition.leftOfRight:
       return true;
     default:
       return false;
@@ -867,8 +866,8 @@ class RectangularControl extends StatelessWidget {
   final int height;
   final ControlAppearance appearance;
   final List<String> labels;
-  final RectangularControlLabelPosition labelOnePosition;
-  final RectangularControlLabelPosition labelTwoPosition;
+  final ControlLabelPosition labelOnePosition;
+  final ControlLabelPosition labelTwoPosition;
 
   const RectangularControl({
     Key key,
@@ -876,15 +875,15 @@ class RectangularControl extends StatelessWidget {
     this.labels = const [],
     @required this.width,
     @required this.height,
-    this.labelOnePosition = RectangularControlLabelPosition.aboveTop,
-    this.labelTwoPosition = RectangularControlLabelPosition.belowBottom,
+    this.labelOnePosition = ControlLabelPosition.aboveTop,
+    this.labelTwoPosition = ControlLabelPosition.belowBottom,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final props = DerivedControlProps(
-      textOneIsInside: rectangularLabelPositionIsInside(labelOnePosition),
-      textTwoIsInside: rectangularLabelPositionIsInside(labelTwoPosition),
+      textOneIsInside: labelPositionIsInside(labelOnePosition),
+      textTwoIsInside: labelPositionIsInside(labelTwoPosition),
       appearance: appearance,
       theme: Theme.of(context),
     );
@@ -929,23 +928,23 @@ class CircularControl extends StatelessWidget {
   final int diameter;
   final ControlAppearance appearance;
   final List<String> labels;
-  final CircularControlLabelPosition labelOnePosition;
-  final CircularControlLabelPosition labelTwoPosition;
+  final ControlLabelPosition labelOnePosition;
+  final ControlLabelPosition labelTwoPosition;
 
   const CircularControl({
     Key key,
     this.appearance = ControlAppearance.filled,
     this.labels = const [''],
     @required this.diameter,
-    this.labelOnePosition = CircularControlLabelPosition.aboveTop,
-    this.labelTwoPosition = CircularControlLabelPosition.belowBottom,
+    this.labelOnePosition = ControlLabelPosition.aboveTop,
+    this.labelTwoPosition = ControlLabelPosition.belowBottom,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final props = DerivedControlProps(
-      textOneIsInside: circularLabelPositionIsInside(labelOnePosition),
-      textTwoIsInside: circularLabelPositionIsInside(labelTwoPosition),
+      textOneIsInside: labelPositionIsInside(labelOnePosition),
+      textTwoIsInside: labelPositionIsInside(labelTwoPosition),
       appearance: appearance,
       theme: Theme.of(context),
     );
@@ -961,29 +960,29 @@ class CircularControl extends StatelessWidget {
       child: Stack(
         children: [
           if (labels.length > 0)
-          CircularText(
-            radius: radius,
-            position: props.textOneIsInside
-                ? CircularTextPosition.inside
-                : CircularTextPosition.outside,
-            backgroundPaint: Paint()
-              ..color = props.mainColor
-              ..style =
-                  props.strokeOnly ? PaintingStyle.stroke : PaintingStyle.fill
-              ..strokeWidth = props.strokeWidth,
-            children: [
-              TextItem(
-                text: Text(
-                  labels[0],
-                  style: props.textOneStyle,
+            CircularText(
+              radius: radius,
+              position: props.textOneIsInside
+                  ? CircularTextPosition.inside
+                  : CircularTextPosition.outside,
+              backgroundPaint: Paint()
+                ..color = props.mainColor
+                ..style =
+                    props.strokeOnly ? PaintingStyle.stroke : PaintingStyle.fill
+                ..strokeWidth = props.strokeWidth,
+              children: [
+                TextItem(
+                  text: Text(
+                    labels[0],
+                    style: props.textOneStyle,
+                  ),
+                  space: props.textOneIsInside ? insideSpace : outsideSpace,
+                  startAngle: -90,
+                  startAngleAlignment: StartAngleAlignment.center,
+                  direction: CircularTextDirection.clockwise,
                 ),
-                space: props.textOneIsInside ? insideSpace : outsideSpace,
-                startAngle: -90,
-                startAngleAlignment: StartAngleAlignment.center,
-                direction: CircularTextDirection.clockwise,
-              ),
-            ],
-          ),
+              ],
+            ),
           if (labels.length > 1)
             CircularText(
               radius: radius,
@@ -1040,5 +1039,104 @@ IconData getControlAppearanceIcon(ControlAppearance value) {
       return Icons.fiber_manual_record;
     case ControlAppearance.outlined:
       return Icons.fiber_manual_record_outlined;
+  }
+}
+
+String getControlLabelPositionLabel(ControlLabelPosition pos) {
+  switch (pos) {
+    case ControlLabelPosition.aboveTop:
+      return "Above top";
+    case ControlLabelPosition.belowTop:
+      return "Below top";
+    case ControlLabelPosition.center:
+      return "Center";
+    case ControlLabelPosition.aboveBottom:
+      return "Above bottom";
+    case ControlLabelPosition.belowBottom:
+      return "Below bottom";
+    case ControlLabelPosition.leftOfLeft:
+      return "Left of left";
+    case ControlLabelPosition.rightOfLeft:
+      return "Right of left";
+    case ControlLabelPosition.leftOfRight:
+      return "Left of right";
+    case ControlLabelPosition.rightOfRight:
+      return "Right of right";
+  }
+}
+
+TableRow createSettingRow({String label, Widget child}) {
+  return TableRow(
+    children: [
+      SettingRowLabel(label),
+      Center(child: child),
+    ],
+  );
+}
+
+class MinusPlus extends StatelessWidget {
+  final VoidCallback onMinus;
+  final VoidCallback onPlus;
+
+  const MinusPlus({Key key, this.onMinus, this.onPlus}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        IconButton(
+          icon: Icon(Icons.remove_circle),
+          onPressed: onMinus,
+        ),
+        IconButton(
+          icon: Icon(Icons.add_circle),
+          onPressed: onPlus,
+        ),
+      ],
+    );
+  }
+}
+
+class ControlLabelPositionDropdownButton extends StatelessWidget {
+  final ControlLabelPosition value;
+  final Function(ControlLabelPosition pos) onChanged;
+
+  const ControlLabelPositionDropdownButton(
+      {Key key, this.value, this.onChanged})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return DropdownButton(
+        value: value,
+        items: ControlLabelPosition.values.map((value) {
+          return new DropdownMenuItem(
+            value: value,
+            child: Text(getControlLabelPositionLabel(value)),
+          );
+        }).toList(),
+        onChanged: onChanged);
+  }
+}
+
+class RotationSlider extends StatelessWidget {
+  final int angle;
+  final Function(int angle) onChanged;
+
+  const RotationSlider({Key key, this.angle, this.onChanged}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Slider(
+      value: angle.toDouble(),
+      min: 0,
+      max: 360,
+      divisions: 4,
+      label: '$angle°',
+      onChanged: (double value) {
+        onChanged(value.toInt());
+      },
+    );
   }
 }

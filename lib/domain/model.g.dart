@@ -49,6 +49,7 @@ CompanionControllerData _$CompanionControllerDataFromJson(
     Map<String, dynamic> json) {
   return CompanionControllerData(
     gridSize: json['gridSize'] as int,
+    gridDivisionCount: json['gridDivisionCount'] as int,
     controls: (json['controls'] as List)
         ?.map((e) =>
             e == null ? null : ControlData.fromJson(e as Map<String, dynamic>))
@@ -60,6 +61,7 @@ Map<String, dynamic> _$CompanionControllerDataToJson(
         CompanionControllerData instance) =>
     <String, dynamic>{
       'gridSize': instance.gridSize,
+      'gridDivisionCount': instance.gridDivisionCount,
       'controls': instance.controls,
     };
 
@@ -70,6 +72,14 @@ ControlData _$ControlDataFromJson(Map<String, dynamic> json) {
     shape: _$enumDecodeNullable(_$ControlShapeEnumMap, json['shape']),
     x: json['x'] as num,
     y: json['y'] as num,
+    width: json['width'] as num,
+    height: json['height'] as num,
+    labelOne: json['labelOne'] == null
+        ? null
+        : LabelSettings.fromJson(json['labelOne'] as Map<String, dynamic>),
+    labelTwo: json['labelTwo'] == null
+        ? null
+        : LabelSettings.fromJson(json['labelTwo'] as Map<String, dynamic>),
   );
 }
 
@@ -80,6 +90,10 @@ Map<String, dynamic> _$ControlDataToJson(ControlData instance) =>
       'shape': _$ControlShapeEnumMap[instance.shape],
       'x': instance.x,
       'y': instance.y,
+      'width': instance.width,
+      'height': instance.height,
+      'labelOne': instance.labelOne,
+      'labelTwo': instance.labelTwo,
     };
 
 T _$enumDecode<T>(
@@ -136,3 +150,29 @@ TargetDescriptor _$TargetDescriptorFromJson(Map<String, dynamic> json) {
     label: json['label'] as String,
   );
 }
+
+LabelSettings _$LabelSettingsFromJson(Map<String, dynamic> json) {
+  return LabelSettings(
+    position:
+        _$enumDecodeNullable(_$ControlLabelPositionEnumMap, json['position']),
+    angle: json['angle'] as int,
+  );
+}
+
+Map<String, dynamic> _$LabelSettingsToJson(LabelSettings instance) =>
+    <String, dynamic>{
+      'position': _$ControlLabelPositionEnumMap[instance.position],
+      'angle': instance.angle,
+    };
+
+const _$ControlLabelPositionEnumMap = {
+  ControlLabelPosition.aboveTop: 'aboveTop',
+  ControlLabelPosition.belowTop: 'belowTop',
+  ControlLabelPosition.center: 'center',
+  ControlLabelPosition.aboveBottom: 'aboveBottom',
+  ControlLabelPosition.belowBottom: 'belowBottom',
+  ControlLabelPosition.leftOfLeft: 'leftOfLeft',
+  ControlLabelPosition.rightOfLeft: 'rightOfLeft',
+  ControlLabelPosition.leftOfRight: 'leftOfRight',
+  ControlLabelPosition.rightOfRight: 'rightOfRight',
+};

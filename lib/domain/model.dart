@@ -97,6 +97,13 @@ class ControllerModel extends ChangeNotifier {
     _notifyAndMarkDirty();
   }
 
+  void changeControl(controlId, Function(ControlData control) op) {
+    final control = findControlById(controlId);
+    assert (control != null);
+    op(control);
+    _notifyAndMarkDirty();
+  }
+
   ControlData findControlById(String controlId) {
     return _controller.customData.companion.findById(controlId);
   }
@@ -298,8 +305,12 @@ class ControlData {
   ControlShape shape;
   int x;
   int y;
+
+  // In case of a circle shape this is used as diameter.
   int width;
   int height;
+  LabelSettings labelOne;
+  LabelSettings labelTwo;
 
   factory ControlData.fromJson(Map<String, dynamic> json) =>
       _$ControlDataFromJson(json);
@@ -312,18 +323,22 @@ class ControlData {
     num y,
     num width,
     num height,
+    LabelSettings labelOne,
+    LabelSettings labelTwo,
   })  : mappings = mappings ?? [],
         shape = shape ?? ControlShape.circle,
         x = math.max(0, x.toInt() ?? 0),
         y = math.max(0, y.toInt() ?? 0),
         width = math.max(10, width?.toInt() ?? 50),
-        height = math.max(10, height?.toInt() ?? 50);
+        height = math.max(10, height?.toInt() ?? 50),
+        labelOne =
+            labelOne ?? LabelSettings(position: ControlLabelPosition.aboveTop),
+        labelTwo = labelTwo ??
+            LabelSettings(position: ControlLabelPosition.belowBottom);
 
   int get right => x + width;
 
   int get bottom => y + height;
-
-  Map<String, dynamic> toJson() => _$ControlDataToJson(this);
 
   void addMapping(String mappingId) {
     mappings.add(mappingId);
@@ -352,6 +367,8 @@ class ControlData {
   void switchShape() {
     shape = getNextControlShape(shape);
   }
+
+  Map<String, dynamic> toJson() => _$ControlDataToJson(this);
 }
 
 ControlShape getNextControlShape(ControlShape value) {
@@ -380,4 +397,33 @@ class TargetDescriptor {
 
   factory TargetDescriptor.fromJson(Map<String, dynamic> json) =>
       _$TargetDescriptorFromJson(json);
+}
+
+enum ControlLabelPosition {
+  aboveTop,
+  belowTop,
+  center,
+  aboveBottom,
+  belowBottom,
+  leftOfLeft,
+  rightOfLeft,
+  leftOfRight,
+  rightOfRight,
+}
+
+@JsonSerializable(createToJson: true, nullable: true)
+class LabelSettings {
+  ControlLabelPosition position;
+  int angle;
+
+  LabelSettings({
+    ControlLabelPosition position,
+    int angle,
+  })  : position = position ?? ControlLabelPosition.aboveTop,
+        angle = angle ?? 0;
+
+  factory LabelSettings.fromJson(Map<String, dynamic> json) =>
+      _$LabelSettingsFromJson(json);
+
+  Map<String, dynamic> toJson() => _$LabelSettingsToJson(this);
 }
