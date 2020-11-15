@@ -258,19 +258,23 @@ class CompanionControllerData {
   }
 
   void increaseControlWidth(ControlData control) {
-    control.adjustControlWidth(gridSize ~/ gridDivisionCount);
+    control.adjustControlWidth(_dimensionIncrement);
   }
 
   void decreaseControlWidth(ControlData control) {
-    control.adjustControlWidth(-gridSize ~/ gridDivisionCount);
+    control.adjustControlWidth(-_dimensionIncrement);
   }
 
   void increaseControlHeight(ControlData control) {
-    control.adjustControlHeight(gridSize ~/ gridDivisionCount);
+    control.adjustControlHeight(_dimensionIncrement);
   }
 
   void decreaseControlHeight(ControlData control) {
-    control.adjustControlHeight(-gridSize ~/ gridDivisionCount);
+    control.adjustControlHeight(-_dimensionIncrement);
+  }
+
+  int get _dimensionIncrement {
+    return gridSize ~/ gridDivisionCount;
   }
 
   void alignControlPositionsToGrid() {
@@ -351,12 +355,12 @@ class ControlData {
 
   void adjustControlWidth(int amount) {
     final newWidth = width + amount;
-    width = newWidth < 10 ? 10 : newWidth;
+    width = newWidth < 10 ? amount.abs() : newWidth;
   }
 
   void adjustControlHeight(int amount) {
     final newHeight = height + amount;
-    height = newHeight < 10 ? 10 : newHeight;
+    height = newHeight < 10 ? amount.abs() : newHeight;
   }
 
   void moveTo(int x, int y) {
