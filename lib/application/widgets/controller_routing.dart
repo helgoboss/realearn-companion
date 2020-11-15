@@ -365,6 +365,7 @@ class ControllerRoutingWidget extends StatelessWidget {
                         var heightScale =
                             constraints.maxHeight / controllerSize.height;
                         var scale = math.min(widthScale, heightScale);
+                        var prefs = context.watch<AppPreferences>();
                         var controls = controller.controls.map((data) {
                           if (isInEditMode) {
                             return EditableControl(
@@ -379,6 +380,7 @@ class ControllerRoutingWidget extends StatelessWidget {
                               gridSize: controller.gridSize,
                               stackKey: stackKey,
                               controllerModel: controllerModel,
+                              appearance: prefs.controlAppearance,
                             );
                           } else {
                             return FixedControl(
@@ -387,21 +389,17 @@ class ControllerRoutingWidget extends StatelessWidget {
                               }).toList(),
                               data: data,
                               scale: scale,
+                              appearance: prefs.controlAppearance,
                             );
                           }
                         }).toList();
-                        return Consumer<AppPreferences>(
-                          builder: (context, prefs, child) {
-                            return GridPaper(
-                              divisions: 1,
-                              subdivisions: 1,
-                              interval: controller.gridSize * scale,
-                              color: isInEditMode && prefs.gridEnabled
-                                  ? Colors.grey
-                                  : Colors.transparent,
-                              child: child,
-                            );
-                          },
+                        return GridPaper(
+                          divisions: 1,
+                          subdivisions: 1,
+                          interval: controller.gridSize * scale,
+                          color: isInEditMode && prefs.gridEnabled
+                              ? Colors.grey
+                              : Colors.transparent,
                           child: DragTarget<String>(
                             builder: (context, candidateData, rejectedData) {
                               return Stack(
@@ -479,7 +477,6 @@ class ControlBag extends StatelessWidget {
                   height: 50,
                   shape: ControlShape.circle,
                   fillColor: fillColor,
-                  scale: 1.0,
                 );
               }
 
@@ -521,6 +518,7 @@ class EditableControl extends StatefulWidget {
   final GlobalKey stackKey;
   final int gridSize;
   final ControllerModel controllerModel;
+  final ControlAppearance appearance;
 
   const EditableControl({
     Key key,
@@ -530,6 +528,7 @@ class EditableControl extends StatefulWidget {
     this.stackKey,
     this.gridSize,
     this.controllerModel,
+    this.appearance,
   }) : super(key: key);
 
   @override
@@ -544,11 +543,16 @@ class EditableControlState extends State<EditableControl> {
   @override
   Widget build(BuildContext context) {
     var control = Control(
-      height: (widget.scale * widget.data.height).toInt(),
-      width: (widget.scale * widget.data.width).toInt(),
+      height: widget.data.height,
+      width: widget.data.width,
       labels: widget.labels,
       shape: widget.data.shape,
       scale: widget.scale,
+      labelOnePosition: widget.data.labelOne.position,
+      labelOneAngle: widget.data.labelOne.angle,
+      labelTwoPosition: widget.data.labelTwo.position,
+      labelTwoAngle: widget.data.labelTwo.angle,
+      appearance: widget.appearance,
     );
     var draggable = Draggable<ControlData>(
       data: widget.data,
@@ -653,10 +657,11 @@ AlertDialog createControlDialog({
                     shape: StadiumBorder(),
                     onPressed: () =>
                         controllerModel.switchControlShape(controlId),
-                    child: control.shape == ControlShape.circle
-                        ? CircularControl(diameter: controlSize)
-                        : RectangularControl(
-                            width: controlSize, height: controlSize),
+                    child: Control(
+                      width: controlSize,
+                      height: controlSize,
+                      shape: control.shape,
+                    ),
                   ),
                 )
               ],
@@ -740,9 +745,15 @@ class FixedControl extends StatelessWidget {
   final List<String> labels;
   final ControlData data;
   final double scale;
+  final ControlAppearance appearance;
 
-  const FixedControl({Key key, this.labels, this.data, this.scale})
-      : super(key: key);
+  const FixedControl({
+    Key key,
+    this.labels,
+    this.data,
+    this.scale,
+    this.appearance,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -750,11 +761,16 @@ class FixedControl extends StatelessWidget {
       top: scale * data.y,
       left: scale * data.x,
       child: Control(
-        height: (scale * data.height).toInt(),
-        width: (scale * data.width).toInt(),
+        height: data.height,
+        width: data.width,
         labels: labels,
         shape: data.shape,
         scale: scale,
+        labelOnePosition: data.labelOne.position,
+        labelOneAngle: data.labelOne.angle,
+        labelTwoPosition: data.labelTwo.position,
+        labelTwoAngle: data.labelTwo.angle,
+        appearance: appearance,
       ),
     );
   }
@@ -767,36 +783,49 @@ class Control extends StatelessWidget {
   final ControlShape shape;
   final Color fillColor;
   final double scale;
+  final ControlLabelPosition labelOnePosition;
+  final int labelOneAngle;
+  final ControlLabelPosition labelTwoPosition;
+  final int labelTwoAngle;
+  final ControlAppearance appearance;
 
   const Control({
     Key key,
-    this.labels,
-    this.width,
-    this.height,
-    this.shape,
-    this.fillColor,
-    this.scale,
+    this.labels = const [],
+    @required this.width,
+    @required this.height,
+    this.shape = ControlShape.circle,
+    this.fillColor = null,
+    this.scale = 1.0,
+    this.labelOnePosition = ControlLabelPosition.aboveTop,
+    this.labelOneAngle = 0,
+    this.labelTwoPosition = ControlLabelPosition.belowBottom,
+    this.labelTwoAngle = 0,
+    this.appearance = ControlAppearance.filled,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    var prefs = context.watch<AppPreferences>();
     if (shape == ControlShape.circle) {
       return CircularControl(
         labelOnePosition: ControlLabelPosition.aboveTop,
         labelTwoPosition: ControlLabelPosition.belowBottom,
         diameter: width,
-        appearance: prefs.controlAppearance,
+        appearance: appearance,
         labels: labels,
+        scale: scale,
       );
     } else {
       return RectangularControl(
-        labelOnePosition: ControlLabelPosition.aboveTop,
-        labelTwoPosition: ControlLabelPosition.belowBottom,
         width: width,
         height: height,
-        appearance: prefs.controlAppearance,
+        appearance: appearance,
         labels: labels,
+        labelOnePosition: labelOnePosition,
+        labelOneAngle: labelOneAngle,
+        labelTwoPosition: labelTwoPosition,
+        labelTwoAngle: labelTwoAngle,
+        scale: scale,
       );
     }
   }
@@ -817,26 +846,21 @@ class DerivedControlProps {
     this.enforcedFillColor,
   });
 
-  double get insideFontSize => 50;
-
-  double get outsideFontSize => 60;
-
   Color get mainColor => enforcedFillColor ?? theme.colorScheme.primary;
 
   TextStyle get baseTextStyle => TextStyle(
         fontWeight: FontWeight.bold,
+        fontSize: 10,
       );
 
   TextStyle get textOneStyle => baseTextStyle.copyWith(
-        fontSize: textOneIsInside ? insideFontSize : outsideFontSize,
-        color: textOneIsInside
+        color: textOneIsInside && appearance == ControlAppearance.filled
             ? theme.colorScheme.onPrimary
             : theme.colorScheme.onSurface,
       );
 
   TextStyle get textTwoStyle => baseTextStyle.copyWith(
-        fontSize: textTwoIsInside ? insideFontSize : outsideFontSize,
-        color: textTwoIsInside
+        color: textTwoIsInside && appearance == ControlAppearance.filled
             ? theme.colorScheme.onBackground
             : theme.colorScheme.secondary,
       );
@@ -845,7 +869,7 @@ class DerivedControlProps {
 
   double get divider => 5;
 
-  double get strokeWidth => 5;
+  double get strokeWidth => 2;
 }
 
 bool labelPositionIsInside(ControlLabelPosition pos) {
@@ -867,16 +891,22 @@ class RectangularControl extends StatelessWidget {
   final ControlAppearance appearance;
   final List<String> labels;
   final ControlLabelPosition labelOnePosition;
+  final int labelOneAngle;
   final ControlLabelPosition labelTwoPosition;
+  final int labelTwoAngle;
+  final double scale;
 
   const RectangularControl({
     Key key,
-    this.appearance = ControlAppearance.filled,
-    this.labels = const [],
+    @required this.appearance,
+    @required this.labels,
     @required this.width,
     @required this.height,
-    this.labelOnePosition = ControlLabelPosition.aboveTop,
-    this.labelTwoPosition = ControlLabelPosition.belowBottom,
+    @required this.labelOnePosition,
+    @required this.labelOneAngle,
+    @required this.labelTwoPosition,
+    @required this.labelTwoAngle,
+    @required this.scale,
   }) : super(key: key);
 
   @override
@@ -887,41 +917,101 @@ class RectangularControl extends StatelessWidget {
       appearance: appearance,
       theme: Theme.of(context),
     );
-    Widget createText(int index, TextStyle baseStyle) {
-      return Text(
-        index < labels.length ? labels[index] : '',
-        softWrap: false,
-        style:
-            baseStyle.copyWith(fontSize: props.outsideFontSize / props.divider),
+    final labelOne = labels.length > 0 ? labels[0] : null;
+    final labelTwo = labels.length > 1 ? labels[1] : null;
+    final scaledWidth = scale * width;
+    final scaledHeight = scale * height;
+    Positioned buildLabelText(
+      String label, {
+      ControlLabelPosition position,
+      int angle,
+      TextStyle style,
+    }) {
+      final attrs = _getAttributesForPosition(position);
+      return Positioned(
+        top: attrs.top * scaledHeight.toDouble(),
+        height: scaledHeight.toDouble(),
+        left: attrs.left * scaledWidth.toDouble(),
+        width: scaledWidth.toDouble(),
+        child: Align(
+          alignment: attrs.alignment,
+          child: RotatedBox(
+            quarterTurns: convertAngleToQuarterTurns(angle),
+            child: Text(
+              label,
+              textAlign: TextAlign.center,
+              style: style,
+              textScaleFactor: scale,
+            ),
+          ),
+        ),
       );
     }
 
-    return SizedBox(
-      width: width.toDouble(),
-      height: height.toDouble(),
-      child: FittedBox(
-        fit: BoxFit.cover,
-        child: Column(
-          children: [
-            createText(0, props.textOneStyle),
-            Container(
-              width: width.toDouble(),
-              height: height.toDouble(),
-              decoration: new BoxDecoration(
-                color: props.strokeOnly ? null : props.mainColor,
-                border: Border.all(
-                  width: props.strokeWidth / props.divider,
-                  color: props.mainColor,
-                ),
-                borderRadius: BorderRadius.all(Radius.circular(10)),
-              ),
+    return Stack(
+      // We want to draw text outside of the stack's dimensions!
+      clipBehavior: Clip.none,
+      children: [
+        Container(
+          width: scaledWidth.toDouble(),
+          height: scaledHeight.toDouble(),
+          decoration: new BoxDecoration(
+            color: props.strokeOnly ? null : props.mainColor,
+            border: Border.all(
+              width: props.strokeWidth,
+              color: props.mainColor,
             ),
-            createText(1, props.textTwoStyle)
-          ],
+            borderRadius: BorderRadius.all(Radius.circular(10)),
+          ),
         ),
-      ),
+        if (labelOne != null)
+          buildLabelText(
+            labelOne,
+            position: labelOnePosition,
+            angle: labelOneAngle,
+            style: props.textOneStyle,
+          ),
+        if (labelTwo != null)
+          buildLabelText(
+            labelTwo,
+            position: labelTwoPosition,
+            angle: labelTwoAngle,
+            style: props.textTwoStyle,
+          )
+      ],
     );
   }
+}
+
+_PosAttrs _getAttributesForPosition(ControlLabelPosition pos) {
+  switch (pos) {
+    case ControlLabelPosition.aboveTop:
+      return _PosAttrs(top: -1, left: 0, alignment: Alignment.bottomCenter);
+    case ControlLabelPosition.belowTop:
+      return _PosAttrs(top: 0, left: 0, alignment: Alignment.topCenter);
+    case ControlLabelPosition.center:
+      return _PosAttrs(top: 0, left: 0, alignment: Alignment.center);
+    case ControlLabelPosition.aboveBottom:
+      return _PosAttrs(top: 0, left: 0, alignment: Alignment.bottomCenter);
+    case ControlLabelPosition.belowBottom:
+      return _PosAttrs(top: 1, left: 0, alignment: Alignment.topCenter);
+    case ControlLabelPosition.leftOfLeft:
+      return _PosAttrs(top: 0, left: -1, alignment: Alignment.centerRight);
+    case ControlLabelPosition.rightOfLeft:
+      return _PosAttrs(top: 0, left: 0, alignment: Alignment.centerLeft);
+    case ControlLabelPosition.leftOfRight:
+      return _PosAttrs(top: 0, left: 0, alignment: Alignment.centerRight);
+    case ControlLabelPosition.rightOfRight:
+      return _PosAttrs(top: 0, left: 1, alignment: Alignment.centerLeft);
+  }
+}
+
+class _PosAttrs {
+  final int top;
+  final int left;
+  final AlignmentGeometry alignment;
+
+  _PosAttrs({this.top, this.left, this.alignment});
 }
 
 class CircularControl extends StatelessWidget {
@@ -930,14 +1020,16 @@ class CircularControl extends StatelessWidget {
   final List<String> labels;
   final ControlLabelPosition labelOnePosition;
   final ControlLabelPosition labelTwoPosition;
+  final double scale;
 
   const CircularControl({
     Key key,
-    this.appearance = ControlAppearance.filled,
-    this.labels = const [''],
+    @required this.appearance,
+    @required this.labels,
     @required this.diameter,
-    this.labelOnePosition = ControlLabelPosition.aboveTop,
-    this.labelTwoPosition = ControlLabelPosition.belowBottom,
+    @required this.labelOnePosition,
+    @required this.labelTwoPosition,
+    @required this.scale,
   }) : super(key: key);
 
   @override
@@ -948,9 +1040,10 @@ class CircularControl extends StatelessWidget {
       appearance: appearance,
       theme: Theme.of(context),
     );
+    final scaledDiameter = scale * diameter;
     double actualDiameter = props.strokeOnly
-        ? diameter.toDouble() - props.strokeWidth / props.divider
-        : diameter.toDouble();
+        ? scaledDiameter - props.strokeWidth / props.divider
+        : scaledDiameter;
     double radius = 125;
     double insideSpace = 18;
     double outsideSpace = 13;
