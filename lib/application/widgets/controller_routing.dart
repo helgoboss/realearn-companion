@@ -1131,12 +1131,25 @@ class RotationSlider extends StatelessWidget {
     return Slider(
       value: angle.toDouble(),
       min: 0,
-      max: 360,
-      divisions: 4,
+      max: 270,
+      divisions: 3,
       label: '$angle°',
       onChanged: (double value) {
         onChanged(value.toInt());
       },
     );
   }
+}
+
+int convertAngleToQuarterTurns(int angle) {
+  if (angle < 90) {
+    return 0;
+  }
+  if (angle < 180) {
+    return 1;
+  }
+  if (angle < 270) {
+    return 2;
+  }
+  return 3;
 }
