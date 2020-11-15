@@ -357,7 +357,7 @@ class ControllerRoutingWidget extends StatelessWidget {
                       panEnabled: true,
                       boundaryMargin: EdgeInsets.all(0),
                       minScale: 1.0,
-                      maxScale: 4,
+                      maxScale: 8,
                       child: LayoutBuilder(builder:
                           (BuildContext context, BoxConstraints constraints) {
                         var widthScale =
