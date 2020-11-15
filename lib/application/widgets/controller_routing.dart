@@ -808,11 +808,13 @@ class Control extends StatelessWidget {
   Widget build(BuildContext context) {
     if (shape == ControlShape.circle) {
       return CircularControl(
-        labelOnePosition: ControlLabelPosition.aboveTop,
-        labelTwoPosition: ControlLabelPosition.belowBottom,
         diameter: width,
         appearance: appearance,
         labels: labels,
+        labelOnePosition: labelOnePosition,
+        labelOneAngle: labelOneAngle,
+        labelTwoPosition: labelTwoPosition,
+        labelTwoAngle: labelTwoAngle,
         scale: scale,
       );
     } else {
@@ -850,8 +852,10 @@ class DerivedControlProps {
 
   TextStyle get baseTextStyle => TextStyle(
         fontWeight: FontWeight.bold,
-        fontSize: 10,
+        fontSize: fontSize,
       );
+
+  double get fontSize => 10;
 
   TextStyle get textOneStyle => baseTextStyle.copyWith(
         color: textOneIsInside && appearance == ControlAppearance.filled
@@ -866,8 +870,6 @@ class DerivedControlProps {
       );
 
   bool get strokeOnly => appearance == ControlAppearance.outlined;
-
-  double get divider => 5;
 
   double get strokeWidth => 2;
 }
@@ -1019,7 +1021,9 @@ class CircularControl extends StatelessWidget {
   final ControlAppearance appearance;
   final List<String> labels;
   final ControlLabelPosition labelOnePosition;
+  final int labelOneAngle;
   final ControlLabelPosition labelTwoPosition;
+  final int labelTwoAngle;
   final double scale;
 
   const CircularControl({
@@ -1028,7 +1032,9 @@ class CircularControl extends StatelessWidget {
     @required this.labels,
     @required this.diameter,
     @required this.labelOnePosition,
+    @required this.labelOneAngle,
     @required this.labelTwoPosition,
+    @required this.labelTwoAngle,
     @required this.scale,
   }) : super(key: key);
 
@@ -1041,60 +1047,97 @@ class CircularControl extends StatelessWidget {
       theme: Theme.of(context),
     );
     final scaledDiameter = scale * diameter;
-    double actualDiameter = props.strokeOnly
-        ? scaledDiameter - props.strokeWidth / props.divider
-        : scaledDiameter;
-    double radius = 125;
-    double insideSpace = 18;
-    double outsideSpace = 13;
+    double actualDiameter = scaledDiameter;
+    double outsideSpace = 1 / scaledDiameter * 1200;
+    double insideSpace = outsideSpace * 1.2;
+    double fontSize = props.fontSize * scale;
+    Widget createCenterText(
+      String label, {
+      TextStyle style,
+      int angle,
+    }) {
+      return Align(
+        child: RotatedBox(
+          quarterTurns: convertAngleToQuarterTurns(angle),
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: style,
+            textScaleFactor: scale,
+          ),
+        ),
+      );
+    }
+
     return Container(
       width: actualDiameter,
       height: actualDiameter,
       child: Stack(
         children: [
+          Container(
+            decoration: new BoxDecoration(
+              color: props.strokeOnly ? null : props.mainColor,
+              shape: BoxShape.circle,
+              border: Border.all(
+                width: props.strokeWidth,
+                color: props.mainColor,
+              ),
+            ),
+          ),
           if (labels.length > 0)
-            CircularText(
-              radius: radius,
-              position: props.textOneIsInside
-                  ? CircularTextPosition.inside
-                  : CircularTextPosition.outside,
-              backgroundPaint: Paint()
-                ..color = props.mainColor
-                ..style =
-                    props.strokeOnly ? PaintingStyle.stroke : PaintingStyle.fill
-                ..strokeWidth = props.strokeWidth,
-              children: [
-                TextItem(
-                  text: Text(
+            labelOnePosition == ControlLabelPosition.center
+                ? createCenterText(
                     labels[0],
                     style: props.textOneStyle,
+                    angle: labelOneAngle,
+                  )
+                : CircularText(
+                    radius: actualDiameter / 2,
+                    position: props.textOneIsInside
+                        ? CircularTextPosition.inside
+                        : CircularTextPosition.outside,
+                    children: [
+                      TextItem(
+                        text: Text(
+                          labels[0],
+                          style:
+                              props.textOneStyle.copyWith(fontSize: fontSize),
+                        ),
+                        space:
+                            props.textOneIsInside ? insideSpace : outsideSpace,
+                        startAngle: labelOneAngle.toDouble() - 90,
+                        startAngleAlignment: StartAngleAlignment.center,
+                        direction: CircularTextDirection.clockwise,
+                      ),
+                    ],
                   ),
-                  space: props.textOneIsInside ? insideSpace : outsideSpace,
-                  startAngle: -90,
-                  startAngleAlignment: StartAngleAlignment.center,
-                  direction: CircularTextDirection.clockwise,
-                ),
-              ],
-            ),
           if (labels.length > 1)
-            CircularText(
-              radius: radius,
-              position: props.textTwoIsInside
-                  ? CircularTextPosition.inside
-                  : CircularTextPosition.outside,
-              children: [
-                TextItem(
-                  text: Text(
+            labelTwoPosition == ControlLabelPosition.center
+                ? createCenterText(
                     labels[1],
                     style: props.textTwoStyle,
-                  ),
-                  space: props.textTwoIsInside ? insideSpace : outsideSpace,
-                  startAngle: 90,
-                  startAngleAlignment: StartAngleAlignment.center,
-                  direction: CircularTextDirection.anticlockwise,
-                ),
-              ],
-            )
+                    angle: labelTwoAngle,
+                  )
+                : CircularText(
+                    radius: actualDiameter / 2,
+                    position: props.textTwoIsInside
+                        ? CircularTextPosition.inside
+                        : CircularTextPosition.outside,
+                    children: [
+                      TextItem(
+                        text: Text(
+                          labels[1],
+                          style:
+                              props.textTwoStyle.copyWith(fontSize: fontSize),
+                        ),
+                        space:
+                            props.textTwoIsInside ? insideSpace : outsideSpace,
+                        startAngle: labelTwoAngle.toDouble() + 90,
+                        startAngleAlignment: StartAngleAlignment.center,
+                        direction: CircularTextDirection.anticlockwise,
+                      ),
+                    ],
+                  )
         ],
       ),
     );
