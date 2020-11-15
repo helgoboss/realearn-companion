@@ -83,6 +83,7 @@ class AppPreferences extends ChangeNotifier {
 enum ControlAppearance {
   filled,
   outlined,
+  filledAndOutlined,
 }
 
 ThemeMode getNextThemeMode(ThemeMode value) {

@@ -858,20 +858,29 @@ class DerivedControlProps {
   double get fontSize => 10;
 
   TextStyle get labelOneTextStyle => baseTextStyle.copyWith(
-        color: labelOneIsInside && appearance == ControlAppearance.filled
+        color: labelOneIsInside && !strokeOnly
             ? theme.colorScheme.onPrimary
             : theme.colorScheme.onSurface,
       );
 
   TextStyle get labelTwoTextStyle => baseTextStyle.copyWith(
-        color: labelTwoIsInside && appearance == ControlAppearance.filled
+        color: labelTwoIsInside && !strokeOnly
             ? theme.colorScheme.onBackground
             : theme.colorScheme.secondary,
       );
 
   bool get strokeOnly => appearance == ControlAppearance.outlined;
 
-  double get strokeWidth => 2;
+  Color get decorationColor => strokeOnly ? null : mainColor;
+
+  BoxBorder get border => Border.all(
+        width: strokeWidth,
+        color: appearance == ControlAppearance.filledAndOutlined
+            ? theme.colorScheme.onSurface
+            : mainColor,
+      );
+
+  double get strokeWidth => 4;
 }
 
 bool labelPositionIsInside(ControlLabelPosition pos) {
@@ -950,6 +959,7 @@ class RectangularControl extends StatelessWidget {
       );
     }
 
+    final theme = Theme.of(context);
     return Stack(
       // We want to draw text outside of the stack's dimensions!
       clipBehavior: Clip.none,
@@ -958,11 +968,8 @@ class RectangularControl extends StatelessWidget {
           width: scaledWidth.toDouble(),
           height: scaledHeight.toDouble(),
           decoration: new BoxDecoration(
-            color: props.strokeOnly ? null : props.mainColor,
-            border: Border.all(
-              width: props.strokeWidth,
-              color: props.mainColor,
-            ),
+            color: props.decorationColor,
+            border: props.border,
             borderRadius: BorderRadius.all(Radius.circular(10)),
           ),
         ),
@@ -1097,6 +1104,7 @@ class CircularControl extends StatelessWidget {
       );
     }
 
+    final theme = Theme.of(context);
     return Container(
       width: actualDiameter,
       height: actualDiameter,
@@ -1104,12 +1112,9 @@ class CircularControl extends StatelessWidget {
         children: [
           Container(
             decoration: new BoxDecoration(
-              color: props.strokeOnly ? null : props.mainColor,
+              color: props.decorationColor,
               shape: BoxShape.circle,
-              border: Border.all(
-                width: props.strokeWidth,
-                color: props.mainColor,
-              ),
+              border: props.border,
             ),
           ),
           if (labels.length > 0)
@@ -1175,6 +1180,8 @@ IconData getControlAppearanceIcon(ControlAppearance value) {
       return Icons.fiber_manual_record;
     case ControlAppearance.outlined:
       return Icons.fiber_manual_record_outlined;
+    case ControlAppearance.filledAndOutlined:
+      return Icons.radio_button_checked;
   }
 }
 
