@@ -1069,6 +1069,34 @@ class CircularControl extends StatelessWidget {
       );
     }
 
+    Widget createCircularText(
+      String label, {
+      ControlLabelPosition pos,
+      TextStyle style,
+      int angle,
+    }) {
+      final attrs = convertToCircularAttributes(pos, angle);
+      final isInside = labelPositionIsInside(pos);
+      return CircularText(
+        radius: actualDiameter / 2,
+        position: isInside
+            ? CircularTextPosition.inside
+            : CircularTextPosition.outside,
+        children: [
+          TextItem(
+            text: Text(
+              label,
+              style: style.copyWith(fontSize: fontSize),
+            ),
+            space: isInside ? insideSpace : outsideSpace,
+            startAngle: attrs.startAngle,
+            startAngleAlignment: StartAngleAlignment.center,
+            direction: attrs.direction,
+          ),
+        ],
+      );
+    }
+
     return Container(
       width: actualDiameter,
       height: actualDiameter,
@@ -1091,25 +1119,11 @@ class CircularControl extends StatelessWidget {
                     style: props.labelOneTextStyle,
                     angle: labelOneAngle,
                   )
-                : CircularText(
-                    radius: actualDiameter / 2,
-                    position: props.labelOneIsInside
-                        ? CircularTextPosition.inside
-                        : CircularTextPosition.outside,
-                    children: [
-                      TextItem(
-                        text: Text(
-                          labels[0],
-                          style:
-                              props.labelOneTextStyle.copyWith(fontSize: fontSize),
-                        ),
-                        space:
-                            props.labelOneIsInside ? insideSpace : outsideSpace,
-                        startAngle: labelOneAngle.toDouble() - 90,
-                        startAngleAlignment: StartAngleAlignment.center,
-                        direction: CircularTextDirection.clockwise,
-                      ),
-                    ],
+                : createCircularText(
+                    labels[0],
+                    pos: labelOnePosition,
+                    style: props.labelOneTextStyle,
+                    angle: labelOneAngle,
                   ),
           if (labels.length > 1)
             labelTwoPosition == ControlLabelPosition.center
@@ -1118,25 +1132,11 @@ class CircularControl extends StatelessWidget {
                     style: props.labelTwoTextStyle,
                     angle: labelTwoAngle,
                   )
-                : CircularText(
-                    radius: actualDiameter / 2,
-                    position: props.labelTwoIsInside
-                        ? CircularTextPosition.inside
-                        : CircularTextPosition.outside,
-                    children: [
-                      TextItem(
-                        text: Text(
-                          labels[1],
-                          style:
-                              props.labelTwoTextStyle.copyWith(fontSize: fontSize),
-                        ),
-                        space:
-                            props.labelTwoIsInside ? insideSpace : outsideSpace,
-                        startAngle: labelTwoAngle.toDouble() + 90,
-                        startAngleAlignment: StartAngleAlignment.center,
-                        direction: CircularTextDirection.anticlockwise,
-                      ),
-                    ],
+                : createCircularText(
+                    labels[1],
+                    pos: labelTwoPosition,
+                    style: props.labelTwoTextStyle,
+                    angle: labelTwoAngle,
                   )
         ],
       ),
@@ -1288,4 +1288,48 @@ int convertAngleToQuarterTurns(int angle) {
     return 2;
   }
   return 3;
+}
+
+_CircularAttr convertToCircularAttributes(ControlLabelPosition pos, int angle) {
+  switch (pos) {
+    case ControlLabelPosition.aboveTop:
+    case ControlLabelPosition.belowTop:
+    case ControlLabelPosition.center:
+      return _CircularAttr(
+        startAngle: -90,
+        direction: invertIf180(CircularTextDirection.clockwise, angle),
+      );
+    case ControlLabelPosition.aboveBottom:
+    case ControlLabelPosition.belowBottom:
+      return _CircularAttr(
+          startAngle: 90,
+          direction: invertIf180(CircularTextDirection.anticlockwise, angle));
+    case ControlLabelPosition.leftOfLeft:
+    case ControlLabelPosition.rightOfLeft:
+      return _CircularAttr(
+          startAngle: 180,
+          direction: invertIf180(CircularTextDirection.clockwise, angle));
+    case ControlLabelPosition.leftOfRight:
+    case ControlLabelPosition.rightOfRight:
+      return _CircularAttr(
+          startAngle: 0,
+          direction: invertIf180(CircularTextDirection.clockwise, angle));
+  }
+}
+
+CircularTextDirection invertIf180(CircularTextDirection dir, int angle) {
+  if (angle == 180) {
+    return dir == CircularTextDirection.clockwise
+        ? CircularTextDirection.anticlockwise
+        : CircularTextDirection.clockwise;
+  } else {
+    return dir;
+  }
+}
+
+class _CircularAttr {
+  final double startAngle;
+  final CircularTextDirection direction;
+
+  _CircularAttr({this.startAngle, this.direction});
 }
