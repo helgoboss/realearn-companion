@@ -835,14 +835,14 @@ class Control extends StatelessWidget {
 
 class DerivedControlProps {
   final ThemeData theme;
-  final bool textOneIsInside;
-  final bool textTwoIsInside;
+  final bool labelOneIsInside;
+  final bool labelTwoIsInside;
   final ControlAppearance appearance;
   final Color enforcedFillColor;
 
   DerivedControlProps({
-    @required this.textOneIsInside,
-    @required this.textTwoIsInside,
+    @required this.labelOneIsInside,
+    @required this.labelTwoIsInside,
     @required this.appearance,
     @required this.theme,
     this.enforcedFillColor,
@@ -857,14 +857,14 @@ class DerivedControlProps {
 
   double get fontSize => 10;
 
-  TextStyle get textOneStyle => baseTextStyle.copyWith(
-        color: textOneIsInside && appearance == ControlAppearance.filled
+  TextStyle get labelOneTextStyle => baseTextStyle.copyWith(
+        color: labelOneIsInside && appearance == ControlAppearance.filled
             ? theme.colorScheme.onPrimary
             : theme.colorScheme.onSurface,
       );
 
-  TextStyle get textTwoStyle => baseTextStyle.copyWith(
-        color: textTwoIsInside && appearance == ControlAppearance.filled
+  TextStyle get labelTwoTextStyle => baseTextStyle.copyWith(
+        color: labelTwoIsInside && appearance == ControlAppearance.filled
             ? theme.colorScheme.onBackground
             : theme.colorScheme.secondary,
       );
@@ -914,8 +914,8 @@ class RectangularControl extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final props = DerivedControlProps(
-      textOneIsInside: labelPositionIsInside(labelOnePosition),
-      textTwoIsInside: labelPositionIsInside(labelTwoPosition),
+      labelOneIsInside: labelPositionIsInside(labelOnePosition),
+      labelTwoIsInside: labelPositionIsInside(labelTwoPosition),
       appearance: appearance,
       theme: Theme.of(context),
     );
@@ -971,14 +971,14 @@ class RectangularControl extends StatelessWidget {
             labelOne,
             position: labelOnePosition,
             angle: labelOneAngle,
-            style: props.textOneStyle,
+            style: props.labelOneTextStyle,
           ),
         if (labelTwo != null)
           buildLabelText(
             labelTwo,
             position: labelTwoPosition,
             angle: labelTwoAngle,
-            style: props.textTwoStyle,
+            style: props.labelTwoTextStyle,
           )
       ],
     );
@@ -1041,8 +1041,8 @@ class CircularControl extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final props = DerivedControlProps(
-      textOneIsInside: labelPositionIsInside(labelOnePosition),
-      textTwoIsInside: labelPositionIsInside(labelTwoPosition),
+      labelOneIsInside: labelPositionIsInside(labelOnePosition),
+      labelTwoIsInside: labelPositionIsInside(labelTwoPosition),
       appearance: appearance,
       theme: Theme.of(context),
     );
@@ -1088,12 +1088,12 @@ class CircularControl extends StatelessWidget {
             labelOnePosition == ControlLabelPosition.center
                 ? createCenterText(
                     labels[0],
-                    style: props.textOneStyle,
+                    style: props.labelOneTextStyle,
                     angle: labelOneAngle,
                   )
                 : CircularText(
                     radius: actualDiameter / 2,
-                    position: props.textOneIsInside
+                    position: props.labelOneIsInside
                         ? CircularTextPosition.inside
                         : CircularTextPosition.outside,
                     children: [
@@ -1101,10 +1101,10 @@ class CircularControl extends StatelessWidget {
                         text: Text(
                           labels[0],
                           style:
-                              props.textOneStyle.copyWith(fontSize: fontSize),
+                              props.labelOneTextStyle.copyWith(fontSize: fontSize),
                         ),
                         space:
-                            props.textOneIsInside ? insideSpace : outsideSpace,
+                            props.labelOneIsInside ? insideSpace : outsideSpace,
                         startAngle: labelOneAngle.toDouble() - 90,
                         startAngleAlignment: StartAngleAlignment.center,
                         direction: CircularTextDirection.clockwise,
@@ -1115,12 +1115,12 @@ class CircularControl extends StatelessWidget {
             labelTwoPosition == ControlLabelPosition.center
                 ? createCenterText(
                     labels[1],
-                    style: props.textTwoStyle,
+                    style: props.labelTwoTextStyle,
                     angle: labelTwoAngle,
                   )
                 : CircularText(
                     radius: actualDiameter / 2,
-                    position: props.textTwoIsInside
+                    position: props.labelTwoIsInside
                         ? CircularTextPosition.inside
                         : CircularTextPosition.outside,
                     children: [
@@ -1128,10 +1128,10 @@ class CircularControl extends StatelessWidget {
                         text: Text(
                           labels[1],
                           style:
-                              props.textTwoStyle.copyWith(fontSize: fontSize),
+                              props.labelTwoTextStyle.copyWith(fontSize: fontSize),
                         ),
                         space:
-                            props.textTwoIsInside ? insideSpace : outsideSpace,
+                            props.labelTwoIsInside ? insideSpace : outsideSpace,
                         startAngle: labelTwoAngle.toDouble() + 90,
                         startAngleAlignment: StartAngleAlignment.center,
                         direction: CircularTextDirection.anticlockwise,
