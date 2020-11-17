@@ -635,6 +635,7 @@ AlertDialog createControlDialog({
   var control = controllerModel.findControlById(controlId);
   final theme = Theme.of(context);
   int controlSize = 35;
+  final isCircular = control.shape == ControlShape.circle;
   return AlertDialog(
     backgroundColor: theme.dialogBackgroundColor.withOpacity(0.75),
     title: Text(title),
@@ -667,19 +668,22 @@ AlertDialog createControlDialog({
               ],
             ),
             createSettingRow(
-              label: 'Width',
+              label: isCircular ? 'Diameter' : 'Width',
               child: MinusPlus(
                 onMinus: () => controllerModel.decreaseControlWidth(controlId),
                 onPlus: () => controllerModel.increaseControlWidth(controlId),
               ),
             ),
-            createSettingRow(
-              label: 'Height',
-              child: MinusPlus(
-                onMinus: () => controllerModel.decreaseControlHeight(controlId),
-                onPlus: () => controllerModel.increaseControlHeight(controlId),
+            if (!isCircular)
+              createSettingRow(
+                label: 'Height',
+                child: MinusPlus(
+                  onMinus: () =>
+                      controllerModel.decreaseControlHeight(controlId),
+                  onPlus: () =>
+                      controllerModel.increaseControlHeight(controlId),
+                ),
               ),
-            ),
             createSettingRow(
               label: 'Label 1 position',
               child: ControlLabelPositionDropdownButton(
@@ -695,6 +699,7 @@ AlertDialog createControlDialog({
               label: 'Label 1 rotation',
               child: RotationSlider(
                 angle: control.labelOne.angle,
+                shape: control.shape,
                 onChanged: (angle) {
                   controllerModel.changeControl(
                     controlId,
@@ -718,6 +723,7 @@ AlertDialog createControlDialog({
               label: 'Label 2 rotation',
               child: RotationSlider(
                 angle: control.labelTwo.angle,
+                shape: control.shape,
                 onChanged: (angle) {
                   controllerModel.changeControl(
                     controlId,
@@ -1266,16 +1272,19 @@ class ControlLabelPositionDropdownButton extends StatelessWidget {
 class RotationSlider extends StatelessWidget {
   final int angle;
   final Function(int angle) onChanged;
+  final ControlShape shape;
 
-  const RotationSlider({Key key, this.angle, this.onChanged}) : super(key: key);
+  const RotationSlider({Key key, this.angle, this.onChanged, this.shape})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final isCircular = shape == ControlShape.circle;
     return Slider(
-      value: angle.toDouble(),
+      value: isCircular ? (angle == 180 ? 180 : 0) : angle.toDouble(),
       min: 0,
-      max: 270,
-      divisions: 3,
+      max: isCircular ? 180 : 270,
+      divisions: isCircular ? 1 : 3,
       label: '$angle°',
       onChanged: (double value) {
         onChanged(value.toInt());
