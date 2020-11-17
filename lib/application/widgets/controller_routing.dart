@@ -341,18 +341,18 @@ class ControllerRoutingWidget extends StatelessWidget {
       children: [
         Expanded(
           child: Center(
-            child: LayoutBuilder(
-              builder: (BuildContext context, BoxConstraints constraints) {
-                var widthFactor = constraints.maxWidth / controllerSize.width;
-                var heightFactor =
-                    constraints.maxHeight / controllerSize.height;
-                return Container(
-                  width:
-                      isPortrait ? null : controllerSize.width * heightFactor,
-                  height:
-                      isPortrait ? controllerSize.height * widthFactor : null,
-                  child: Padding(
-                    padding: controlCanvasPadding,
+            child: Padding(
+              padding: controlCanvasPadding,
+              child: LayoutBuilder(
+                builder: (BuildContext context, BoxConstraints constraints) {
+                  var widthFactor = constraints.maxWidth / controllerSize.width;
+                  var heightFactor =
+                      constraints.maxHeight / controllerSize.height;
+                  return Container(
+                    width:
+                        isPortrait ? null : controllerSize.width * heightFactor,
+                    height:
+                        isPortrait ? controllerSize.height * widthFactor : null,
                     child: InteractiveViewer(
                       panEnabled: true,
                       boundaryMargin: EdgeInsets.all(0),
@@ -427,9 +427,9 @@ class ControllerRoutingWidget extends StatelessWidget {
                         );
                       }),
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
           ),
         ),
