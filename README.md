@@ -9,7 +9,8 @@ have [this bug](https://github.com/flutter/flutter/issues/69254)).
 
 ### Generate code
 
-Generated code is committed, so this needs to be executed only after changing files that influence generated code.
+Generated code is committed, so this needs to be executed only after changing files that influence
+generated code.
 
 ```sh
 flutter pub run build_runner build
@@ -48,3 +49,11 @@ Interesting colors are:
 - Inactive LEDs: #808080
 - Magic wand: #ffcc00
 - Text: #e6e6e6
+
+### Generate splash screen
+
+After adjusting `resources/icon.png`, run this:
+
+```sh
+flutter pub run flutter_native_splash:create
+```
