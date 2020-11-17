@@ -855,7 +855,7 @@ class DerivedControlProps {
         fontSize: fontSize,
       );
 
-  double get fontSize => 10;
+  double get fontSize => 15;
 
   TextStyle get labelOneTextStyle => baseTextStyle.copyWith(
         color: labelOneIsInside && !strokeOnly
@@ -1055,7 +1055,7 @@ class CircularControl extends StatelessWidget {
     );
     final scaledDiameter = scale * diameter;
     double actualDiameter = scaledDiameter;
-    double outsideSpace = 1 / scaledDiameter * 1200;
+    double outsideSpace = 700 / scaledDiameter;
     double insideSpace = outsideSpace * 1.2;
     double fontSize = props.fontSize * scale;
     Widget createCenterText(
