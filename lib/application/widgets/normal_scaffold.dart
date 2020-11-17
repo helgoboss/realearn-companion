@@ -59,7 +59,7 @@ class Background extends StatelessWidget {
     var theme = Theme.of(context);
     var isDark = theme.brightness == Brightness.dark;
     return App.instance.config.svgImage(
-      "assets/realearn_logo.svg",
+      "assets/background.svg",
       color: theme.primaryColor.withOpacity(isDark ? 0.5 : 0.05),
       fit: BoxFit.cover,
       width: MediaQuery.of(context).size.shortestSide,
