@@ -876,7 +876,7 @@ class DerivedControlProps {
             : mainColor,
       );
 
-  double get strokeWidth => 4;
+  double get strokeWidth => 2;
 }
 
 bool labelPositionIsInside(ControlLabelPosition pos) {
