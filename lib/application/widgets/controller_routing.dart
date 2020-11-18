@@ -12,6 +12,7 @@ import 'package:flutter_circular_text/circular_text.dart';
 import 'package:realearn_companion/application/repositories/controller.dart';
 import 'package:realearn_companion/domain/connection.dart';
 import 'package:realearn_companion/domain/model.dart';
+import 'package:vibration/vibration.dart';
 
 import 'connection_builder.dart';
 import 'normal_scaffold.dart';
@@ -402,6 +403,7 @@ class ControllerRoutingWidget extends StatelessWidget {
                           x: finalPos.dx.toInt(),
                           y: finalPos.dy.toInt(),
                         );
+                        Vibration.vibrate(duration: 100);
                         controllerModel.addControl(newData);
                       },
                     ),
@@ -466,6 +468,9 @@ class ControlBag extends StatelessWidget {
                   ),
                   feedback: normalPotentialControl,
                   child: normalPotentialControl,
+                  onDragStarted: () {
+                    Vibration.vibrate(duration: 50);
+                  },
                 ),
               );
             }).toList(),
@@ -482,6 +487,7 @@ class ControlBag extends StatelessWidget {
       onAccept: (data) {
         final controllerModel = context.read<ControllerModel>();
         controllerModel.removeControl(data.id);
+        Vibration.vibrate(duration: 100);
       },
     );
   }
@@ -548,14 +554,19 @@ class EditableControlState extends State<EditableControl> {
         onAccept: (data) {
           final controllerModel = context.read<ControllerModel>();
           controllerModel.uniteControls(widget.data, data);
+          Vibration.vibrate(duration: 200);
         },
       ),
       childWhenDragging: SizedBox.shrink(),
       feedback: control,
+      onDragStarted: () {
+        Vibration.vibrate(duration: 50);
+      },
       onDragEnd: (details) {
         if (details.wasAccepted) {
           return;
         }
+        Vibration.vibrate(duration: 50);
         var finalPos = getFinalDragPosition(
           gridSize: widget.gridSize,
           globalPosition: details.offset,
@@ -572,6 +583,7 @@ class EditableControlState extends State<EditableControl> {
       left: widget.offset.dx * widget.scale,
       child: GestureDetector(
         onTap: () {
+          Vibration.vibrate(duration: 50);
           showDialog(
             context: context,
             builder: (BuildContext context) => createControlDialog(
