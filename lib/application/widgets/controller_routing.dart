@@ -440,8 +440,8 @@ class ControlBag extends StatelessWidget {
         width: direction == Axis.vertical ? 100 : null,
         height: direction == Axis.horizontal ? 100 : null,
         color: isAccepting
-            ? Colors.grey.withOpacity(0.3)
-            : Colors.grey.withOpacity(0.1),
+            ? Colors.grey.shade700
+            : Colors.grey.shade800,
         child: SingleChildScrollView(
           scrollDirection: direction,
           child: Flex(
