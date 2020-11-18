@@ -179,18 +179,6 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
                         },
                       ),
                     ),
-                  if (isInEditMode)
-                    PopupMenuItem(
-                      child: Consumer<ControllerModel>(
-                        builder: (context, prefs, child) {
-                          return ListTile(
-                            leading: Icon(Icons.vertical_align_bottom),
-                            onTap: controllerModel.alignControlPositionsToGrid,
-                            title: Text('Align controls to grid'),
-                          );
-                        },
-                      ),
-                    ),
                 ];
               },
             ),
