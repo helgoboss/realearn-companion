@@ -70,8 +70,7 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
     AppBar controllerRoutingAppBar(ControllerModel controllerModel) {
       var theme = Theme.of(context);
       return AppBar(
-          // TODO-high Show controller name here
-          title: Text("Controller Routing"),
+          title: Text(controllerModel.controller?.name ?? 'No controller'),
           actions: [
             if (controllerModel.controller != null)
               IconButton(
@@ -593,6 +592,9 @@ class EditableControlState extends State<EditableControl> {
             ),
           );
         },
+        onLongPress: () {
+
+        },
         child: draggable,
       ),
     );
@@ -1051,7 +1053,7 @@ class CircularControl extends StatelessWidget {
     );
     final scaledDiameter = scale * diameter;
     double actualDiameter = scaledDiameter;
-    double outsideSpace = 700 / scaledDiameter;
+    double outsideSpace = 600 / scaledDiameter;
     double insideSpace = outsideSpace * 1.2;
     double fontSize = props.fontSize * scale;
     Widget createCenterText(
