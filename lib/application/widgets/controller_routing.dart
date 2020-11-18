@@ -850,9 +850,7 @@ class DerivedControlProps {
   Color get mainColor => enforcedFillColor ?? theme.colorScheme.primary;
 
   TextStyle get baseTextStyle => TextStyle(
-        fontWeight: FontWeight.bold,
-        fontSize: fontSize,
-      );
+      fontWeight: FontWeight.bold, fontSize: fontSize, fontFamily: "monospace");
 
   double get fontSize => 14;
 
