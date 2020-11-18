@@ -439,9 +439,7 @@ class ControlBag extends StatelessWidget {
         padding: controlCanvasPadding,
         width: direction == Axis.vertical ? 100 : null,
         height: direction == Axis.horizontal ? 100 : null,
-        color: isAccepting
-            ? Colors.grey.shade700
-            : Colors.grey.shade800,
+        color: isAccepting ? Colors.grey.shade700 : Colors.grey.shade800,
         child: SingleChildScrollView(
           scrollDirection: direction,
           child: Flex(
@@ -804,6 +802,7 @@ class Control extends StatelessWidget {
         labelTwoPosition: labelTwoPosition,
         labelTwoAngle: labelTwoAngle,
         scale: scale,
+        fillColor: fillColor,
       );
     } else {
       return RectangularControl(
@@ -1020,6 +1019,7 @@ class CircularControl extends StatelessWidget {
   final ControlLabelPosition labelTwoPosition;
   final int labelTwoAngle;
   final double scale;
+  final Color fillColor;
 
   const CircularControl({
     Key key,
@@ -1031,6 +1031,7 @@ class CircularControl extends StatelessWidget {
     @required this.labelTwoPosition,
     @required this.labelTwoAngle,
     @required this.scale,
+    this.fillColor,
   }) : super(key: key);
 
   @override
@@ -1040,6 +1041,7 @@ class CircularControl extends StatelessWidget {
       labelTwoIsInside: labelPositionIsInside(labelTwoPosition),
       appearance: appearance,
       theme: Theme.of(context),
+      enforcedFillColor: fillColor,
     );
     final scaledDiameter = scale * diameter;
     double actualDiameter = scaledDiameter;
