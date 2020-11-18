@@ -18,20 +18,6 @@ class RootWidget extends StatelessWidget {
           future: App.instance.loadLastConnection(),
           builder: (BuildContext context,
               AsyncSnapshot<ConnectionDataPalette> snapshot) {
-            Widget createLastSessionButton() {
-              return TextButton.icon(
-                icon: const Icon(Icons.restore),
-                label: Text(
-                  "Last session",
-                  textScaleFactor: 1.6,
-                ),
-                onPressed: () {
-                  var args = ConnectionArgs.fromPalette(snapshot.data);
-                  Navigator.pushNamed(context, getControllerRoutingRoute(args));
-                },
-              );
-            }
-
             return Column(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -40,8 +26,21 @@ class RootWidget extends StatelessWidget {
                     style: Theme.of(context).textTheme.headline5,
                     textAlign: TextAlign.center,
                   ),
-                  if (snapshot.hasData && snapshot.data != null)
-                    createLastSessionButton(),
+                  TextButton.icon(
+                    icon: const Icon(Icons.restore),
+                    label: Text(
+                      "Last session",
+                      textScaleFactor: 1.6,
+                    ),
+                    onPressed: snapshot.hasData && snapshot.data != null
+                        ? () {
+                            var args =
+                                ConnectionArgs.fromPalette(snapshot.data);
+                            Navigator.pushNamed(
+                                context, getControllerRoutingRoute(args));
+                          }
+                        : null,
+                  ),
                   Flex(
                     direction: isPortrait ? Axis.vertical : Axis.horizontal,
                     mainAxisAlignment: MainAxisAlignment.center,

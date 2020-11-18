@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:math' as math;
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:realearn_companion/domain/preferences.dart';
 import 'package:uuid/uuid.dart';
@@ -34,6 +35,12 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
   bool isInEditMode = false;
 
   void toggleAppBar() {
+    if (appBarIsVisible) {
+      SystemChrome.setEnabledSystemUIOverlays([]);
+    } else {
+      SystemChrome.setEnabledSystemUIOverlays(
+          [SystemUiOverlay.top, SystemUiOverlay.bottom]);
+    }
     setState(() {
       appBarIsVisible = !appBarIsVisible;
     });
@@ -592,9 +599,7 @@ class EditableControlState extends State<EditableControl> {
             ),
           );
         },
-        onLongPress: () {
-
-        },
+        onLongPress: () {},
         child: draggable,
       ),
     );
@@ -661,7 +666,8 @@ AlertDialog createControlDialog({
               createSettingRow(
                 label: isCircular ? 'Diameter' : 'Width',
                 child: MinusPlus(
-                  onMinus: () => controllerModel.decreaseControlWidth(controlId),
+                  onMinus: () =>
+                      controllerModel.decreaseControlWidth(controlId),
                   onPlus: () => controllerModel.increaseControlWidth(controlId),
                 ),
               ),

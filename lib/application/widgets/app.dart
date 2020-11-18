@@ -14,8 +14,6 @@ class AppWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     // Also rebuild routes on hot reload
     App.instance.configureHotReloadable();
-    // Don't show status bar
-    SystemChrome.setEnabledSystemUIOverlays([]);
     return FutureBuilder(
       future: AppPreferences.load(),
       builder: (BuildContext context, AsyncSnapshot<AppPreferences> snapshot) {
