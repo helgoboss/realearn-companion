@@ -34,7 +34,8 @@ class ControllerModel extends ChangeNotifier {
 
   void set controller(Controller controller) {
     this._controller = controller;
-    _notifyAndMarkDirty();
+    this._controllerHasEdits = false;
+    notifyListeners();
   }
 
   void increaseGridSize() {
