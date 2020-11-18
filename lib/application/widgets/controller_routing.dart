@@ -850,7 +850,10 @@ class DerivedControlProps {
   Color get mainColor => enforcedFillColor ?? theme.colorScheme.primary;
 
   TextStyle get baseTextStyle => TextStyle(
-      fontWeight: FontWeight.bold, fontSize: fontSize, fontFamily: "monospace");
+        fontWeight: FontWeight.bold,
+        fontSize: fontSize,
+        fontFamily: "monospace",
+      );
 
   double get fontSize => 14;
 
@@ -1086,7 +1089,7 @@ class CircularControl extends StatelessWidget {
         child: ArcText(
           radius: scaledDiameter / 2,
           text: label,
-          textStyle: style.copyWith(fontSize: fontSize),
+          textStyle: style.copyWith(fontSize: fontSize, letterSpacing: -1),
           startAngle: (attrs.startAngle * math.pi) / 180.0 + math.pi / 2,
           placement: isInside ? Placement.inside : Placement.outside,
           direction: attrs.direction,
