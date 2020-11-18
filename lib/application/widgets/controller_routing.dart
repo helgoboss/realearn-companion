@@ -337,92 +337,76 @@ class ControllerRoutingWidget extends StatelessWidget {
           child: Center(
             child: Padding(
               padding: controlCanvasPadding,
-              child: LayoutBuilder(
-                builder: (BuildContext context, BoxConstraints constraints) {
-                  var widthFactor = constraints.maxWidth / controllerSize.width;
-                  var heightFactor =
+              child: InteractiveViewer(
+                panEnabled: true,
+                boundaryMargin: EdgeInsets.all(0),
+                minScale: 1.0,
+                maxScale: 8,
+                child: LayoutBuilder(builder:
+                    (BuildContext context, BoxConstraints constraints) {
+                  var widthScale = constraints.maxWidth / controllerSize.width;
+                  var heightScale =
                       constraints.maxHeight / controllerSize.height;
-                  return Container(
-                    width:
-                        isPortrait ? null : controllerSize.width * heightFactor,
-                    height:
-                        isPortrait ? controllerSize.height * widthFactor : null,
-                    child: InteractiveViewer(
-                      panEnabled: true,
-                      boundaryMargin: EdgeInsets.all(0),
-                      minScale: 1.0,
-                      maxScale: 8,
-                      child: LayoutBuilder(builder:
-                          (BuildContext context, BoxConstraints constraints) {
-                        var widthScale =
-                            constraints.maxWidth / controllerSize.width;
-                        var heightScale =
-                            constraints.maxHeight / controllerSize.height;
-                        var scale = math.min(widthScale, heightScale);
-                        var prefs = context.watch<AppPreferences>();
-                        var controls = controller.controls.map((data) {
-                          if (isInEditMode) {
-                            return EditableControl(
-                              labels: data.mappings.map((mappingId) {
-                                return controller
-                                        .findMappingById(mappingId)
-                                        ?.name ??
-                                    "";
-                              }).toList(),
-                              data: data,
-                              scale: scale,
-                              gridSize: controller.gridSize,
-                              stackKey: stackKey,
-                              controllerModel: controllerModel,
-                              appearance: prefs.controlAppearance,
-                            );
-                          } else {
-                            return FixedControl(
-                              labels: data.mappings.map((mappingId) {
-                                return routing.routes[mappingId]?.label ?? "";
-                              }).toList(),
-                              data: data,
-                              scale: scale,
-                              appearance: prefs.controlAppearance,
-                            );
-                          }
-                        }).toList();
-                        return GridPaper(
-                          divisions: 1,
-                          subdivisions: 1,
-                          interval: controller.gridSize * scale,
-                          color: isInEditMode && prefs.gridEnabled
-                              ? Colors.grey
-                              : Colors.transparent,
-                          child: DragTarget<String>(
-                            builder: (context, candidateData, rejectedData) {
-                              return Stack(
-                                key: stackKey,
-                                children: controls,
-                              );
-                            },
-                            onWillAccept: (data) => true,
-                            onAcceptWithDetails: (details) {
-                              var finalPos = getFinalDragPosition(
-                                gridSize: controller.gridSize,
-                                globalPosition: details.offset,
-                                stackKey: stackKey,
-                                scale: scale,
-                              );
-                              var newData = ControlData(
-                                id: uuid.v4(),
-                                mappings: [details.data],
-                                x: finalPos.dx.toInt(),
-                                y: finalPos.dy.toInt(),
-                              );
-                              controllerModel.addControl(newData);
-                            },
-                          ),
+                  var scale = math.min(widthScale, heightScale);
+                  var prefs = context.watch<AppPreferences>();
+                  var controls = controller.controls.map((data) {
+                    if (isInEditMode) {
+                      return EditableControl(
+                        labels: data.mappings.map((mappingId) {
+                          return controller.findMappingById(mappingId)?.name ??
+                              "";
+                        }).toList(),
+                        data: data,
+                        scale: scale,
+                        gridSize: controller.gridSize,
+                        stackKey: stackKey,
+                        controllerModel: controllerModel,
+                        appearance: prefs.controlAppearance,
+                      );
+                    } else {
+                      return FixedControl(
+                        labels: data.mappings.map((mappingId) {
+                          return routing.routes[mappingId]?.label ?? "";
+                        }).toList(),
+                        data: data,
+                        scale: scale,
+                        appearance: prefs.controlAppearance,
+                      );
+                    }
+                  }).toList();
+                  return GridPaper(
+                    divisions: 1,
+                    subdivisions: 1,
+                    interval: controller.gridSize * scale,
+                    color: isInEditMode && prefs.gridEnabled
+                        ? Colors.grey
+                        : Colors.transparent,
+                    child: DragTarget<String>(
+                      builder: (context, candidateData, rejectedData) {
+                        return Stack(
+                          key: stackKey,
+                          children: controls,
                         );
-                      }),
+                      },
+                      onWillAccept: (data) => true,
+                      onAcceptWithDetails: (details) {
+                        var finalPos = getFinalDragPosition(
+                          gridSize: controller.gridSize,
+                          globalPosition: details.offset,
+                          stackKey: stackKey,
+                          scale: scale,
+                        );
+                        var newData = ControlData(
+                          id: uuid.v4(),
+                          mappings: [details.data],
+                          x: finalPos.dx.toInt(),
+                          y: finalPos.dy.toInt(),
+                        );
+                        controllerModel.addControl(newData);
+                      },
                     ),
                   );
-                },
+                }),
               ),
             ),
           ),
