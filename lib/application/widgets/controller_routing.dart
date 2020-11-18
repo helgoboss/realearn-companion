@@ -639,100 +639,102 @@ AlertDialog createControlDialog({
   return AlertDialog(
     backgroundColor: theme.dialogBackgroundColor.withOpacity(0.75),
     title: Text(title),
-    content: SingleChildScrollView(
-      child: Container(
-        width: 270,
-        child: Table(
-          defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-          defaultColumnWidth: IntrinsicColumnWidth(),
-          children: [
-            TableRow(
-              children: [
-                SettingRowLabel("Shape"),
-                Center(
-                  child: RawMaterialButton(
-                    constraints: BoxConstraints(
-                      minWidth: controlSize.toDouble() + 20,
-                      minHeight: controlSize.toDouble() + 20,
+    content: Scrollbar(
+      child: SingleChildScrollView(
+        child: Container(
+          width: 270,
+          child: Table(
+            defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+            defaultColumnWidth: IntrinsicColumnWidth(),
+            children: [
+              TableRow(
+                children: [
+                  SettingRowLabel("Shape"),
+                  Center(
+                    child: RawMaterialButton(
+                      constraints: BoxConstraints(
+                        minWidth: controlSize.toDouble() + 20,
+                        minHeight: controlSize.toDouble() + 20,
+                      ),
+                      shape: StadiumBorder(),
+                      onPressed: () =>
+                          controllerModel.switchControlShape(controlId),
+                      child: Control(
+                        width: controlSize,
+                        height: controlSize,
+                        shape: control.shape,
+                      ),
                     ),
-                    shape: StadiumBorder(),
-                    onPressed: () =>
-                        controllerModel.switchControlShape(controlId),
-                    child: Control(
-                      width: controlSize,
-                      height: controlSize,
-                      shape: control.shape,
-                    ),
-                  ),
-                )
-              ],
-            ),
-            createSettingRow(
-              label: isCircular ? 'Diameter' : 'Width',
-              child: MinusPlus(
-                onMinus: () => controllerModel.decreaseControlWidth(controlId),
-                onPlus: () => controllerModel.increaseControlWidth(controlId),
+                  )
+                ],
               ),
-            ),
-            if (!isCircular)
               createSettingRow(
-                label: 'Height',
+                label: isCircular ? 'Diameter' : 'Width',
                 child: MinusPlus(
-                  onMinus: () =>
-                      controllerModel.decreaseControlHeight(controlId),
-                  onPlus: () =>
-                      controllerModel.increaseControlHeight(controlId),
+                  onMinus: () => controllerModel.decreaseControlWidth(controlId),
+                  onPlus: () => controllerModel.increaseControlWidth(controlId),
                 ),
               ),
-            createSettingRow(
-              label: 'Label 1 position',
-              child: ControlLabelPositionDropdownButton(
-                value: control.labelOne.position,
-                onChanged: (pos) {
-                  controllerModel.changeControl(controlId, (control) {
-                    control.labelOne.position = pos;
-                  });
-                },
+              if (!isCircular)
+                createSettingRow(
+                  label: 'Height',
+                  child: MinusPlus(
+                    onMinus: () =>
+                        controllerModel.decreaseControlHeight(controlId),
+                    onPlus: () =>
+                        controllerModel.increaseControlHeight(controlId),
+                  ),
+                ),
+              createSettingRow(
+                label: 'Label 1 position',
+                child: ControlLabelPositionDropdownButton(
+                  value: control.labelOne.position,
+                  onChanged: (pos) {
+                    controllerModel.changeControl(controlId, (control) {
+                      control.labelOne.position = pos;
+                    });
+                  },
+                ),
               ),
-            ),
-            createSettingRow(
-              label: 'Label 1 rotation',
-              child: RotationSlider(
-                angle: control.labelOne.angle,
-                shape: control.shape,
-                onChanged: (angle) {
-                  controllerModel.changeControl(
-                    controlId,
-                    (c) => c.labelOne.angle = angle,
-                  );
-                },
+              createSettingRow(
+                label: 'Label 1 rotation',
+                child: RotationSlider(
+                  angle: control.labelOne.angle,
+                  shape: control.shape,
+                  onChanged: (angle) {
+                    controllerModel.changeControl(
+                      controlId,
+                      (c) => c.labelOne.angle = angle,
+                    );
+                  },
+                ),
               ),
-            ),
-            createSettingRow(
-              label: 'Label 2 position',
-              child: ControlLabelPositionDropdownButton(
-                value: control.labelTwo.position,
-                onChanged: (pos) {
-                  controllerModel.changeControl(controlId, (control) {
-                    control.labelTwo.position = pos;
-                  });
-                },
+              createSettingRow(
+                label: 'Label 2 position',
+                child: ControlLabelPositionDropdownButton(
+                  value: control.labelTwo.position,
+                  onChanged: (pos) {
+                    controllerModel.changeControl(controlId, (control) {
+                      control.labelTwo.position = pos;
+                    });
+                  },
+                ),
               ),
-            ),
-            createSettingRow(
-              label: 'Label 2 rotation',
-              child: RotationSlider(
-                angle: control.labelTwo.angle,
-                shape: control.shape,
-                onChanged: (angle) {
-                  controllerModel.changeControl(
-                    controlId,
-                    (c) => c.labelTwo.angle = angle,
-                  );
-                },
+              createSettingRow(
+                label: 'Label 2 rotation',
+                child: RotationSlider(
+                  angle: control.labelTwo.angle,
+                  shape: control.shape,
+                  onChanged: (angle) {
+                    controllerModel.changeControl(
+                      controlId,
+                      (c) => c.labelTwo.angle = angle,
+                    );
+                  },
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     ),
