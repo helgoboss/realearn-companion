@@ -43,7 +43,7 @@ class NormalScaffold extends StatelessWidget {
                   color: prefs.highContrastEnabled
                       ? (isDark
                           ? Colors.black
-                          : Colors.white)
+                          : null)
                       : (isDark ? null : theme.primaryColorLight),
                 )
               ],
