@@ -3,12 +3,12 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:math' as math;
 import 'package:flutter/services.dart';
+import 'package:flutter_arc_text/flutter_arc_text.dart';
 import 'package:provider/provider.dart';
 import 'package:realearn_companion/domain/preferences.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_circular_text/circular_text.dart';
 import 'package:realearn_companion/application/repositories/controller.dart';
 import 'package:realearn_companion/domain/connection.dart';
 import 'package:realearn_companion/domain/model.dart';
@@ -854,7 +854,7 @@ class DerivedControlProps {
         fontSize: fontSize,
       );
 
-  double get fontSize => 15;
+  double get fontSize => 14;
 
   TextStyle get labelOneTextStyle => baseTextStyle.copyWith(
         color: labelOneIsInside && !strokeOnly
@@ -1057,8 +1057,6 @@ class CircularControl extends StatelessWidget {
     );
     final scaledDiameter = scale * diameter;
     double actualDiameter = scaledDiameter;
-    double outsideSpace = 600 / scaledDiameter;
-    double insideSpace = outsideSpace * 1.2;
     double fontSize = props.fontSize * scale;
     Widget createCenterText(
       String label, {
@@ -1086,27 +1084,19 @@ class CircularControl extends StatelessWidget {
     }) {
       final attrs = convertToCircularAttributes(pos, angle);
       final isInside = labelPositionIsInside(pos);
-      return CircularText(
-        radius: actualDiameter / 2,
-        position: isInside
-            ? CircularTextPosition.inside
-            : CircularTextPosition.outside,
-        children: [
-          TextItem(
-            text: Text(
-              label,
-              style: style.copyWith(fontSize: fontSize),
-            ),
-            space: isInside ? insideSpace : outsideSpace,
-            startAngle: attrs.startAngle,
-            startAngleAlignment: StartAngleAlignment.center,
-            direction: attrs.direction,
-          ),
-        ],
+      return Align(
+        child: ArcText(
+          radius: scaledDiameter / 2,
+          text: label,
+          textStyle: style.copyWith(fontSize: fontSize),
+          startAngle: (attrs.startAngle * math.pi) / 180.0 + math.pi / 2,
+          placement: isInside ? Placement.inside : Placement.outside,
+          direction: attrs.direction,
+          startAngleAlignment: StartAngleAlignment.center,
+        ),
       );
     }
 
-    final theme = Theme.of(context);
     return Container(
       width: actualDiameter,
       height: actualDiameter,
@@ -1309,31 +1299,29 @@ _CircularAttr convertToCircularAttributes(ControlLabelPosition pos, int angle) {
     case ControlLabelPosition.center:
       return _CircularAttr(
         startAngle: -90,
-        direction: invertIf180(CircularTextDirection.clockwise, angle),
+        direction: invertIf180(Direction.clockwise, angle),
       );
     case ControlLabelPosition.aboveBottom:
     case ControlLabelPosition.belowBottom:
       return _CircularAttr(
           startAngle: 90,
-          direction: invertIf180(CircularTextDirection.anticlockwise, angle));
+          direction: invertIf180(Direction.counterClockwise, angle));
     case ControlLabelPosition.leftOfLeft:
     case ControlLabelPosition.rightOfLeft:
       return _CircularAttr(
-          startAngle: 180,
-          direction: invertIf180(CircularTextDirection.clockwise, angle));
+          startAngle: 180, direction: invertIf180(Direction.clockwise, angle));
     case ControlLabelPosition.leftOfRight:
     case ControlLabelPosition.rightOfRight:
       return _CircularAttr(
-          startAngle: 0,
-          direction: invertIf180(CircularTextDirection.clockwise, angle));
+          startAngle: 0, direction: invertIf180(Direction.clockwise, angle));
   }
 }
 
-CircularTextDirection invertIf180(CircularTextDirection dir, int angle) {
+Direction invertIf180(Direction dir, int angle) {
   if (angle == 180) {
-    return dir == CircularTextDirection.clockwise
-        ? CircularTextDirection.anticlockwise
-        : CircularTextDirection.clockwise;
+    return dir == Direction.clockwise
+        ? Direction.counterClockwise
+        : Direction.clockwise;
   } else {
     return dir;
   }
@@ -1341,7 +1329,7 @@ CircularTextDirection invertIf180(CircularTextDirection dir, int angle) {
 
 class _CircularAttr {
   final double startAngle;
-  final CircularTextDirection direction;
+  final Direction direction;
 
   _CircularAttr({this.startAngle, this.direction});
 }
