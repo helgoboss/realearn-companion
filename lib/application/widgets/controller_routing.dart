@@ -341,7 +341,7 @@ class ControllerRoutingWidget extends StatelessWidget {
                     height:
                         isPortrait ? controllerSize.height * widthFactor : null,
                     child: InteractiveViewer(
-                      panEnabled: true,
+                      panEnabled: false,
                       boundaryMargin: EdgeInsets.all(0),
                       minScale: 1.0,
                       maxScale: 8,
