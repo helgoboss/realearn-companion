@@ -857,28 +857,55 @@ class DerivedControlProps {
 
   double get fontSize => 14;
 
-  TextStyle get labelOneTextStyle => baseTextStyle.copyWith(
-        color: labelOneIsInside && !strokeOnly
-            ? theme.colorScheme.onPrimary
-            : theme.colorScheme.onSurface,
-      );
+  TextStyle get labelOneTextStyle {
+    return baseTextStyle.copyWith(color: labelOneColor);
+  }
 
-  TextStyle get labelTwoTextStyle => baseTextStyle.copyWith(
-        color: labelTwoIsInside && !strokeOnly
-            ? theme.colorScheme.onBackground
-            : theme.colorScheme.secondary,
-      );
+  TextStyle get labelTwoTextStyle {
+    return baseTextStyle.copyWith(color: labelTwoColor);
+  }
 
-  bool get strokeOnly => appearance == ControlAppearance.outlined;
+  Color get labelOneColor {
+    if (appearance == ControlAppearance.outlinedMono) {
+      return theme.colorScheme.primary;
+    } else {
+      return labelOneIsInside && !strokeOnly
+          ? theme.colorScheme.onPrimary
+          : theme.colorScheme.onSurface;
+    }
+  }
+
+  Color get labelTwoColor {
+    if (appearance == ControlAppearance.outlinedMono) {
+      return labelTwoIsInside && !strokeOnly
+          ? theme.colorScheme.onBackground
+          : theme.colorScheme.secondary;
+    } else {
+      return labelOneColor;
+    }
+  }
+
+  bool get strokeOnly {
+    return appearance == ControlAppearance.outlined ||
+        appearance == ControlAppearance.outlinedMono;
+  }
 
   Color get decorationColor => strokeOnly ? null : mainColor;
 
-  BoxBorder get border => Border.all(
-        width: strokeWidth,
-        color: appearance == ControlAppearance.filledAndOutlined
-            ? theme.colorScheme.onSurface
-            : mainColor,
-      );
+  BoxBorder get border {
+    return Border.all(width: strokeWidth, color: borderColor);
+  }
+
+  Color get borderColor {
+    switch (appearance) {
+      case ControlAppearance.filled:
+      case ControlAppearance.outlined:
+        return mainColor;
+      case ControlAppearance.filledAndOutlined:
+      case ControlAppearance.outlinedMono:
+        return theme.colorScheme.onSurface;
+    }
+  }
 
   double get strokeWidth => 2;
 }
@@ -1175,6 +1202,9 @@ IconData getControlAppearanceIcon(ControlAppearance value) {
       return Icons.fiber_manual_record_outlined;
     case ControlAppearance.filledAndOutlined:
       return Icons.radio_button_checked;
+    case ControlAppearance.outlinedMono:
+      return Icons.remove_circle_outline;
+      break;
   }
 }
 

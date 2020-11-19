@@ -84,6 +84,7 @@ enum ControlAppearance {
   filled,
   outlined,
   filledAndOutlined,
+  outlinedMono,
 }
 
 ThemeMode getNextThemeMode(ThemeMode value) {

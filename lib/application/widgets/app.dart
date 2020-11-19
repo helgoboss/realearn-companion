@@ -37,7 +37,7 @@ class AppWidget extends StatelessWidget {
               darkTheme: ThemeData(
                 brightness: Brightness.dark,
                 primarySwatch: Colors.amber,
-                accentColor: Colors.amber,
+                accentColor: Colors.blueAccent,
               ),
               themeMode: prefs.themeMode,
               onGenerateRoute: App.instance.router.generator,
