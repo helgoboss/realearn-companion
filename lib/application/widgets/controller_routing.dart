@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:math' as math;
+import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_arc_text/flutter_arc_text.dart';
 import 'package:provider/provider.dart';
@@ -896,6 +897,41 @@ class DerivedControlProps {
     return Border.all(width: strokeWidth, color: borderColor);
   }
 
+  Radius get borderRadius {
+    return Radius.circular(10);
+  }
+
+  BoxDecoration get boxDecoration {
+    return new BoxDecoration(
+      color: decorationColor,
+      border: border,
+      borderRadius: BorderRadius.all(borderRadius),
+    );
+  }
+
+  DottedBorder createDottedRectangleBorder({Widget child}) {
+    return DottedBorder(
+      color: borderColor,
+      strokeWidth: strokeWidth,
+      child: child,
+      padding: EdgeInsets.zero,
+      radius: borderRadius,
+      borderType: BorderType.RRect,
+    );
+  }
+
+  DottedBorder createDottedCircularBorder({Widget child}) {
+    return DottedBorder(
+      color: borderColor,
+      strokeWidth: strokeWidth,
+      child: child,
+      padding: EdgeInsets.zero,
+      borderType: BorderType.Circle,
+      strokeCap: StrokeCap.butt,
+      // dashPattern: [1.5],
+    );
+  }
+
   Color get borderColor {
     switch (appearance) {
       case ControlAppearance.filled:
@@ -986,18 +1022,15 @@ class RectangularControl extends StatelessWidget {
       );
     }
 
-    final theme = Theme.of(context);
     return Stack(
       // We want to draw text outside of the stack's dimensions!
       clipBehavior: Clip.none,
       children: [
-        Container(
-          width: scaledWidth.toDouble(),
-          height: scaledHeight.toDouble(),
-          decoration: new BoxDecoration(
-            color: props.decorationColor,
-            border: props.border,
-            borderRadius: BorderRadius.all(Radius.circular(10)),
+        props.createDottedRectangleBorder(
+          child: Container(
+            width: scaledWidth.toDouble(),
+            height: scaledHeight.toDouble(),
+            // decoration: props.boxDecoration,
           ),
         ),
         if (labelOne != null)
@@ -1130,11 +1163,13 @@ class CircularControl extends StatelessWidget {
       height: actualDiameter,
       child: Stack(
         children: [
-          Container(
-            decoration: new BoxDecoration(
-              color: props.decorationColor,
-              shape: BoxShape.circle,
-              border: props.border,
+          props.createDottedCircularBorder(
+            child: Container(
+              decoration: new BoxDecoration(
+                color: props.decorationColor,
+                shape: BoxShape.circle,
+                // border: props.border,
+              ),
             ),
           ),
           if (labels.length > 0)
