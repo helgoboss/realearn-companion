@@ -883,7 +883,9 @@ class DerivedControlProps {
           ? theme.colorScheme.onBackground
           : theme.colorScheme.secondary;
     } else {
-      return labelOneColor;
+      return labelTwoIsInside && !strokeOnly
+          ? theme.colorScheme.onPrimary
+          : theme.colorScheme.onSurface;
     }
   }
 
