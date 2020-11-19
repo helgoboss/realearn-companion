@@ -653,6 +653,7 @@ AlertDialog createControlDialog({
                         width: controlSize,
                         height: controlSize,
                         shape: control.shape,
+                        appearance: ControlAppearance.outlined,
                       ),
                     ),
                   )
