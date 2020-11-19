@@ -340,8 +340,8 @@ class ControllerRoutingWidget extends StatelessWidget {
               padding: controlCanvasPadding,
               child: InteractiveViewer(
                 panEnabled: true,
-                boundaryMargin: EdgeInsets.all(0),
-                minScale: 1.0,
+                boundaryMargin: EdgeInsets.all(200),
+                minScale: 0.25,
                 maxScale: 8,
                 child: LayoutBuilder(builder:
                     (BuildContext context, BoxConstraints constraints) {
