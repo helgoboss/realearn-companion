@@ -68,6 +68,8 @@ const _$ThemeModeEnumMap = {
 const _$ControlAppearanceEnumMap = {
   ControlAppearance.filled: 'filled',
   ControlAppearance.outlined: 'outlined',
+  ControlAppearance.filledAndOutlined: 'filledAndOutlined',
+  ControlAppearance.outlinedMono: 'outlinedMono',
 };
 
 RecentConnection _$RecentConnectionFromJson(Map<String, dynamic> json) {

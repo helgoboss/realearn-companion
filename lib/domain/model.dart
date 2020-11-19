@@ -386,7 +386,7 @@ int roundNumberToGridSize(int number, int gridSize) {
 
 @JsonSerializable(createToJson: false, nullable: true)
 class ControllerRouting {
-  final Map<String, TargetDescriptor> routes;
+  final Map<String, List<TargetDescriptor>> routes;
 
   ControllerRouting({this.routes});
 

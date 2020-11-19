@@ -138,9 +138,11 @@ ControllerRouting _$ControllerRoutingFromJson(Map<String, dynamic> json) {
     routes: (json['routes'] as Map<String, dynamic>)?.map(
       (k, e) => MapEntry(
           k,
-          e == null
-              ? null
-              : TargetDescriptor.fromJson(e as Map<String, dynamic>)),
+          (e as List)
+              ?.map((e) => e == null
+                  ? null
+                  : TargetDescriptor.fromJson(e as Map<String, dynamic>))
+              ?.toList()),
     ),
   );
 }

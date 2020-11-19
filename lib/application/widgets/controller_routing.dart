@@ -384,10 +384,12 @@ class ControllerRoutingWidget extends StatelessWidget {
                         appearance: prefs.controlAppearance,
                       );
                     } else {
+                      final descriptorsForEachMapping =
+                          data.mappings.map((mappingId) {
+                        return routing.routes[mappingId] ?? [];
+                      }).toList();
                       return FixedControl(
-                        labels: data.mappings.map((mappingId) {
-                          return routing.routes[mappingId]?.label ?? "";
-                        }).toList(),
+                        labels: getLabels(descriptorsForEachMapping),
                         data: data,
                         scale: scale,
                         appearance: prefs.controlAppearance,
@@ -438,6 +440,55 @@ class ControllerRoutingWidget extends StatelessWidget {
           )
       ],
     );
+  }
+}
+
+List<String> getLabels(
+  List<List<TargetDescriptor>> descriptorsForEachMapping,
+) {
+  var sourceCount = descriptorsForEachMapping.length;
+  if (sourceCount == 1) {
+    // There's just one source that this control element represents. If there's
+    // a second target mapped to this source, we can display it as second label.
+    final descriptors = descriptorsForEachMapping.first;
+    if (descriptors.isEmpty) {
+      // Not assigned
+      return [];
+    }
+    return [
+      descriptors.first.label,
+      if (descriptors.length > 1) formatAsOneLabel(descriptors.sublist(1))
+    ];
+  }
+  if (sourceCount == 2) {
+    // The two control labels are reserved for two different sources that are
+    // united in one control element (e.g. push encoder). So we need to place
+    // each source in one label.
+    final firstSourceDescriptors = descriptorsForEachMapping.first;
+    final secondSourceDescriptors = descriptorsForEachMapping[1];
+    return [
+      if (firstSourceDescriptors.isNotEmpty)
+        formatAsOneLabel(firstSourceDescriptors),
+      if (secondSourceDescriptors.isNotEmpty)
+        formatAsOneLabel(secondSourceDescriptors),
+    ];
+  }
+  // A control element must only exist if it has at least one mapping.
+  // Control elements that represent more than 2 mappings are not possible at
+  // the moment.
+  assert(false);
+}
+
+String formatAsOneLabel(List<TargetDescriptor> descriptors) {
+  final count = descriptors.length;
+  if (count == 0) {
+    return "";
+  }
+  if (count == 1) {
+    return descriptors.first.label;
+  }
+  if (count > 1) {
+    return '${descriptors.first.label} +${count - 1}';
   }
 }
 
