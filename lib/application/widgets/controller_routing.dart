@@ -107,7 +107,9 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
                       child: Consumer<AppPreferences>(
                         builder: (context, prefs, child) {
                           return ListTile(
-                            leading: Icon(getThemeModeIcon(prefs.themeMode)),
+                            leading: LeadingMenuBarIcon(
+                              getThemeModeIcon(prefs.themeMode),
+                            ),
                             onTap: prefs.switchThemeMode,
                             title: Text('Theme mode'),
                           );
@@ -118,10 +120,10 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
                     PopupMenuItem(
                       child: Consumer<AppPreferences>(
                         builder: (context, prefs, child) {
-                          return ListTile(
-                            leading: Icon(
-                                prefs.highContrastEnabled ? Icons.done : null),
-                            onTap: prefs.toggleHighContrast,
+                          return CheckboxListTile(
+                            value: prefs.highContrastEnabled,
+                            onChanged: (_) => prefs.toggleHighContrast(),
+                            controlAffinity: ListTileControlAffinity.leading,
                             title: Text('High contrast'),
                           );
                         },
@@ -131,11 +133,10 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
                     PopupMenuItem(
                       child: Consumer<AppPreferences>(
                         builder: (context, prefs, child) {
-                          return ListTile(
-                            leading: Icon(prefs.backgroundImageEnabled
-                                ? Icons.done
-                                : null),
-                            onTap: prefs.toggleBackgroundImage,
+                          return CheckboxListTile(
+                            value: prefs.backgroundImageEnabled,
+                            controlAffinity: ListTileControlAffinity.leading,
+                            onChanged: (_) => prefs.toggleBackgroundImage(),
                             title: Text('Background image'),
                           );
                         },
@@ -146,8 +147,9 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
                       child: Consumer<AppPreferences>(
                         builder: (context, prefs, child) {
                           return ListTile(
-                            leading: Icon(getControlAppearanceIcon(
-                                prefs.controlAppearance)),
+                            leading: LeadingMenuBarIcon(
+                              getControlAppearanceIcon(prefs.controlAppearance),
+                            ),
                             onTap: prefs.switchControlAppearance,
                             title: Text('Control appearance'),
                           );
@@ -158,12 +160,12 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
                     PopupMenuItem(
                       child: Consumer<AppPreferences>(
                         builder: (context, prefs, child) {
-                          return ListTile(
-                            leading:
-                                Icon(prefs.gridEnabled ? Icons.done : null),
-                            onTap: prefs.toggleGrid,
+                          return CheckboxListTile(
+                            value: prefs.gridEnabled,
+                            controlAffinity: ListTileControlAffinity.leading,
+                            onChanged: (_) => prefs.toggleGrid(),
                             title: Text('Grid'),
-                            trailing: Wrap(
+                            secondary: Wrap(
                               children: [
                                 IconButton(
                                   icon: Icon(Icons.remove_circle),
@@ -223,6 +225,22 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
         ),
       );
     });
+  }
+}
+
+class LeadingMenuBarIcon extends StatelessWidget {
+  final IconData icon;
+
+  const LeadingMenuBarIcon(this.icon, {Key key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      // For being on the same horizontal position like the checkbox in the
+      // CheckboxListTile
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: Icon(icon),
+    );
   }
 }
 
