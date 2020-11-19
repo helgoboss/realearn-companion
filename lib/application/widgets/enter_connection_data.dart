@@ -9,6 +9,7 @@ class EnterConnectionDataWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return NormalScaffold(
+      appBar: NormalScaffold.defaultAppBar(),
       child: SingleChildScrollView(
         child: Column(
           children: [
