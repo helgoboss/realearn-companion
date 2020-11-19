@@ -18,7 +18,7 @@ class AppWidget extends StatelessWidget {
       future: AppPreferences.load(),
       builder: (BuildContext context, AsyncSnapshot<AppPreferences> snapshot) {
         if (!snapshot.hasData) {
-          return SplashScreen();
+          return SecondSplashScreen();
         }
         return MultiProvider(
           providers: [

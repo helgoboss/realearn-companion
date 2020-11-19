@@ -1,23 +1,18 @@
 import 'package:flutter/material.dart';
+import 'colors.dart' as colors;
 
-class SplashScreen extends StatelessWidget {
+/**
+ * This one is shown shortly after the native splash screen while loading
+ * preferences. It appears only *very* shortly, that's why it's just a
+ * background color. That creates a seamless experience.
+ */
+class SecondSplashScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       builder: (context, child) => Material(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              "Starting...",
-              style: TextStyle(
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            SizedBox(height: 20),
-            CircularProgressIndicator()
-          ],
+        child: Container(
+          color: colors.background
         ),
       ),
     );
