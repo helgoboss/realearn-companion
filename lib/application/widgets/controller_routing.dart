@@ -904,6 +904,13 @@ class DerivedControlProps {
   BoxDecoration get boxDecoration {
     return new BoxDecoration(
       color: decorationColor,
+      borderRadius: BorderRadius.all(borderRadius),
+    );
+  }
+
+  BoxDecoration get solidBoxDecoration {
+    return new BoxDecoration(
+      color: decorationColor,
       border: border,
       borderRadius: BorderRadius.all(borderRadius),
     );
@@ -1030,7 +1037,7 @@ class RectangularControl extends StatelessWidget {
           child: Container(
             width: scaledWidth.toDouble(),
             height: scaledHeight.toDouble(),
-            // decoration: props.boxDecoration,
+            decoration: props.boxDecoration,
           ),
         ),
         if (labelOne != null)
