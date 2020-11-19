@@ -34,7 +34,7 @@ class AppPreferences extends ChangeNotifier {
     bool backgroundImageEnabled,
     bool gridEnabled,
     ControlAppearance controlAppearance,
-  })  : themeMode = themeMode ?? ThemeMode.system,
+  })  : themeMode = themeMode ?? ThemeMode.dark,
         highContrastEnabled = highContrastEnabled ?? false,
         backgroundImageEnabled = backgroundImageEnabled ?? true,
         gridEnabled = gridEnabled ?? false,
