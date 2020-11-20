@@ -617,6 +617,10 @@ class ControlBag extends StatelessWidget {
       },
       onWillAccept: (data) => true,
       onAccept: (data) {
+        final pageModel = context.read<PageModel>();
+        if (pageModel.isInMultiEditMode) {
+          return;
+        }
         final controllerModel = context.read<ControllerModel>();
         controllerModel.removeControl(data.id);
         Vibration.vibrate(duration: 100);
@@ -698,6 +702,9 @@ class EditableControlState extends State<EditableControl> {
           return data.mappings.length == 1 && widget.data.mappings.length == 1;
         },
         onAccept: (data) {
+          if (pageModel.isInMultiEditMode) {
+            return;
+          }
           final controllerModel = context.read<ControllerModel>();
           controllerModel.uniteControls(widget.data, data);
           Vibration.vibrate(duration: 200);
@@ -705,13 +712,17 @@ class EditableControlState extends State<EditableControl> {
       ),
       childWhenDragging: SizedBox.shrink(),
       feedback: control,
-      onDragStarted: () {
-        Vibration.vibrate(duration: 50);
-      },
       onDragEnd: (details) {
         if (details.wasAccepted) {
           return;
         }
+        if (pageModel.isInMultiEditMode &&
+            !pageModel.selectedControlIds.contains(widget.data.id)) {
+          return;
+        }
+        final controlIds = pageModel.isInMultiEditMode
+            ? pageModel.selectedControlIds
+            : [widget.data.id];
         Vibration.vibrate(duration: 50);
         var finalPos = getFinalDragPosition(
           gridSize: widget.gridSize,
@@ -722,9 +733,6 @@ class EditableControlState extends State<EditableControl> {
         final controllerModel = context.read<ControllerModel>();
         final xDelta = finalPos.dx.toInt() - widget.data.x;
         final yDelta = finalPos.dy.toInt() - widget.data.y;
-        final controlIds = pageModel.isInMultiEditMode
-            ? pageModel.selectedControlIds
-            : [widget.data.id];
         controllerModel.moveControlsBy(controlIds, xDelta, yDelta);
       },
     );
