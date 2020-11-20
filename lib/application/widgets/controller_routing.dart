@@ -33,9 +33,40 @@ class ControllerRoutingPage extends StatefulWidget {
   }
 }
 
+enum PageMode { view, edit, editMulti }
+
+class PageModel extends ChangeNotifier {
+  PageMode _pageMode = PageMode.view;
+
+  PageMode get pageMode => _pageMode;
+
+  bool get isInEditMode {
+    return _pageMode != PageMode.view;
+  }
+
+  void enterEditMode() {
+    _pageMode = PageMode.edit;
+    notifyListeners();
+  }
+
+  void leaveEditMode() {
+    _pageMode = PageMode.view;
+    notifyListeners();
+  }
+
+  void enterEditMultiMode() {
+    _pageMode = PageMode.editMulti;
+    notifyListeners();
+  }
+
+  void leaveEditMultiMode() {
+    _pageMode = PageMode.edit;
+    notifyListeners();
+  }
+}
+
 class ControllerRoutingPageState extends State<ControllerRoutingPage> {
   bool appBarIsVisible = true;
-  bool isInEditMode = false;
 
   void toggleAppBar() {
     if (appBarIsVisible) {
@@ -49,18 +80,6 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
     });
   }
 
-  void enterEditMode() {
-    setState(() {
-      isInEditMode = true;
-    });
-  }
-
-  void leaveEditMode() {
-    setState(() {
-      isInEditMode = false;
-    });
-  }
-
   void saveController() async {
     var controllerModel = this.context.read<ControllerModel>();
     await ControllerRepository(widget.connectionData)
@@ -70,14 +89,10 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
     );
   }
 
-  void setController(Controller controller) {
-    var controllerModel = this.context.read<ControllerModel>();
-    controllerModel.controller = controller;
-  }
-
   @override
   Widget build(BuildContext context) {
-    AppBar controllerRoutingAppBar(ControllerModel controllerModel) {
+    AppBar controllerRoutingAppBar(
+        ControllerModel controllerModel, PageModel pageModel) {
       var theme = Theme.of(context);
       return AppBar(
           title: Text(controllerModel.controller?.name ?? 'No controller'),
@@ -91,19 +106,19 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
             if (controllerModel.controller != null)
               IconButton(
                 icon: Icon(Icons.edit),
-                color: isInEditMode ? theme.accentColor : null,
+                color: pageModel.isInEditMode ? theme.accentColor : null,
                 onPressed: () {
-                  if (isInEditMode) {
-                    leaveEditMode();
+                  if (pageModel.isInEditMode) {
+                    pageModel.leaveEditMode();
                   } else {
-                    enterEditMode();
+                    pageModel.enterEditMode();
                   }
                 },
               ),
             PopupMenuButton(
               itemBuilder: (BuildContext context) {
                 return <PopupMenuEntry>[
-                  if (!isInEditMode)
+                  if (!pageModel.isInEditMode)
                     PopupMenuItem(
                       child: Consumer<AppPreferences>(
                         builder: (context, prefs, child) {
@@ -117,7 +132,7 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
                         },
                       ),
                     ),
-                  if (!isInEditMode)
+                  if (!pageModel.isInEditMode)
                     PopupMenuItem(
                       child: Consumer<AppPreferences>(
                         builder: (context, prefs, child) {
@@ -130,7 +145,7 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
                         },
                       ),
                     ),
-                  if (!isInEditMode)
+                  if (!pageModel.isInEditMode)
                     PopupMenuItem(
                       child: Consumer<AppPreferences>(
                         builder: (context, prefs, child) {
@@ -143,7 +158,7 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
                         },
                       ),
                     ),
-                  if (!isInEditMode)
+                  if (!pageModel.isInEditMode)
                     PopupMenuItem(
                       child: Consumer<AppPreferences>(
                         builder: (context, prefs, child) {
@@ -157,7 +172,7 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
                         },
                       ),
                     ),
-                  if (!isInEditMode)
+                  if (!pageModel.isInEditMode)
                     PopupMenuItem(
                       child: Consumer<AppPreferences>(
                         builder: (context, prefs, child) {
@@ -171,7 +186,7 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
                         },
                       ),
                     ),
-                  if (isInEditMode)
+                  if (pageModel.isInEditMode)
                     PopupMenuItem(
                       child: Consumer<AppPreferences>(
                         builder: (context, prefs, child) {
@@ -214,32 +229,33 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
     var controllerTopic = "/realearn/session/$sessionId/controller";
     var controllerRoutingTopic =
         "/realearn/session/$sessionId/controller-routing";
-    return Consumer<ControllerModel>(
-        builder: (context, controllerModel, child) {
-      return NormalScaffold(
-        padding: EdgeInsets.zero,
-        appBar:
-            appBarIsVisible ? controllerRoutingAppBar(controllerModel) : null,
-        child: ConnectionBuilder(
-          connectionData: widget.connectionData,
-          topics: [controllerTopic, controllerRoutingTopic],
-          builder: (BuildContext context, Stream<dynamic> messages) {
-            return GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () {
-                toggleAppBar();
-              },
-              child: ControllerRoutingContainer(
-                messages: messages,
-                isInEditMode: isInEditMode,
-                controller: controllerModel.controller,
-                onControllerSwitched: setController,
-              ),
-            );
-          },
-        ),
-      );
-    });
+    return ChangeNotifierProvider(
+      create: (context) => PageModel(),
+      child: Consumer2<ControllerModel, PageModel>(
+          builder: (context, controllerModel, pageModel, child) {
+        return NormalScaffold(
+          padding: EdgeInsets.zero,
+          appBar: appBarIsVisible
+              ? controllerRoutingAppBar(controllerModel, pageModel)
+              : null,
+          child: ConnectionBuilder(
+            connectionData: widget.connectionData,
+            topics: [controllerTopic, controllerRoutingTopic],
+            builder: (BuildContext context, Stream<dynamic> messages) {
+              return GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () {
+                  toggleAppBar();
+                },
+                child: ControllerRoutingContainer(
+                  messages: messages,
+                ),
+              );
+            },
+          ),
+        );
+      }),
+    );
   }
 }
 
@@ -260,17 +276,11 @@ class LeadingMenuBarIcon extends StatelessWidget {
 }
 
 class ControllerRoutingContainer extends StatefulWidget {
-  final Controller controller;
   final Stream<dynamic> messages;
-  final bool isInEditMode;
-  final Function(Controller controller) onControllerSwitched;
 
   const ControllerRoutingContainer({
     Key key,
     this.messages,
-    this.isInEditMode,
-    this.controller,
-    this.onControllerSwitched,
   }) : super(key: key);
 
   @override
@@ -288,7 +298,6 @@ class ControllerRoutingContainerState
   Widget build(BuildContext context) {
     return ControllerRoutingWidget(
       routing: routing,
-      isInEditMode: widget.isInEditMode,
     );
   }
 
@@ -309,8 +318,9 @@ class ControllerRoutingContainerState
       var realearnEvent = RealearnEvent.fromJson(jsonObject);
       if (realearnEvent.type == "updated") {
         if (realearnEvent.path.endsWith("/controller")) {
-          widget
-              .onControllerSwitched(Controller.fromJson(realearnEvent.payload));
+          final controllerModel = context.read<ControllerModel>();
+          controllerModel.controller =
+              Controller.fromJson(realearnEvent.payload);
         } else if (realearnEvent.path.endsWith("/controller-routing")) {
           setRouting(ControllerRouting.fromJson(realearnEvent.payload));
         }
@@ -335,13 +345,11 @@ var controlCanvasPadding = EdgeInsets.all(20);
 
 class ControllerRoutingWidget extends StatelessWidget {
   final ControllerRouting routing;
-  final bool isInEditMode;
   final GlobalKey stackKey = GlobalKey();
 
   ControllerRoutingWidget({
     Key key,
     this.routing,
-    this.isInEditMode,
   }) : super(key: key);
 
   @override
@@ -363,7 +371,7 @@ class ControllerRoutingWidget extends StatelessWidget {
         mappings: remainingMappings,
       );
     }
-
+    final pageModel = context.watch<PageModel>();
     return Flex(
       direction: isPortrait ? Axis.vertical : Axis.horizontal,
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -385,7 +393,7 @@ class ControllerRoutingWidget extends StatelessWidget {
                   var scale = math.min(widthScale, heightScale);
                   var prefs = context.watch<AppPreferences>();
                   var controls = controller.controls.map((data) {
-                    if (isInEditMode) {
+                    if (pageModel.isInEditMode) {
                       return EditableControl(
                         labels: data.mappings.map((mappingId) {
                           return controller.findMappingById(mappingId)?.name ??
@@ -417,7 +425,7 @@ class ControllerRoutingWidget extends StatelessWidget {
                     divisions: 1,
                     subdivisions: 1,
                     interval: controller.gridSize * scale,
-                    color: isInEditMode && prefs.gridEnabled
+                    color: pageModel.isInEditMode && prefs.gridEnabled
                         ? Colors.grey
                         : Colors.transparent,
                     child: DragTarget<String>(
@@ -451,7 +459,7 @@ class ControllerRoutingWidget extends StatelessWidget {
             ),
           ),
         ),
-        if (isInEditMode)
+        if (pageModel.isInEditMode)
           createControlBag(
             direction: isPortrait ? Axis.horizontal : Axis.vertical,
           )
