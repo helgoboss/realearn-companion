@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:realearn_companion/domain/connection.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:math' as math;
 
 part 'preferences.g.dart';
 
@@ -15,6 +16,7 @@ class AppPreferences extends ChangeNotifier {
   bool gridEnabled;
   ControlAppearance controlAppearance;
   BorderStyle borderStyle;
+  int fontSize;
 
   static Future<AppPreferences> load() async {
     var prefs = await SharedPreferences.getInstance();
@@ -36,12 +38,14 @@ class AppPreferences extends ChangeNotifier {
     bool gridEnabled,
     ControlAppearance controlAppearance,
     BorderStyle borderStyle,
+    int fontSize,
   })  : themeMode = themeMode ?? ThemeMode.dark,
         highContrastEnabled = highContrastEnabled ?? false,
         backgroundImageEnabled = backgroundImageEnabled ?? true,
         gridEnabled = gridEnabled ?? false,
         controlAppearance = controlAppearance ?? ControlAppearance.outlinedMono,
-        borderStyle = borderStyle ?? BorderStyle.dotted;
+        borderStyle = borderStyle ?? BorderStyle.dotted,
+        fontSize = fontSize ?? 14;
 
   Map<String, dynamic> toJson() => _$AppPreferencesToJson(this);
 
@@ -72,6 +76,11 @@ class AppPreferences extends ChangeNotifier {
 
   void switchBorderStyle() {
     borderStyle = getNextBorderStyle(borderStyle);
+    _notifyAndSave();
+  }
+
+  void adjustFontSizeBy(int amount) {
+    fontSize = math.max(8, fontSize + amount);
     _notifyAndSave();
   }
 

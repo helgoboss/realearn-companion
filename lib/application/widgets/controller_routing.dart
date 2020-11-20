@@ -158,6 +158,26 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
                       child: Consumer<AppPreferences>(
                         builder: (context, prefs, child) {
                           return ListTile(
+                            leading: LeadingMenuBarIcon(Icons.format_size),
+                            title: Text('Text'),
+                            onTap: () {},
+                            trailing: MinusPlus(
+                              onMinus: () {
+                                prefs.adjustFontSizeBy(-1);
+                              },
+                              onPlus: () {
+                                prefs.adjustFontSizeBy(1);
+                              },
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  if (!pageModel.isInEditMode)
+                    PopupMenuItem(
+                      child: Consumer<AppPreferences>(
+                        builder: (context, prefs, child) {
+                          return ListTile(
                             leading: LeadingMenuBarIcon(
                               getThemeModeIcon(prefs.themeMode),
                             ),
@@ -187,7 +207,9 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
                           return CheckboxListTile(
                             value: prefs.backgroundImageEnabled,
                             controlAffinity: ListTileControlAffinity.leading,
-                            onChanged: (_) => prefs.toggleBackgroundImage(),
+                            onChanged: prefs.highContrastEnabled
+                                ? null
+                                : (_) => prefs.toggleBackgroundImage(),
                             title: Text('Background image'),
                           );
                         },
@@ -202,7 +224,7 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
                               getControlAppearanceIcon(prefs.controlAppearance),
                             ),
                             onTap: prefs.switchControlAppearance,
-                            title: Text('Control appearance'),
+                            title: Text('Control coloring'),
                           );
                         },
                       ),
@@ -216,7 +238,7 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
                               getBorderStyleIcon(prefs.borderStyle),
                             ),
                             onTap: prefs.switchBorderStyle,
-                            title: Text('Border style'),
+                            title: Text('Control border style'),
                           );
                         },
                       ),
@@ -230,26 +252,20 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
                             controlAffinity: ListTileControlAffinity.leading,
                             onChanged: (_) => prefs.toggleGrid(),
                             title: Text('Grid'),
-                            secondary: Wrap(
-                              children: [
-                                IconButton(
-                                  icon: Icon(Icons.remove_circle),
-                                  onPressed: () {
-                                    context
-                                        .read<ControllerModel>()
-                                        .decreaseGridSize();
-                                  },
-                                ),
-                                IconButton(
-                                  icon: Icon(Icons.add_circle),
-                                  onPressed: () {
-                                    context
-                                        .read<ControllerModel>()
-                                        .increaseGridSize();
-                                  },
-                                ),
-                              ],
-                            ),
+                            secondary: prefs.gridEnabled
+                                ? MinusPlus(
+                                    onMinus: () {
+                                      context
+                                          .read<ControllerModel>()
+                                          .decreaseGridSize();
+                                    },
+                                    onPlus: () {
+                                      context
+                                          .read<ControllerModel>()
+                                          .increaseGridSize();
+                                    },
+                                  )
+                                : null,
                           );
                         },
                       ),
@@ -442,6 +458,7 @@ class ControllerRoutingWidget extends StatelessWidget {
                         controllerModel: controllerModel,
                         appearance: prefs.controlAppearance,
                         borderStyle: prefs.borderStyle,
+                        fontSize: prefs.fontSize,
                       );
                     } else {
                       final descriptorsForEachMapping =
@@ -454,6 +471,7 @@ class ControllerRoutingWidget extends StatelessWidget {
                         scale: scale,
                         appearance: prefs.controlAppearance,
                         borderStyle: prefs.borderStyle,
+                        fontSize: prefs.fontSize,
                       );
                     }
                   }).toList();
@@ -638,6 +656,7 @@ class EditableControl extends StatefulWidget {
   final ControllerModel controllerModel;
   final ControlAppearance appearance;
   final preferences.BorderStyle borderStyle;
+  final int fontSize;
 
   const EditableControl({
     Key key,
@@ -649,6 +668,7 @@ class EditableControl extends StatefulWidget {
     this.controllerModel,
     this.appearance,
     this.borderStyle,
+    this.fontSize,
   }) : super(key: key);
 
   @override
@@ -674,6 +694,7 @@ class EditableControlState extends State<EditableControl> {
       labelTwoAngle: widget.data.labelTwo.angle,
       appearance: widget.appearance,
       borderStyle: widget.borderStyle,
+      fontSize: widget.fontSize,
     );
     final pageModel = context.watch<PageModel>();
     final theme = Theme.of(context);
@@ -961,6 +982,7 @@ class FixedControl extends StatelessWidget {
   final double scale;
   final ControlAppearance appearance;
   final preferences.BorderStyle borderStyle;
+  final int fontSize;
 
   const FixedControl({
     Key key,
@@ -969,6 +991,7 @@ class FixedControl extends StatelessWidget {
     this.scale,
     this.appearance,
     this.borderStyle,
+    this.fontSize,
   }) : super(key: key);
 
   @override
@@ -988,6 +1011,7 @@ class FixedControl extends StatelessWidget {
         labelTwoAngle: data.labelTwo.angle,
         appearance: appearance,
         borderStyle: borderStyle,
+        fontSize: fontSize,
       ),
     );
   }
@@ -1006,6 +1030,7 @@ class Control extends StatelessWidget {
   final int labelTwoAngle;
   final ControlAppearance appearance;
   final preferences.BorderStyle borderStyle;
+  final int fontSize;
 
   const Control({
     Key key,
@@ -1021,6 +1046,7 @@ class Control extends StatelessWidget {
     this.labelTwoAngle = 0,
     this.appearance = ControlAppearance.filled,
     this.borderStyle = preferences.BorderStyle.dotted,
+    this.fontSize = 14,
   }) : super(key: key);
 
   @override
@@ -1037,6 +1063,7 @@ class Control extends StatelessWidget {
         scale: scale,
         fillColor: fillColor,
         borderStyle: borderStyle,
+        fontSize: fontSize,
       );
     } else {
       return RectangularControl(
@@ -1050,6 +1077,7 @@ class Control extends StatelessWidget {
         labelTwoAngle: labelTwoAngle,
         scale: scale,
         borderStyle: borderStyle,
+        fontSize: fontSize,
       );
     }
   }
@@ -1061,12 +1089,14 @@ class DerivedControlProps {
   final bool labelTwoIsInside;
   final ControlAppearance appearance;
   final Color enforcedFillColor;
+  final int fontSize;
 
   DerivedControlProps({
     @required this.labelOneIsInside,
     @required this.labelTwoIsInside,
     @required this.appearance,
     @required this.theme,
+    @required this.fontSize,
     this.enforcedFillColor,
   });
 
@@ -1074,11 +1104,9 @@ class DerivedControlProps {
 
   TextStyle get baseTextStyle => TextStyle(
         fontWeight: FontWeight.bold,
-        fontSize: fontSize,
+        fontSize: fontSize.toDouble(),
         fontFamily: "monospace",
       );
-
-  double get fontSize => 14;
 
   TextStyle get labelOneTextStyle {
     return baseTextStyle.copyWith(color: labelOneColor);
@@ -1200,6 +1228,7 @@ class RectangularControl extends StatelessWidget {
   final int labelTwoAngle;
   final double scale;
   final preferences.BorderStyle borderStyle;
+  final int fontSize;
 
   const RectangularControl({
     Key key,
@@ -1213,6 +1242,7 @@ class RectangularControl extends StatelessWidget {
     @required this.labelTwoAngle,
     @required this.scale,
     @required this.borderStyle,
+    @required this.fontSize,
   }) : super(key: key);
 
   @override
@@ -1222,6 +1252,7 @@ class RectangularControl extends StatelessWidget {
       labelTwoIsInside: labelPositionIsInside(labelTwoPosition),
       appearance: appearance,
       theme: Theme.of(context),
+      fontSize: fontSize,
     );
     final labelOne = labels.length > 0 ? labels[0] : null;
     final labelTwo = labels.length > 1 ? labels[1] : null;
@@ -1331,6 +1362,7 @@ class CircularControl extends StatelessWidget {
   final double scale;
   final Color fillColor;
   final preferences.BorderStyle borderStyle;
+  final int fontSize;
 
   const CircularControl({
     Key key,
@@ -1343,6 +1375,7 @@ class CircularControl extends StatelessWidget {
     @required this.labelTwoAngle,
     @required this.scale,
     @required this.borderStyle,
+    @required this.fontSize,
     this.fillColor,
   }) : super(key: key);
 
@@ -1353,11 +1386,12 @@ class CircularControl extends StatelessWidget {
       labelTwoIsInside: labelPositionIsInside(labelTwoPosition),
       appearance: appearance,
       theme: Theme.of(context),
+      fontSize: fontSize,
       enforcedFillColor: fillColor,
     );
     final scaledDiameter = scale * diameter;
     double actualDiameter = scaledDiameter;
-    double fontSize = props.fontSize * scale;
+    double scaledFontSize = props.fontSize * scale;
     Widget createCenterText(
       String label, {
       TextStyle style,
@@ -1388,7 +1422,7 @@ class CircularControl extends StatelessWidget {
         child: ArcText(
           radius: scaledDiameter / 2,
           text: label,
-          textStyle: style.copyWith(fontSize: fontSize, letterSpacing: -1),
+          textStyle: style.copyWith(fontSize: scaledFontSize, letterSpacing: -1),
           startAngle: (attrs.startAngle * math.pi) / 180.0 + math.pi / 2,
           placement: isInside ? Placement.inside : Placement.outside,
           direction: attrs.direction,
