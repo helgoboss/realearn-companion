@@ -1400,11 +1400,14 @@ class CircularControl extends StatelessWidget {
       return Align(
         child: RotatedBox(
           quarterTurns: convertAngleToQuarterTurns(angle),
-          child: Text(
-            label,
-            textAlign: TextAlign.center,
-            style: style,
-            textScaleFactor: scale,
+          child: Padding(
+            padding: const EdgeInsets.all(2.0),
+            child: Text(
+              label,
+              textAlign: TextAlign.center,
+              style: style,
+              textScaleFactor: scale,
+            ),
           ),
         ),
       );
@@ -1420,7 +1423,7 @@ class CircularControl extends StatelessWidget {
       final isInside = labelPositionIsInside(pos);
       return Align(
         child: ArcText(
-          radius: scaledDiameter / 2,
+          radius: (scaledDiameter / 2) + (isInside ? -1 : 1) * 1,
           text: label,
           textStyle: style.copyWith(fontSize: scaledFontSize, letterSpacing: -1),
           startAngle: (attrs.startAngle * math.pi) / 180.0 + math.pi / 2,
