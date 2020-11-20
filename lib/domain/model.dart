@@ -96,8 +96,10 @@ class ControllerModel extends ChangeNotifier {
     _notifyAndMarkDirty();
   }
 
-  void moveControl(ControlData control, int x, int y) {
-    _controller.moveControl(control, x, y);
+  void moveControlsBy(Iterable<String> controlIds, int x, int y) {
+    changeControls(controlIds, (c) {
+      _controller.moveControlBy(c, x, y);
+    });
     _notifyAndMarkDirty();
   }
 
@@ -198,8 +200,8 @@ class Controller {
     customData.companion.uniteControls(survivor, donator);
   }
 
-  void moveControl(ControlData control, int x, int y) {
-    customData.companion.moveControl(control, x, y);
+  void moveControlBy(ControlData control, int x, int y) {
+    customData.companion.moveControlBy(control, x, y);
   }
 }
 
@@ -301,8 +303,8 @@ class CompanionControllerData {
     removeControl(donator.id);
   }
 
-  void moveControl(ControlData control, int x, int y) {
-    control.moveTo(x, y);
+  void moveControlBy(ControlData control, int x, int y) {
+    control.moveBy(x, y);
     control.alignPositionToGrid(gridSize);
   }
 
@@ -376,9 +378,9 @@ class ControlData {
     height = newHeight < 10 ? amount.abs() : newHeight;
   }
 
-  void moveTo(int x, int y) {
-    this.x = math.max(0, x);
-    this.y = math.max(0, y);
+  void moveBy(int x, int y) {
+    this.x = math.max(0, this.x + x);
+    this.y = math.max(0, this.y + y);
   }
 
   void switchShape() {

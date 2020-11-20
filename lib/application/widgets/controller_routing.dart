@@ -720,8 +720,12 @@ class EditableControlState extends State<EditableControl> {
           scale: widget.scale,
         );
         final controllerModel = context.read<ControllerModel>();
-        controllerModel.moveControl(
-            widget.data, finalPos.dx.toInt(), finalPos.dy.toInt());
+        final xDelta = finalPos.dx.toInt() - widget.data.x;
+        final yDelta = finalPos.dy.toInt() - widget.data.y;
+        final controlIds = pageModel.isInMultiEditMode
+            ? pageModel.selectedControlIds
+            : [widget.data.id];
+        controllerModel.moveControlsBy(controlIds, xDelta, yDelta);
       },
     );
     return Positioned(
