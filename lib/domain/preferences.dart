@@ -14,6 +14,7 @@ class AppPreferences extends ChangeNotifier {
   bool backgroundImageEnabled;
   bool gridEnabled;
   ControlAppearance controlAppearance;
+  BorderStyle borderStyle;
 
   static Future<AppPreferences> load() async {
     var prefs = await SharedPreferences.getInstance();
@@ -34,11 +35,13 @@ class AppPreferences extends ChangeNotifier {
     bool backgroundImageEnabled,
     bool gridEnabled,
     ControlAppearance controlAppearance,
+    BorderStyle borderStyle,
   })  : themeMode = themeMode ?? ThemeMode.dark,
         highContrastEnabled = highContrastEnabled ?? false,
         backgroundImageEnabled = backgroundImageEnabled ?? true,
         gridEnabled = gridEnabled ?? false,
-        controlAppearance = controlAppearance ?? ControlAppearance.filled;
+        controlAppearance = controlAppearance ?? ControlAppearance.outlinedMono,
+        borderStyle = borderStyle ?? BorderStyle.dotted;
 
   Map<String, dynamic> toJson() => _$AppPreferencesToJson(this);
 
@@ -67,6 +70,11 @@ class AppPreferences extends ChangeNotifier {
     _notifyAndSave();
   }
 
+  void switchBorderStyle() {
+    borderStyle = getNextBorderStyle(borderStyle);
+    _notifyAndSave();
+  }
+
   void _notifyAndSave() {
     notifyListeners();
     _save();
@@ -87,6 +95,11 @@ enum ControlAppearance {
   outlinedMono,
 }
 
+enum BorderStyle {
+  solid,
+  dotted,
+}
+
 ThemeMode getNextThemeMode(ThemeMode value) {
   return ThemeMode.values[(value.index + 1) % ThemeMode.values.length];
 }
@@ -94,6 +107,10 @@ ThemeMode getNextThemeMode(ThemeMode value) {
 ControlAppearance getNextControlAppearance(ControlAppearance value) {
   return ControlAppearance
       .values[(value.index + 1) % ControlAppearance.values.length];
+}
+
+BorderStyle getNextBorderStyle(BorderStyle value) {
+  return BorderStyle.values[(value.index + 1) % BorderStyle.values.length];
 }
 
 @JsonSerializable(nullable: true)

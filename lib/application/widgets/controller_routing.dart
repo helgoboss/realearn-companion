@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_arc_text/flutter_arc_text.dart';
 import 'package:provider/provider.dart';
 import 'package:realearn_companion/domain/preferences.dart';
+import 'package:realearn_companion/domain/preferences.dart' as preferences;
 import 'package:uuid/uuid.dart';
 
 import 'package:flutter/material.dart';
@@ -152,6 +153,20 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
                             ),
                             onTap: prefs.switchControlAppearance,
                             title: Text('Control appearance'),
+                          );
+                        },
+                      ),
+                    ),
+                  if (!isInEditMode)
+                    PopupMenuItem(
+                      child: Consumer<AppPreferences>(
+                        builder: (context, prefs, child) {
+                          return ListTile(
+                            leading: LeadingMenuBarIcon(
+                              getBorderStyleIcon(prefs.borderStyle),
+                            ),
+                            onTap: prefs.switchBorderStyle,
+                            title: Text('Border style'),
                           );
                         },
                       ),
@@ -382,6 +397,7 @@ class ControllerRoutingWidget extends StatelessWidget {
                         stackKey: stackKey,
                         controllerModel: controllerModel,
                         appearance: prefs.controlAppearance,
+                        borderStyle: prefs.borderStyle,
                       );
                     } else {
                       final descriptorsForEachMapping =
@@ -393,6 +409,7 @@ class ControllerRoutingWidget extends StatelessWidget {
                         data: data,
                         scale: scale,
                         appearance: prefs.controlAppearance,
+                        borderStyle: prefs.borderStyle,
                       );
                     }
                   }).toList();
@@ -525,6 +542,7 @@ class ControlBag extends StatelessWidget {
                   height: 50,
                   shape: ControlShape.circle,
                   fillColor: fillColor,
+                  borderStyle: preferences.BorderStyle.solid,
                 );
               }
 
@@ -571,6 +589,7 @@ class EditableControl extends StatefulWidget {
   final int gridSize;
   final ControllerModel controllerModel;
   final ControlAppearance appearance;
+  final preferences.BorderStyle borderStyle;
 
   const EditableControl({
     Key key,
@@ -581,6 +600,7 @@ class EditableControl extends StatefulWidget {
     this.gridSize,
     this.controllerModel,
     this.appearance,
+    this.borderStyle,
   }) : super(key: key);
 
   @override
@@ -605,6 +625,7 @@ class EditableControlState extends State<EditableControl> {
       labelTwoPosition: widget.data.labelTwo.position,
       labelTwoAngle: widget.data.labelTwo.angle,
       appearance: widget.appearance,
+      borderStyle: widget.borderStyle,
     );
     var draggable = Draggable<ControlData>(
       data: widget.data,
@@ -815,6 +836,7 @@ class FixedControl extends StatelessWidget {
   final ControlData data;
   final double scale;
   final ControlAppearance appearance;
+  final preferences.BorderStyle borderStyle;
 
   const FixedControl({
     Key key,
@@ -822,6 +844,7 @@ class FixedControl extends StatelessWidget {
     this.data,
     this.scale,
     this.appearance,
+    this.borderStyle,
   }) : super(key: key);
 
   @override
@@ -840,6 +863,7 @@ class FixedControl extends StatelessWidget {
         labelTwoPosition: data.labelTwo.position,
         labelTwoAngle: data.labelTwo.angle,
         appearance: appearance,
+        borderStyle: borderStyle,
       ),
     );
   }
@@ -857,6 +881,7 @@ class Control extends StatelessWidget {
   final ControlLabelPosition labelTwoPosition;
   final int labelTwoAngle;
   final ControlAppearance appearance;
+  final preferences.BorderStyle borderStyle;
 
   const Control({
     Key key,
@@ -871,6 +896,7 @@ class Control extends StatelessWidget {
     this.labelTwoPosition = ControlLabelPosition.belowBottom,
     this.labelTwoAngle = 0,
     this.appearance = ControlAppearance.filled,
+    this.borderStyle = preferences.BorderStyle.dotted,
   }) : super(key: key);
 
   @override
@@ -886,6 +912,7 @@ class Control extends StatelessWidget {
         labelTwoAngle: labelTwoAngle,
         scale: scale,
         fillColor: fillColor,
+        borderStyle: borderStyle,
       );
     } else {
       return RectangularControl(
@@ -898,6 +925,7 @@ class Control extends StatelessWidget {
         labelTwoPosition: labelTwoPosition,
         labelTwoAngle: labelTwoAngle,
         scale: scale,
+        borderStyle: borderStyle,
       );
     }
   }
@@ -1007,7 +1035,6 @@ class DerivedControlProps {
       padding: EdgeInsets.zero,
       borderType: BorderType.Circle,
       strokeCap: StrokeCap.butt,
-      // dashPattern: [1.5],
     );
   }
 
@@ -1048,6 +1075,7 @@ class RectangularControl extends StatelessWidget {
   final ControlLabelPosition labelTwoPosition;
   final int labelTwoAngle;
   final double scale;
+  final preferences.BorderStyle borderStyle;
 
   const RectangularControl({
     Key key,
@@ -1060,6 +1088,7 @@ class RectangularControl extends StatelessWidget {
     @required this.labelTwoPosition,
     @required this.labelTwoAngle,
     @required this.scale,
+    @required this.borderStyle,
   }) : super(key: key);
 
   @override
@@ -1101,17 +1130,22 @@ class RectangularControl extends StatelessWidget {
       );
     }
 
+    var core = Container(
+      width: scaledWidth.toDouble(),
+      height: scaledHeight.toDouble(),
+      decoration: isDotted(borderStyle)
+          ? props.boxDecoration
+          : props.solidBoxDecoration,
+    );
     return Stack(
       // We want to draw text outside of the stack's dimensions!
       clipBehavior: Clip.none,
       children: [
-        props.createDottedRectangleBorder(
-          child: Container(
-            width: scaledWidth.toDouble(),
-            height: scaledHeight.toDouble(),
-            decoration: props.boxDecoration,
-          ),
-        ),
+        isDotted(borderStyle)
+            ? props.createDottedRectangleBorder(
+                child: core,
+              )
+            : core,
         if (labelOne != null)
           buildLabelText(
             labelOne,
@@ -1172,6 +1206,7 @@ class CircularControl extends StatelessWidget {
   final int labelTwoAngle;
   final double scale;
   final Color fillColor;
+  final preferences.BorderStyle borderStyle;
 
   const CircularControl({
     Key key,
@@ -1183,6 +1218,7 @@ class CircularControl extends StatelessWidget {
     @required this.labelTwoPosition,
     @required this.labelTwoAngle,
     @required this.scale,
+    @required this.borderStyle,
     this.fillColor,
   }) : super(key: key);
 
@@ -1237,20 +1273,21 @@ class CircularControl extends StatelessWidget {
       );
     }
 
+    var core = Container(
+      decoration: new BoxDecoration(
+        color: props.decorationColor,
+        shape: BoxShape.circle,
+        border: isDotted(borderStyle) ? null : props.border,
+      ),
+    );
     return Container(
       width: actualDiameter,
       height: actualDiameter,
       child: Stack(
         children: [
-          props.createDottedCircularBorder(
-            child: Container(
-              decoration: new BoxDecoration(
-                color: props.decorationColor,
-                shape: BoxShape.circle,
-                // border: props.border,
-              ),
-            ),
-          ),
+          isDotted(borderStyle)
+              ? props.createDottedCircularBorder(child: core)
+              : core,
           if (labels.length > 0)
             labelOnePosition == ControlLabelPosition.center
                 ? createCenterText(
@@ -1318,7 +1355,15 @@ IconData getControlAppearanceIcon(ControlAppearance value) {
       return Icons.radio_button_checked;
     case ControlAppearance.outlinedMono:
       return Icons.remove_circle_outline;
-      break;
+  }
+}
+
+IconData getBorderStyleIcon(preferences.BorderStyle value) {
+  switch (value) {
+    case preferences.BorderStyle.solid:
+      return Icons.horizontal_rule;
+    case preferences.BorderStyle.dotted:
+      return Icons.more_horiz;
   }
 }
 
@@ -1477,4 +1522,8 @@ class _CircularAttr {
   final Direction direction;
 
   _CircularAttr({this.startAngle, this.direction});
+}
+
+bool isDotted(preferences.BorderStyle style) {
+  return style == preferences.BorderStyle.dotted;
 }

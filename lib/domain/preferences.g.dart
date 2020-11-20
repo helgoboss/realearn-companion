@@ -14,6 +14,8 @@ AppPreferences _$AppPreferencesFromJson(Map<String, dynamic> json) {
     gridEnabled: json['gridEnabled'] as bool,
     controlAppearance: _$enumDecodeNullable(
         _$ControlAppearanceEnumMap, json['controlAppearance']),
+    borderStyle:
+        _$enumDecodeNullable(_$BorderStyleEnumMap, json['borderStyle']),
   );
 }
 
@@ -25,6 +27,7 @@ Map<String, dynamic> _$AppPreferencesToJson(AppPreferences instance) =>
       'gridEnabled': instance.gridEnabled,
       'controlAppearance':
           _$ControlAppearanceEnumMap[instance.controlAppearance],
+      'borderStyle': _$BorderStyleEnumMap[instance.borderStyle],
     };
 
 T _$enumDecode<T>(
@@ -70,6 +73,11 @@ const _$ControlAppearanceEnumMap = {
   ControlAppearance.outlined: 'outlined',
   ControlAppearance.filledAndOutlined: 'filledAndOutlined',
   ControlAppearance.outlinedMono: 'outlinedMono',
+};
+
+const _$BorderStyleEnumMap = {
+  BorderStyle.solid: 'solid',
+  BorderStyle.dotted: 'dotted',
 };
 
 RecentConnection _$RecentConnectionFromJson(Map<String, dynamic> json) {
