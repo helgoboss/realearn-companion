@@ -1265,15 +1265,12 @@ class RectangularControl extends StatelessWidget {
       TextStyle style,
     }) {
       final attrs = _getAttributesForPosition(position);
-      return Positioned(
-        top: attrs.top * scaledHeight.toDouble(),
-        height: scaledHeight.toDouble(),
-        left: attrs.left * scaledWidth.toDouble(),
-        width: scaledWidth.toDouble(),
-        child: Align(
-          alignment: attrs.alignment,
-          child: RotatedBox(
-            quarterTurns: convertAngleToQuarterTurns(angle),
+      var child = Align(
+        alignment: attrs.alignment,
+        child: RotatedBox(
+          quarterTurns: convertAngleToQuarterTurns(angle),
+          child: Padding(
+            padding: const EdgeInsets.all(1),
             child: Text(
               label,
               textAlign: TextAlign.center,
@@ -1283,6 +1280,30 @@ class RectangularControl extends StatelessWidget {
           ),
         ),
       );
+      if (labelPositionIsInside(position)) {
+        return Positioned(
+          top: attrs.top * scaledHeight.toDouble(),
+          height: scaledHeight.toDouble(),
+          left: attrs.left * scaledWidth.toDouble(),
+          width: scaledWidth.toDouble(),
+          child: child,
+        );
+      } else {
+        final expansionFactor = 1;
+        final expandedWidth = scaledWidth.toDouble() * expansionFactor;
+        final expandedHeight = scaledHeight.toDouble() * expansionFactor;
+        final centeredTop = scaledHeight / 2 - expandedHeight / 2;
+        final centeredLeft = scaledWidth / 2 - expandedWidth / 2;
+        final topShift = expandedHeight / 2 + scaledHeight / 2;
+        final leftShift = expandedWidth / 2 + scaledWidth / 2;
+        return Positioned(
+          left: centeredLeft + attrs.left * leftShift,
+          top: centeredTop + attrs.top * topShift,
+          width: expandedWidth,
+          height: expandedHeight,
+          child: child,
+        );
+      }
     }
 
     var core = Container(
@@ -1425,7 +1446,8 @@ class CircularControl extends StatelessWidget {
         child: ArcText(
           radius: (scaledDiameter / 2) + (isInside ? -1 : 1) * 1,
           text: label,
-          textStyle: style.copyWith(fontSize: scaledFontSize, letterSpacing: -1),
+          textStyle:
+              style.copyWith(fontSize: scaledFontSize, letterSpacing: -1),
           startAngle: (attrs.startAngle * math.pi) / 180.0 + math.pi / 2,
           placement: isInside ? Placement.inside : Placement.outside,
           direction: attrs.direction,
