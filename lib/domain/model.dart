@@ -48,23 +48,31 @@ class ControllerModel extends ChangeNotifier {
     _notifyAndMarkDirty();
   }
 
-  void increaseControlWidth(String controlId) {
-    _controller.increaseControlWidth(findControlById(controlId));
+  void increaseControlWidth(Iterable<String> controlIds) {
+    changeControls(controlIds, (c) {
+      _controller.increaseControlWidth(c);
+    });
     _notifyAndMarkDirty();
   }
 
-  void decreaseControlWidth(String controlId) {
-    _controller.decreaseControlWidth(findControlById(controlId));
+  void decreaseControlWidth(Iterable<String> controlIds) {
+    changeControls(controlIds, (c) {
+      _controller.decreaseControlWidth(c);
+    });
     _notifyAndMarkDirty();
   }
 
-  void increaseControlHeight(String controlId) {
-    _controller.increaseControlHeight(findControlById(controlId));
+  void increaseControlHeight(Iterable<String> controlIds) {
+    changeControls(controlIds, (c) {
+      _controller.increaseControlHeight(c);
+    });
     _notifyAndMarkDirty();
   }
 
-  void decreaseControlHeight(String controlId) {
-    _controller.decreaseControlHeight(findControlById(controlId));
+  void decreaseControlHeight(Iterable<String> controlIds) {
+    changeControls(controlIds, (c) {
+      _controller.decreaseControlHeight(c);
+    });
     _notifyAndMarkDirty();
   }
 
@@ -93,15 +101,19 @@ class ControllerModel extends ChangeNotifier {
     _notifyAndMarkDirty();
   }
 
-  void switchControlShape(String controlId) {
-    findControlById(controlId).switchShape();
+  void changeControl(String controlId, Function(ControlData control) op) {
+    final control = findControlById(controlId);
+    assert(control != null);
+    op(control);
     _notifyAndMarkDirty();
   }
 
-  void changeControl(controlId, Function(ControlData control) op) {
-    final control = findControlById(controlId);
-    assert (control != null);
-    op(control);
+  void changeControls(
+      Iterable<String> controlIds, Function(ControlData control) op) {
+    final controls = controlIds.map(findControlById);
+    for (final control in controls) {
+      op(control);
+    }
     _notifyAndMarkDirty();
   }
 

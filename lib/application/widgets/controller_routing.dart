@@ -46,8 +46,21 @@ class PageModel extends ChangeNotifier {
     return isInMultiEditMode && _selectedControlIds.contains(controlId);
   }
 
+  Set<String> get selectedControlIds {
+    // Defensive copy
+    return HashSet.of(_selectedControlIds);
+  }
+
+  int get selectedControlsCount {
+    return _selectedControlIds.length;
+  }
+
   void selectOrUnselectControl(String controlId) {
     if (controlIsSelected(controlId)) {
+      if (selectedControlsCount == 1) {
+        leaveMultiEditMode();
+        return;
+      }
       _selectedControlIds.remove(controlId);
     } else {
       _selectedControlIds.add(controlId);
@@ -717,25 +730,39 @@ class EditableControlState extends State<EditableControl> {
       child: GestureDetector(
         onTap: () {
           Vibration.vibrate(duration: 50);
-          final pageModel = context.read<PageModel>();
           if (pageModel.isInMultiEditMode) {
             pageModel.selectOrUnselectControl(widget.data.id);
           } else {
             showDialog(
               context: context,
-              builder: (BuildContext context) => createControlDialog(
-                context: context,
-                title: widget.labels.isEmpty ? '' : widget.labels[0] ?? '',
-                controlId: widget.data.id,
-              ),
+              builder: (BuildContext context) {
+                return createControlDialog(
+                  context: context,
+                  title: coreControl.labels[0],
+                  controlIds: HashSet.of([widget.data.id]),
+                );
+              },
             );
           }
         },
         onLongPress: () {
-          final pageModel = context.read<PageModel>();
           Vibration.vibrate(duration: 200);
           if (pageModel.isInMultiEditMode) {
-            pageModel.leaveMultiEditMode();
+            if (!pageModel.controlIsSelected(widget.data.id)) {
+              return;
+            }
+            Vibration.vibrate(duration: 50);
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return createControlDialog(
+                  context: context,
+                  title: '${pageModel.selectedControlsCount} controls',
+                  controlIds: pageModel.selectedControlIds,
+                  italic: true,
+                );
+              },
+            );
           } else {
             pageModel.enterMultiEditMode(widget.data.id);
           }
@@ -761,19 +788,33 @@ class SettingRowLabel extends StatelessWidget {
   }
 }
 
+final italicTextStyle = const TextStyle(fontStyle: FontStyle.italic);
+final multipleText = Text("multiple", style: italicTextStyle);
+
 AlertDialog createControlDialog({
   BuildContext context,
   String title,
-  String controlId,
+  Set<String> controlIds,
+  bool italic = false,
 }) {
   final controllerModel = context.watch<ControllerModel>();
-  var control = controllerModel.findControlById(controlId);
+  final controls = controlIds.map(controllerModel.findControlById).toList();
   final theme = Theme.of(context);
   int controlSize = 35;
-  final isCircular = control.shape == ControlShape.circle;
+  final shape = getValueIfAllEqual(controls, (c) => c.shape);
+  final isCircular = shape == ControlShape.circle;
+  final labelOnePosition =
+      getValueIfAllEqual(controls, (c) => c.labelOne.position);
+  final labelOneAngle = getValueIfAllEqual(controls, (c) => c.labelOne.angle);
+  final labelTwoPosition =
+      getValueIfAllEqual(controls, (c) => c.labelTwo.position);
+  final labelTwoAngle = getValueIfAllEqual(controls, (c) => c.labelTwo.angle);
   return AlertDialog(
     backgroundColor: theme.dialogBackgroundColor.withOpacity(0.75),
-    title: Text(title),
+    title: Text(
+      title,
+      style: italic ? italicTextStyle : null,
+    ),
     content: Scrollbar(
       child: SingleChildScrollView(
         child: Container(
@@ -792,14 +833,23 @@ AlertDialog createControlDialog({
                         minHeight: controlSize.toDouble() + 20,
                       ),
                       shape: StadiumBorder(),
-                      onPressed: () =>
-                          controllerModel.switchControlShape(controlId),
-                      child: Control(
-                        width: controlSize,
-                        height: controlSize,
-                        shape: control.shape,
-                        appearance: ControlAppearance.outlined,
-                      ),
+                      onPressed: () {
+                        controllerModel.changeControls(controlIds, (c) {
+                          if (shape == null) {
+                            c.shape = ControlShape.circle;
+                          } else {
+                            c.switchShape();
+                          }
+                        });
+                      },
+                      child: shape == null
+                          ? multipleText
+                          : Control(
+                              width: controlSize,
+                              height: controlSize,
+                              shape: shape,
+                              appearance: ControlAppearance.outlined,
+                            ),
                     ),
                   )
                 ],
@@ -807,40 +857,46 @@ AlertDialog createControlDialog({
               createSettingRow(
                 label: isCircular ? 'Diameter' : 'Width',
                 child: MinusPlus(
-                  onMinus: () =>
-                      controllerModel.decreaseControlWidth(controlId),
-                  onPlus: () => controllerModel.increaseControlWidth(controlId),
+                  onMinus: () {
+                    controllerModel.decreaseControlWidth(controlIds);
+                  },
+                  onPlus: () {
+                    controllerModel.increaseControlWidth(controlIds);
+                  },
                 ),
               ),
               if (!isCircular)
                 createSettingRow(
                   label: 'Height',
                   child: MinusPlus(
-                    onMinus: () =>
-                        controllerModel.decreaseControlHeight(controlId),
-                    onPlus: () =>
-                        controllerModel.increaseControlHeight(controlId),
+                    onMinus: () {
+                      controllerModel.decreaseControlHeight(controlIds);
+                    },
+                    onPlus: () {
+                      controllerModel.increaseControlHeight(controlIds);
+                    },
                   ),
                 ),
               createSettingRow(
                 label: 'Label 1 position',
                 child: ControlLabelPositionDropdownButton(
-                  value: control.labelOne.position,
+                  value: labelOnePosition,
                   onChanged: (pos) {
-                    controllerModel.changeControl(controlId, (control) {
-                      control.labelOne.position = pos;
-                    });
+                    controllerModel.changeControls(
+                      controlIds,
+                      (control) => control.labelOne.position = pos,
+                    );
                   },
                 ),
               ),
               createSettingRow(
                 label: 'Label 1 rotation',
                 child: RotationSlider(
-                  angle: control.labelOne.angle,
-                  shape: control.shape,
+                  angle: labelOneAngle,
+                  shape: shape,
                   onChanged: (angle) {
-                    controllerModel.changeControl(
-                      controlId,
+                    controllerModel.changeControls(
+                      controlIds,
                       (c) => c.labelOne.angle = angle,
                     );
                   },
@@ -849,22 +905,23 @@ AlertDialog createControlDialog({
               createSettingRow(
                 label: 'Label 2 position',
                 child: ControlLabelPositionDropdownButton(
-                  value: control.labelTwo.position,
+                  value: labelTwoPosition,
                   onChanged: (pos) {
-                    controllerModel.changeControl(controlId, (control) {
-                      control.labelTwo.position = pos;
-                    });
+                    controllerModel.changeControls(
+                      controlIds,
+                      (control) => control.labelTwo.position = pos,
+                    );
                   },
                 ),
               ),
               createSettingRow(
                 label: 'Label 2 rotation',
                 child: RotationSlider(
-                  angle: control.labelTwo.angle,
-                  shape: control.shape,
+                  angle: labelTwoAngle,
+                  shape: shape,
                   onChanged: (angle) {
-                    controllerModel.changeControl(
-                      controlId,
+                    controllerModel.changeControls(
+                      controlIds,
                       (c) => c.labelTwo.angle = angle,
                     );
                   },
@@ -1488,15 +1545,21 @@ class ControlLabelPositionDropdownButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DropdownButton(
-        value: value,
-        items: ControlLabelPosition.values.map((value) {
-          return new DropdownMenuItem(
+    return value == null
+        ? TextButton(
+            child: multipleText,
+            onPressed: () => onChanged(ControlLabelPosition.center),
+          )
+        : DropdownButton(
             value: value,
-            child: Text(getControlLabelPositionLabel(value)),
+            items: ControlLabelPosition.values.map((value) {
+              return new DropdownMenuItem(
+                value: value,
+                child: Text(getControlLabelPositionLabel(value)),
+              );
+            }).toList(),
+            onChanged: onChanged,
           );
-        }).toList(),
-        onChanged: onChanged);
   }
 }
 
@@ -1511,16 +1574,21 @@ class RotationSlider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isCircular = shape == ControlShape.circle;
-    return Slider(
-      value: isCircular ? (angle == 180 ? 180 : 0) : angle.toDouble(),
-      min: 0,
-      max: isCircular ? 180 : 270,
-      divisions: isCircular ? 1 : 3,
-      label: '$angle°',
-      onChanged: (double value) {
-        onChanged(value.toInt());
-      },
-    );
+    return angle == null
+        ? TextButton(
+            child: multipleText,
+            onPressed: () => onChanged(0),
+          )
+        : Slider(
+            value: isCircular ? (angle == 180 ? 180 : 0) : angle.toDouble(),
+            min: 0,
+            max: isCircular ? 180 : 270,
+            divisions: isCircular ? 1 : 3,
+            label: '$angle°',
+            onChanged: (double value) {
+              onChanged(value.toInt());
+            },
+          );
   }
 }
 
@@ -1581,4 +1649,20 @@ class _CircularAttr {
 
 bool isDotted(preferences.BorderStyle style) {
   return style == preferences.BorderStyle.dotted;
+}
+
+T getValueIfAllEqual<T>(
+  List<ControlData> controls,
+  T Function(ControlData control) getValue,
+) {
+  final count = controls.length;
+  if (count == 0) {
+    return null;
+  }
+  final firstValue = getValue(controls.first);
+  if (count == 1) {
+    return firstValue;
+  }
+  final allEqualFirst = controls.every((c) => getValue(c) == firstValue);
+  return allEqualFirst ? firstValue : null;
 }
