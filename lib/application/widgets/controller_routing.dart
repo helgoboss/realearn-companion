@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:collection';
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:math' as math;
@@ -37,11 +38,29 @@ enum PageMode { view, edit, editMulti }
 
 class PageModel extends ChangeNotifier {
   PageMode _pageMode = PageMode.view;
+  Set<String> _selectedControlIds = HashSet();
 
   PageMode get pageMode => _pageMode;
 
+  bool controlIsSelected(String controlId) {
+    return isInMultiEditMode && _selectedControlIds.contains(controlId);
+  }
+
+  void selectOrUnselectControl(String controlId) {
+    if (controlIsSelected(controlId)) {
+      _selectedControlIds.remove(controlId);
+    } else {
+      _selectedControlIds.add(controlId);
+    }
+    notifyListeners();
+  }
+
   bool get isInEditMode {
     return _pageMode != PageMode.view;
+  }
+
+  bool get isInMultiEditMode {
+    return _pageMode == PageMode.editMulti;
   }
 
   void enterEditMode() {
@@ -51,16 +70,19 @@ class PageModel extends ChangeNotifier {
 
   void leaveEditMode() {
     _pageMode = PageMode.view;
+    _selectedControlIds.clear();
     notifyListeners();
   }
 
-  void enterEditMultiMode() {
+  void enterMultiEditMode(String initiallySelectedControlId) {
     _pageMode = PageMode.editMulti;
+    _selectedControlIds.add(initiallySelectedControlId);
     notifyListeners();
   }
 
-  void leaveEditMultiMode() {
+  void leaveMultiEditMode() {
     _pageMode = PageMode.edit;
+    _selectedControlIds.clear();
     notifyListeners();
   }
 }
@@ -371,6 +393,7 @@ class ControllerRoutingWidget extends StatelessWidget {
         mappings: remainingMappings,
       );
     }
+
     final pageModel = context.watch<PageModel>();
     return Flex(
       direction: isPortrait ? Axis.vertical : Axis.horizontal,
@@ -622,7 +645,7 @@ class EditableControl extends StatefulWidget {
 class EditableControlState extends State<EditableControl> {
   @override
   Widget build(BuildContext context) {
-    var control = Control(
+    final coreControl = Control(
       height: widget.data.height,
       width: widget.data.width,
       labels: widget.labels,
@@ -635,6 +658,17 @@ class EditableControlState extends State<EditableControl> {
       appearance: widget.appearance,
       borderStyle: widget.borderStyle,
     );
+    final pageModel = context.watch<PageModel>();
+    final theme = Theme.of(context);
+    final control = pageModel.controlIsSelected(widget.data.id)
+        ? ColorFiltered(
+            colorFilter: ColorFilter.mode(
+              theme.colorScheme.secondary.withOpacity(0.4),
+              BlendMode.srcOver,
+            ),
+            child: coreControl,
+          )
+        : coreControl;
     var draggable = Draggable<ControlData>(
       data: widget.data,
       child: DragTarget<ControlData>(
@@ -683,16 +717,29 @@ class EditableControlState extends State<EditableControl> {
       child: GestureDetector(
         onTap: () {
           Vibration.vibrate(duration: 50);
-          showDialog(
-            context: context,
-            builder: (BuildContext context) => createControlDialog(
+          final pageModel = context.read<PageModel>();
+          if (pageModel.isInMultiEditMode) {
+            pageModel.selectOrUnselectControl(widget.data.id);
+          } else {
+            showDialog(
               context: context,
-              title: control.labels[0],
-              controlId: widget.data.id,
-            ),
-          );
+              builder: (BuildContext context) => createControlDialog(
+                context: context,
+                title: widget.labels.isEmpty ? '' : widget.labels[0] ?? '',
+                controlId: widget.data.id,
+              ),
+            );
+          }
         },
-        onLongPress: () {},
+        onLongPress: () {
+          final pageModel = context.read<PageModel>();
+          Vibration.vibrate(duration: 200);
+          if (pageModel.isInMultiEditMode) {
+            pageModel.leaveMultiEditMode();
+          } else {
+            pageModel.enterMultiEditMode(widget.data.id);
+          }
+        },
         child: draggable,
       ),
     );
