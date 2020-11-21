@@ -942,7 +942,6 @@ AlertDialog createControlDialog({
                 label: 'Label 1 rotation',
                 child: RotationSlider(
                   angle: labelOneAngle,
-                  shape: shape,
                   onChanged: (angle) {
                     controllerModel.changeControls(
                       controlIds,
@@ -981,7 +980,6 @@ AlertDialog createControlDialog({
                 label: 'Label 2 rotation',
                 child: RotationSlider(
                   angle: labelTwoAngle,
-                  shape: shape,
                   onChanged: (angle) {
                     controllerModel.changeControls(
                       controlIds,
@@ -1093,8 +1091,10 @@ class Control extends StatelessWidget {
         appearance: appearance,
         labels: labels,
         labelOnePosition: labelOnePosition,
+        labelOneSizeConstrained: labelOneSizeConstrained,
         labelOneAngle: labelOneAngle,
         labelTwoPosition: labelTwoPosition,
+        labelTwoSizeConstrained: labelTwoSizeConstrained,
         labelTwoAngle: labelTwoAngle,
         scale: scale,
         fillColor: fillColor,
@@ -1261,14 +1261,14 @@ class RectangularControl extends StatelessWidget {
   final ControlAppearance appearance;
   final List<String> labels;
   final ControlLabelPosition labelOnePosition;
+  final bool labelOneSizeConstrained;
   final int labelOneAngle;
   final ControlLabelPosition labelTwoPosition;
+  final bool labelTwoSizeConstrained;
   final int labelTwoAngle;
   final double scale;
   final preferences.BorderStyle borderStyle;
   final int fontSize;
-  final bool labelOneSizeConstrained;
-  final bool labelTwoSizeConstrained;
 
   const RectangularControl({
     Key key,
@@ -1277,14 +1277,14 @@ class RectangularControl extends StatelessWidget {
     @required this.width,
     @required this.height,
     @required this.labelOnePosition,
+    @required this.labelOneSizeConstrained,
     @required this.labelOneAngle,
     @required this.labelTwoPosition,
+    @required this.labelTwoSizeConstrained,
     @required this.labelTwoAngle,
     @required this.scale,
     @required this.borderStyle,
     @required this.fontSize,
-    @required this.labelOneSizeConstrained,
-    @required this.labelTwoSizeConstrained,
   }) : super(key: key);
 
   @override
@@ -1308,20 +1308,12 @@ class RectangularControl extends StatelessWidget {
       TextStyle style,
     }) {
       final attrs = _getAttributesForPosition(position);
-      var child = Align(
+      final child = createRotatedText(
+        label,
         alignment: attrs.alignment,
-        child: RotatedBox(
-          quarterTurns: convertAngleToQuarterTurns(angle),
-          child: Padding(
-            padding: const EdgeInsets.all(1),
-            child: Text(
-              label,
-              textAlign: TextAlign.center,
-              style: style,
-              textScaleFactor: scale,
-            ),
-          ),
-        ),
+        angle: angle,
+        style: style,
+        scale: scale,
       );
       if (labelPositionIsInside(position)) {
         return Positioned(
@@ -1332,18 +1324,12 @@ class RectangularControl extends StatelessWidget {
           child: child,
         );
       } else {
-        final expansionFactor = sizeConstrained ? 1 : 4;
-        final expandedWidth = scaledWidth.toDouble() * expansionFactor;
-        final expandedHeight = scaledHeight.toDouble() * expansionFactor;
-        final centeredTop = scaledHeight / 2 - expandedHeight / 2;
-        final centeredLeft = scaledWidth / 2 - expandedWidth / 2;
-        final topShift = expandedHeight / 2 + scaledHeight / 2;
-        final leftShift = expandedWidth / 2 + scaledWidth / 2;
-        return Positioned(
-          left: centeredLeft + attrs.left * leftShift,
-          top: centeredTop + attrs.top * topShift,
-          width: expandedWidth,
-          height: expandedHeight,
+        return createOuterRectangularText(
+          controlWidth: scaledWidth,
+          controlHeight: scaledHeight,
+          expansionFactor: sizeConstrained ? 1 : 4,
+          leftFactor: attrs.left,
+          topFactor: attrs.top,
           child: child,
         );
       }
@@ -1386,6 +1372,53 @@ class RectangularControl extends StatelessWidget {
   }
 }
 
+Widget createOuterRectangularText({
+  Widget child,
+  int expansionFactor,
+  double controlWidth,
+  double controlHeight,
+  int leftFactor,
+  int topFactor,
+}) {
+  final expandedWidth = controlWidth.toDouble() * expansionFactor;
+  final expandedHeight = controlHeight.toDouble() * expansionFactor;
+  final centeredLeft = controlWidth / 2 - expandedWidth / 2;
+  final centeredTop = controlHeight / 2 - expandedHeight / 2;
+  final topShift = expandedHeight / 2 + controlHeight / 2;
+  final leftShift = expandedWidth / 2 + controlWidth / 2;
+  return Positioned(
+    left: centeredLeft + leftFactor * leftShift,
+    top: centeredTop + topFactor * topShift,
+    width: expandedWidth,
+    height: expandedHeight,
+    child: child,
+  );
+}
+
+Widget createRotatedText(
+  String label, {
+  AlignmentGeometry alignment,
+  int angle,
+  TextStyle style,
+  double scale,
+}) {
+  return Align(
+    alignment: alignment,
+    child: RotatedBox(
+      quarterTurns: convertAngleToQuarterTurns(angle),
+      child: Padding(
+        padding: const EdgeInsets.all(1),
+        child: Text(
+          label,
+          textAlign: TextAlign.center,
+          style: style,
+          textScaleFactor: scale,
+        ),
+      ),
+    ),
+  );
+}
+
 _PosAttrs _getAttributesForPosition(ControlLabelPosition pos) {
   switch (pos) {
     case ControlLabelPosition.aboveTop:
@@ -1422,8 +1455,10 @@ class CircularControl extends StatelessWidget {
   final ControlAppearance appearance;
   final List<String> labels;
   final ControlLabelPosition labelOnePosition;
+  final bool labelOneSizeConstrained;
   final int labelOneAngle;
   final ControlLabelPosition labelTwoPosition;
+  final bool labelTwoSizeConstrained;
   final int labelTwoAngle;
   final double scale;
   final Color fillColor;
@@ -1436,8 +1471,10 @@ class CircularControl extends StatelessWidget {
     @required this.labels,
     @required this.diameter,
     @required this.labelOnePosition,
+    @required this.labelOneSizeConstrained,
     @required this.labelOneAngle,
     @required this.labelTwoPosition,
+    @required this.labelTwoSizeConstrained,
     @required this.labelTwoAngle,
     @required this.scale,
     @required this.borderStyle,
@@ -1463,19 +1500,12 @@ class CircularControl extends StatelessWidget {
       TextStyle style,
       int angle,
     }) {
-      return Align(
-        child: RotatedBox(
-          quarterTurns: convertAngleToQuarterTurns(angle),
-          child: Padding(
-            padding: const EdgeInsets.all(2.0),
-            child: Text(
-              label,
-              textAlign: TextAlign.center,
-              style: style,
-              textScaleFactor: scale,
-            ),
-          ),
-        ),
+      return createRotatedText(
+        label,
+        alignment: Alignment.center,
+        angle: angle,
+        style: style,
+        scale: scale,
       );
     }
 
@@ -1501,6 +1531,34 @@ class CircularControl extends StatelessWidget {
       );
     }
 
+    Widget createNonCenterText(
+      String label, {
+      ControlLabelPosition pos,
+      bool sizeConstrained,
+      TextStyle style,
+      int angle,
+    }) {
+      if (sizeConstrained || labelPositionIsInside(pos)) {
+        return createCircularText(label, pos: pos, style: style, angle: angle);
+      } else {
+        final attrs = _getAttributesForPosition(pos);
+        return createOuterRectangularText(
+          controlWidth: scaledDiameter,
+          controlHeight: scaledDiameter,
+          expansionFactor: 4,
+          leftFactor: attrs.left,
+          topFactor: attrs.top,
+          child: createRotatedText(
+            label,
+            alignment: attrs.alignment,
+            angle: angle,
+            style: style,
+            scale: scale,
+          ),
+        );
+      }
+    }
+
     var core = Container(
       decoration: new BoxDecoration(
         color: props.decorationColor,
@@ -1512,6 +1570,7 @@ class CircularControl extends StatelessWidget {
       width: actualDiameter,
       height: actualDiameter,
       child: Stack(
+        clipBehavior: Clip.none,
         children: [
           isDotted(borderStyle)
               ? props.createDottedCircularBorder(child: core)
@@ -1523,8 +1582,9 @@ class CircularControl extends StatelessWidget {
                     style: props.labelOneTextStyle,
                     angle: labelOneAngle,
                   )
-                : createCircularText(
+                : createNonCenterText(
                     labels[0],
+                    sizeConstrained: labelOneSizeConstrained,
                     pos: labelOnePosition,
                     style: props.labelOneTextStyle,
                     angle: labelOneAngle,
@@ -1536,8 +1596,9 @@ class CircularControl extends StatelessWidget {
                     style: props.labelTwoTextStyle,
                     angle: labelTwoAngle,
                   )
-                : createCircularText(
+                : createNonCenterText(
                     labels[1],
+                    sizeConstrained: labelTwoSizeConstrained,
                     pos: labelTwoPosition,
                     style: props.labelTwoTextStyle,
                     angle: labelTwoAngle,
@@ -1705,24 +1766,27 @@ class SizeConstrainedCheckbox extends StatelessWidget {
 class RotationSlider extends StatelessWidget {
   final int angle;
   final Function(int angle) onChanged;
-  final ControlShape shape;
+  final bool onlyReverseAllowed;
 
-  const RotationSlider({Key key, this.angle, this.onChanged, this.shape})
-      : super(key: key);
+  const RotationSlider({
+    Key key,
+    this.angle,
+    this.onChanged,
+    this.onlyReverseAllowed = false,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final isCircular = shape == ControlShape.circle;
     return angle == null
         ? TextButton(
             child: multipleText,
             onPressed: () => onChanged(0),
           )
         : Slider(
-            value: isCircular ? (angle == 180 ? 180 : 0) : angle.toDouble(),
+            value: onlyReverseAllowed ? (angle == 180 ? 180 : 0) : angle.toDouble(),
             min: 0,
-            max: isCircular ? 180 : 270,
-            divisions: isCircular ? 1 : 3,
+            max: onlyReverseAllowed ? 180 : 270,
+            divisions: onlyReverseAllowed ? 1 : 3,
             label: '$angle°',
             onChanged: (double value) {
               onChanged(value.toInt());
