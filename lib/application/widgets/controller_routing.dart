@@ -483,6 +483,7 @@ class ControllerRoutingWidget extends StatelessWidget {
                     child: DragTarget<String>(
                       builder: (context, candidateData, rejectedData) {
                         return Stack(
+                          clipBehavior: Clip.none,
                           key: stackKey,
                           children: controls,
                         );
