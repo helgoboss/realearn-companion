@@ -390,7 +390,7 @@ class ControllerRoutingContainerState
   }
 }
 
-var controlCanvasPadding = EdgeInsets.all(20);
+var controlCanvasPadding = EdgeInsets.all(40);
 
 class ControllerRoutingWidget extends StatelessWidget {
   final ControllerRouting routing;
