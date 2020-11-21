@@ -390,7 +390,7 @@ class ControllerRoutingContainerState
   }
 }
 
-var controlCanvasPadding = EdgeInsets.all(40);
+var controlCanvasPadding = EdgeInsets.all(30);
 
 class ControllerRoutingWidget extends StatelessWidget {
   final ControllerRouting routing;
@@ -586,7 +586,7 @@ class ControlBag extends StatelessWidget {
   Widget build(BuildContext context) {
     Widget createBag({bool isAccepting}) {
       return Container(
-        padding: controlCanvasPadding,
+        padding: EdgeInsets.all(10),
         width: direction == Axis.vertical ? 100 : null,
         height: direction == Axis.horizontal ? 100 : null,
         color: isAccepting ? Colors.grey.shade700 : Colors.grey.shade800,
@@ -609,7 +609,7 @@ class ControlBag extends StatelessWidget {
 
               var normalPotentialControl = createPotentialControl();
               return Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding: const EdgeInsets.all(16),
                 child: Draggable<String>(
                   data: m.id,
                   childWhenDragging: createPotentialControl(
