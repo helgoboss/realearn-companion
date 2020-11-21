@@ -433,12 +433,15 @@ enum ControlLabelPosition {
 @JsonSerializable(createToJson: true, nullable: true)
 class LabelSettings {
   ControlLabelPosition position;
+  bool sizeConstrained;
   int angle;
 
   LabelSettings({
     ControlLabelPosition position,
+    bool sizeConstrained,
     int angle,
   })  : position = position ?? ControlLabelPosition.aboveTop,
+        sizeConstrained = sizeConstrained ?? true,
         angle = angle ?? 0;
 
   factory LabelSettings.fromJson(Map<String, dynamic> json) =>

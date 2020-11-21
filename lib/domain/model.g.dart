@@ -157,6 +157,7 @@ LabelSettings _$LabelSettingsFromJson(Map<String, dynamic> json) {
   return LabelSettings(
     position:
         _$enumDecodeNullable(_$ControlLabelPositionEnumMap, json['position']),
+    sizeConstrained: json['sizeConstrained'] as bool,
     angle: json['angle'] as int,
   );
 }
@@ -164,6 +165,7 @@ LabelSettings _$LabelSettingsFromJson(Map<String, dynamic> json) {
 Map<String, dynamic> _$LabelSettingsToJson(LabelSettings instance) =>
     <String, dynamic>{
       'position': _$ControlLabelPositionEnumMap[instance.position],
+      'sizeConstrained': instance.sizeConstrained,
       'angle': instance.angle,
     };
 

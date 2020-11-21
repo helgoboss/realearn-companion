@@ -689,8 +689,10 @@ class EditableControlState extends State<EditableControl> {
       shape: widget.data.shape,
       scale: widget.scale,
       labelOnePosition: widget.data.labelOne.position,
+      labelOneSizeConstrained: widget.data.labelOne.sizeConstrained,
       labelOneAngle: widget.data.labelOne.angle,
       labelTwoPosition: widget.data.labelTwo.position,
+      labelTwoSizeConstrained: widget.data.labelTwo.sizeConstrained,
       labelTwoAngle: widget.data.labelTwo.angle,
       appearance: widget.appearance,
       borderStyle: widget.borderStyle,
@@ -839,9 +841,13 @@ AlertDialog createControlDialog({
   final labelOnePosition =
       getValueIfAllEqual(controls, (c) => c.labelOne.position);
   final labelOneAngle = getValueIfAllEqual(controls, (c) => c.labelOne.angle);
+  final labelOneSizedConstrained =
+      getValueIfAllEqual(controls, (c) => c.labelOne.sizeConstrained);
   final labelTwoPosition =
       getValueIfAllEqual(controls, (c) => c.labelTwo.position);
   final labelTwoAngle = getValueIfAllEqual(controls, (c) => c.labelTwo.angle);
+  final labelTwoSizeConstrained =
+      getValueIfAllEqual(controls, (c) => c.labelTwo.sizeConstrained);
   return AlertDialog(
     backgroundColor: theme.dialogBackgroundColor.withOpacity(0.75),
     title: Text(
@@ -856,36 +862,32 @@ AlertDialog createControlDialog({
             defaultVerticalAlignment: TableCellVerticalAlignment.middle,
             defaultColumnWidth: IntrinsicColumnWidth(),
             children: [
-              TableRow(
-                children: [
-                  SettingRowLabel("Shape"),
-                  Center(
-                    child: RawMaterialButton(
-                      constraints: BoxConstraints(
-                        minWidth: controlSize.toDouble() + 20,
-                        minHeight: controlSize.toDouble() + 20,
-                      ),
-                      shape: StadiumBorder(),
-                      onPressed: () {
-                        controllerModel.changeControls(controlIds, (c) {
-                          if (shape == null) {
-                            c.shape = ControlShape.circle;
-                          } else {
-                            c.switchShape();
-                          }
-                        });
-                      },
-                      child: shape == null
-                          ? multipleText
-                          : Control(
-                              width: controlSize,
-                              height: controlSize,
-                              shape: shape,
-                              appearance: ControlAppearance.outlined,
-                            ),
-                    ),
-                  )
-                ],
+              createSettingRow(
+                label: 'Shape',
+                child: RawMaterialButton(
+                  constraints: BoxConstraints(
+                    minWidth: controlSize.toDouble() + 20,
+                    minHeight: controlSize.toDouble() + 20,
+                  ),
+                  shape: StadiumBorder(),
+                  onPressed: () {
+                    controllerModel.changeControls(controlIds, (c) {
+                      if (shape == null) {
+                        c.shape = ControlShape.circle;
+                      } else {
+                        c.switchShape();
+                      }
+                    });
+                  },
+                  child: shape == null
+                      ? multipleText
+                      : Control(
+                          width: controlSize,
+                          height: controlSize,
+                          shape: shape,
+                          appearance: ControlAppearance.outlined,
+                        ),
+                ),
               ),
               createSettingRow(
                 label: isCircular ? 'Diameter' : 'Width',
@@ -922,6 +924,20 @@ AlertDialog createControlDialog({
                   },
                 ),
               ),
+              if (!labelPositionIsInside(labelOnePosition))
+                createSettingRow(
+                  label: 'Label 1 sized',
+                  child: SizeConstrainedCheckbox(
+                    sizeConstrained: labelOneSizedConstrained,
+                    onChanged: (sizeConstrained) {
+                      controllerModel.changeControls(
+                        controlIds,
+                        (control) =>
+                            control.labelOne.sizeConstrained = sizeConstrained,
+                      );
+                    },
+                  ),
+                ),
               createSettingRow(
                 label: 'Label 1 rotation',
                 child: RotationSlider(
@@ -947,6 +963,20 @@ AlertDialog createControlDialog({
                   },
                 ),
               ),
+              if (!labelPositionIsInside(labelTwoPosition))
+                createSettingRow(
+                  label: 'Label 2 sized',
+                  child: SizeConstrainedCheckbox(
+                    sizeConstrained: labelTwoSizeConstrained,
+                    onChanged: (sizeConstrained) {
+                      controllerModel.changeControls(
+                        controlIds,
+                        (control) =>
+                            control.labelTwo.sizeConstrained = sizeConstrained,
+                      );
+                    },
+                  ),
+                ),
               createSettingRow(
                 label: 'Label 2 rotation',
                 child: RotationSlider(
@@ -1006,8 +1036,10 @@ class FixedControl extends StatelessWidget {
         shape: data.shape,
         scale: scale,
         labelOnePosition: data.labelOne.position,
+        labelOneSizeConstrained: data.labelOne.sizeConstrained,
         labelOneAngle: data.labelOne.angle,
         labelTwoPosition: data.labelTwo.position,
+        labelTwoSizeConstrained: data.labelTwo.sizeConstrained,
         labelTwoAngle: data.labelTwo.angle,
         appearance: appearance,
         borderStyle: borderStyle,
@@ -1025,9 +1057,11 @@ class Control extends StatelessWidget {
   final Color fillColor;
   final double scale;
   final ControlLabelPosition labelOnePosition;
+  final bool labelOneSizeConstrained;
   final int labelOneAngle;
   final ControlLabelPosition labelTwoPosition;
   final int labelTwoAngle;
+  final bool labelTwoSizeConstrained;
   final ControlAppearance appearance;
   final preferences.BorderStyle borderStyle;
   final int fontSize;
@@ -1047,6 +1081,8 @@ class Control extends StatelessWidget {
     this.appearance = ControlAppearance.filled,
     this.borderStyle = preferences.BorderStyle.dotted,
     this.fontSize = 14,
+    this.labelOneSizeConstrained = true,
+    this.labelTwoSizeConstrained = true,
   }) : super(key: key);
 
   @override
@@ -1072,8 +1108,10 @@ class Control extends StatelessWidget {
         appearance: appearance,
         labels: labels,
         labelOnePosition: labelOnePosition,
+        labelOneSizeConstrained: labelOneSizeConstrained,
         labelOneAngle: labelOneAngle,
         labelTwoPosition: labelTwoPosition,
+        labelTwoSizeConstrained: labelTwoSizeConstrained,
         labelTwoAngle: labelTwoAngle,
         scale: scale,
         borderStyle: borderStyle,
@@ -1229,6 +1267,8 @@ class RectangularControl extends StatelessWidget {
   final double scale;
   final preferences.BorderStyle borderStyle;
   final int fontSize;
+  final bool labelOneSizeConstrained;
+  final bool labelTwoSizeConstrained;
 
   const RectangularControl({
     Key key,
@@ -1243,6 +1283,8 @@ class RectangularControl extends StatelessWidget {
     @required this.scale,
     @required this.borderStyle,
     @required this.fontSize,
+    @required this.labelOneSizeConstrained,
+    @required this.labelTwoSizeConstrained,
   }) : super(key: key);
 
   @override
@@ -1262,6 +1304,7 @@ class RectangularControl extends StatelessWidget {
       String label, {
       ControlLabelPosition position,
       int angle,
+      bool sizeConstrained,
       TextStyle style,
     }) {
       final attrs = _getAttributesForPosition(position);
@@ -1289,7 +1332,7 @@ class RectangularControl extends StatelessWidget {
           child: child,
         );
       } else {
-        final expansionFactor = 1;
+        final expansionFactor = sizeConstrained ? 1 : 4;
         final expandedWidth = scaledWidth.toDouble() * expansionFactor;
         final expandedHeight = scaledHeight.toDouble() * expansionFactor;
         final centeredTop = scaledHeight / 2 - expandedHeight / 2;
@@ -1328,6 +1371,7 @@ class RectangularControl extends StatelessWidget {
             position: labelOnePosition,
             angle: labelOneAngle,
             style: props.labelOneTextStyle,
+            sizeConstrained: labelOneSizeConstrained,
           ),
         if (labelTwo != null)
           buildLabelText(
@@ -1335,6 +1379,7 @@ class RectangularControl extends StatelessWidget {
             position: labelTwoPosition,
             angle: labelTwoAngle,
             style: props.labelTwoTextStyle,
+            sizeConstrained: labelTwoSizeConstrained,
           )
       ],
     );
@@ -1630,6 +1675,29 @@ class ControlLabelPositionDropdownButton extends StatelessWidget {
               );
             }).toList(),
             onChanged: onChanged,
+          );
+  }
+}
+
+class SizeConstrainedCheckbox extends StatelessWidget {
+  final bool sizeConstrained;
+  final Function(bool sizeConstrained) onChanged;
+
+  const SizeConstrainedCheckbox({Key key, this.sizeConstrained, this.onChanged})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return sizeConstrained == null
+        ? TextButton(
+            child: multipleText,
+            onPressed: () => onChanged(true),
+          )
+        : Checkbox(
+            value: sizeConstrained,
+            onChanged: (bool value) {
+              onChanged(value);
+            },
           );
   }
 }
