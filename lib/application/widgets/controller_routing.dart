@@ -207,9 +207,7 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
                           return CheckboxListTile(
                             value: prefs.backgroundImageEnabled,
                             controlAffinity: ListTileControlAffinity.leading,
-                            onChanged: prefs.highContrastEnabled
-                                ? null
-                                : (_) => prefs.toggleBackgroundImage(),
+                            onChanged: (_) => prefs.toggleBackgroundImage(),
                             title: Text('Background image'),
                           );
                         },

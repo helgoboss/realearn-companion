@@ -35,17 +35,17 @@ class NormalScaffold extends StatelessWidget {
             var isDark = theme.brightness == Brightness.dark;
             return Stack(
               children: [
+                Container(
+                  color: prefs.highContrastEnabled
+                      ? (isDark ? Colors.black : null)
+                      : (isDark ? null : theme.primaryColorLight),
+                ),
                 if (prefs.backgroundImageEnabled) Center(child: Background()),
                 Container(
                   alignment: Alignment.center,
                   padding: padding,
                   child: child,
-                  color: prefs.highContrastEnabled
-                      ? (isDark
-                          ? Colors.black
-                          : null)
-                      : (isDark ? null : theme.primaryColorLight),
-                )
+                ),
               ],
             );
           }),
