@@ -8,9 +8,8 @@ part of 'model.dart';
 
 RealearnEvent _$RealearnEventFromJson(Map<String, dynamic> json) {
   return RealearnEvent(
-    type: json['type'] as String,
     path: json['path'] as String,
-    payload: json['payload'] as Map<String, dynamic>,
+    body: json['body'] as Map<String, dynamic>,
   );
 }
 

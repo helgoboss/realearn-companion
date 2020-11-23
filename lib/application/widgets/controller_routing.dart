@@ -365,15 +365,13 @@ class ControllerRoutingContainerState
     messagesSubscription = widget.messages.listen((data) {
       var jsonObject = jsonDecode(data);
       var realearnEvent = RealearnEvent.fromJson(jsonObject);
-      if (realearnEvent.type == "updated") {
-        if (realearnEvent.path.endsWith("/controller")) {
-          final controllerModel = context.read<ControllerModel>();
-          controllerModel.controller = realearnEvent.payload == null
-              ? null
-              : Controller.fromJson(realearnEvent.payload);
-        } else if (realearnEvent.path.endsWith("/controller-routing")) {
-          setRouting(ControllerRouting.fromJson(realearnEvent.payload));
-        }
+      if (realearnEvent.path.endsWith("/controller")) {
+        final controllerModel = context.read<ControllerModel>();
+        controllerModel.controller = realearnEvent.body == null
+            ? null
+            : Controller.fromJson(realearnEvent.body);
+      } else if (realearnEvent.path.endsWith("/controller-routing")) {
+        setRouting(ControllerRouting.fromJson(realearnEvent.body));
       }
     });
   }

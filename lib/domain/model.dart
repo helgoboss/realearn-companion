@@ -8,11 +8,10 @@ part 'model.g.dart';
 
 @JsonSerializable(createToJson: false, nullable: true)
 class RealearnEvent {
-  final String type;
   final String path;
-  final Map<String, dynamic> payload;
+  final Map<String, dynamic> body;
 
-  RealearnEvent({this.type, this.path, this.payload});
+  RealearnEvent({this.path, this.body});
 
   factory RealearnEvent.fromJson(Map<String, dynamic> json) =>
       _$RealearnEventFromJson(json);
