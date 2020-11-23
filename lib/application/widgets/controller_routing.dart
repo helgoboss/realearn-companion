@@ -368,8 +368,9 @@ class ControllerRoutingContainerState
       if (realearnEvent.type == "updated") {
         if (realearnEvent.path.endsWith("/controller")) {
           final controllerModel = context.read<ControllerModel>();
-          controllerModel.controller =
-              Controller.fromJson(realearnEvent.payload);
+          controllerModel.controller = realearnEvent.payload == null
+              ? null
+              : Controller.fromJson(realearnEvent.payload);
         } else if (realearnEvent.path.endsWith("/controller-routing")) {
           setRouting(ControllerRouting.fromJson(realearnEvent.payload));
         }
@@ -1782,7 +1783,9 @@ class RotationSlider extends StatelessWidget {
             onPressed: () => onChanged(0),
           )
         : Slider(
-            value: onlyReverseAllowed ? (angle == 180 ? 180 : 0) : angle.toDouble(),
+            value: onlyReverseAllowed
+                ? (angle == 180 ? 180 : 0)
+                : angle.toDouble(),
             min: 0,
             max: onlyReverseAllowed ? 180 : 270,
             divisions: onlyReverseAllowed ? 1 : 3,
