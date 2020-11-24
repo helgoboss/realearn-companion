@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:developer';
 import 'dart:math' as math;
 
@@ -402,6 +403,10 @@ class ControllerRouting {
   final Map<String, List<TargetDescriptor>> routes;
 
   ControllerRouting({this.routes});
+
+  factory ControllerRouting.empty() {
+    return ControllerRouting(routes: {});
+  }
 
   factory ControllerRouting.fromJson(Map<String, dynamic> json) =>
       _$ControllerRoutingFromJson(json);

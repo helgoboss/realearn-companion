@@ -147,6 +147,16 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
                 onPressed: () {
                   if (pageModel.isInEditMode) {
                     pageModel.leaveEditMode();
+
+                    if (context.read<ControllerModel>().controllerHasEdits) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          backgroundColor: theme.accentColor,
+                          content:
+                              Text("Don't forget to save once in a while!"),
+                        ),
+                      );
+                    }
                   } else {
                     pageModel.enterEditMode();
                   }
@@ -347,7 +357,7 @@ class ControllerRoutingContainer extends StatefulWidget {
 class ControllerRoutingContainerState
     extends State<ControllerRoutingContainer> {
   StreamSubscription messagesSubscription;
-  ControllerRouting routing;
+  ControllerRouting routing = ControllerRouting.empty();
   bool sessionExists = false;
 
   @override
@@ -380,7 +390,7 @@ class ControllerRoutingContainerState
             : Controller.fromJson(realearnEvent.body);
       } else if (realearnEvent.path.endsWith("/controller-routing")) {
         final routing = realearnEvent.body == null
-            ? null
+            ? ControllerRouting.empty()
             : ControllerRouting.fromJson(realearnEvent.body);
         setRouting(routing);
       } else {
@@ -436,8 +446,8 @@ class ControllerRoutingWidget extends StatelessWidget {
 
   ControllerRoutingWidget({
     Key key,
-    this.routing,
-    this.sessionExists,
+    @required this.routing,
+    @required this.sessionExists,
   }) : super(key: key);
 
   @override
@@ -445,10 +455,8 @@ class ControllerRoutingWidget extends StatelessWidget {
     final controllerModel = context.watch<ControllerModel>();
     final controller = controllerModel.controller;
     if (!sessionExists) {
-      return CanvasText(
-          "Please open this ReaLearn session in REAPER!",
-          subText: Text("or connect to another one")
-      );
+      return CanvasText("Please open this ReaLearn session in REAPER!",
+          subText: Text("or connect to another one"));
     }
     if (controller == null) {
       return CanvasText(
@@ -458,8 +466,13 @@ class ControllerRoutingWidget extends StatelessWidget {
         ),
       );
     }
-    if (routing == null) {
-      return CanvasText("Loading controller routing...");
+    final pageModel = context.watch<PageModel>();
+    if (!pageModel.isInEditMode && controller.controls.isEmpty) {
+      return CanvasText(
+        "Please create a controller layout!",
+        subText: Text(
+            "Just press the pencil button in the app bar and drag the controls on the canvas."),
+      );
     }
     var isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
     var controllerSize = controller.calcTotalSize();
@@ -474,7 +487,6 @@ class ControllerRoutingWidget extends StatelessWidget {
       );
     }
 
-    final pageModel = context.watch<PageModel>();
     return Flex(
       direction: isPortrait ? Axis.vertical : Axis.horizontal,
       crossAxisAlignment: CrossAxisAlignment.stretch,
