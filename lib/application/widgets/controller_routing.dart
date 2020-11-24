@@ -379,7 +379,10 @@ class ControllerRoutingContainerState
             ? null
             : Controller.fromJson(realearnEvent.body);
       } else if (realearnEvent.path.endsWith("/controller-routing")) {
-        setRouting(ControllerRouting.fromJson(realearnEvent.body));
+        final routing = realearnEvent.body == null
+            ? null
+            : ControllerRouting.fromJson(realearnEvent.body);
+        setRouting(routing);
       } else {
         setState(() {
           this.sessionExists = realearnEvent.body != null;
@@ -456,7 +459,7 @@ class ControllerRoutingWidget extends StatelessWidget {
       );
     }
     if (routing == null) {
-      return CanvasText("Loading...");
+      return CanvasText("Loading controller routing...");
     }
     var isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
     var controllerSize = controller.calcTotalSize();

@@ -219,7 +219,7 @@ class ConnectionBuilderState extends State<ConnectionBuilder> {
     var channel = WebSocketChannel.connect(wsUrl);
     setState(() {
       webSocketStream = channel.stream.tap((_) {
-        log("WebSocket message received");
+        // log("WebSocket message received");
       }, onDone: () {
         log("WebSocket connection closed");
         connect();
