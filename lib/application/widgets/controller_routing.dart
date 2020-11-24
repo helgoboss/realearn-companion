@@ -6,7 +6,9 @@ import 'dart:math' as math;
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_arc_text/flutter_arc_text.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:provider/provider.dart';
+import 'package:realearn_companion/application/widgets/space.dart';
 import 'package:realearn_companion/domain/preferences.dart';
 import 'package:realearn_companion/domain/preferences.dart' as preferences;
 import 'package:uuid/uuid.dart';
@@ -275,6 +277,7 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
     }
 
     var sessionId = widget.connectionData.sessionId;
+    var sessionTopic = "/realearn/session/$sessionId";
     var controllerTopic = "/realearn/session/$sessionId/controller";
     var controllerRoutingTopic =
         "/realearn/session/$sessionId/controller-routing";
@@ -289,15 +292,18 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
               : null,
           child: ConnectionBuilder(
             connectionData: widget.connectionData,
-            topics: [controllerTopic, controllerRoutingTopic],
+            topics: [sessionTopic, controllerTopic, controllerRoutingTopic],
             builder: (BuildContext context, Stream<dynamic> messages) {
               return GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 onTap: () {
                   toggleAppBar();
                 },
-                child: ControllerRoutingContainer(
-                  messages: messages,
+                child: Container(
+                  alignment: Alignment.center,
+                  child: ControllerRoutingContainer(
+                    messages: messages,
+                  ),
                 ),
               );
             },
@@ -342,11 +348,13 @@ class ControllerRoutingContainerState
     extends State<ControllerRoutingContainer> {
   StreamSubscription messagesSubscription;
   ControllerRouting routing;
+  bool sessionExists = false;
 
   @override
   Widget build(BuildContext context) {
     return ControllerRoutingWidget(
       routing: routing,
+      sessionExists: sessionExists,
     );
   }
 
@@ -372,6 +380,10 @@ class ControllerRoutingContainerState
             : Controller.fromJson(realearnEvent.body);
       } else if (realearnEvent.path.endsWith("/controller-routing")) {
         setRouting(ControllerRouting.fromJson(realearnEvent.body));
+      } else {
+        setState(() {
+          this.sessionExists = realearnEvent.body != null;
+        });
       }
     });
   }
@@ -391,21 +403,60 @@ class ControllerRoutingContainerState
 
 var controlCanvasPadding = EdgeInsets.all(30);
 
+class CanvasText extends StatelessWidget {
+  final String label;
+  final Widget subText;
+
+  const CanvasText(this.label, {Key key, this.subText}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          label,
+          style: Theme.of(context).textTheme.headline6,
+          textAlign: TextAlign.center,
+        ),
+        Space(),
+        if (subText != null) subText,
+      ],
+    );
+  }
+}
+
 class ControllerRoutingWidget extends StatelessWidget {
   final ControllerRouting routing;
+  final bool sessionExists;
   final GlobalKey stackKey = GlobalKey();
 
   ControllerRoutingWidget({
     Key key,
     this.routing,
+    this.sessionExists,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final controllerModel = context.watch<ControllerModel>();
     final controller = controllerModel.controller;
-    if (controller == null || routing == null) {
-      return Center(child: Text("Loading..."));
+    if (!sessionExists) {
+      return CanvasText(
+          "Please open this ReaLearn session in REAPER!",
+          subText: Text("or connect to another one")
+      );
+    }
+    if (controller == null) {
+      return CanvasText(
+        "Please select a controller in ReaLearn!",
+        subText: MarkdownBody(
+          data: '**Show:** Controller mappings | **Controller:** ...',
+        ),
+      );
+    }
+    if (routing == null) {
+      return CanvasText("Loading...");
     }
     var isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
     var controllerSize = controller.calcTotalSize();

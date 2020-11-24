@@ -96,7 +96,8 @@ class ConnectionBuilderState extends State<ConnectionBuilder> {
     var dialog = AlertDialog(
       title: Text("Almost there!"),
       content: SingleChildScrollView(
-          child: MarkdownBody(data: instructions.lines.join("\n"))),
+        child: MarkdownBody(data: instructions.lines.join("\n")),
+      ),
       actions: [
         if (instructions.action != null)
           TextButton(
@@ -217,18 +218,14 @@ class ConnectionBuilderState extends State<ConnectionBuilder> {
     log("Connecting to $wsUrl ...");
     var channel = WebSocketChannel.connect(wsUrl);
     setState(() {
-      webSocketStream = channel.stream.tap(
-        (_) {
-          log("WebSocket message received");
-        },
-        onDone: () {
-          log("WebSocket connection closed");
-          connect();
-        },
-        onError: (e, trace) {
-          log("Error connecting to WebSocket");
-        }
-      ).asBroadcastStream();
+      webSocketStream = channel.stream.tap((_) {
+        log("WebSocket message received");
+      }, onDone: () {
+        log("WebSocket connection closed");
+        connect();
+      }, onError: (e, trace) {
+        log("Error connecting to WebSocket");
+      }).asBroadcastStream();
       connectionStatus = ConnectionStatus.Connected;
       successfulConnectsCount += 1;
     });
