@@ -439,6 +439,10 @@ class CanvasText extends StatelessWidget {
   }
 }
 
+const minControllerWidth = defaultControlSize * 8;
+const minControllerHeight = minControllerWidth;
+const defaultFontSize = atomicSize * 2;
+
 class ControllerRoutingWidget extends StatelessWidget {
   final ControllerRouting routing;
   final bool sessionExists;
@@ -502,9 +506,12 @@ class ControllerRoutingWidget extends StatelessWidget {
                 maxScale: 8,
                 child: LayoutBuilder(builder:
                     (BuildContext context, BoxConstraints constraints) {
-                  var widthScale = constraints.maxWidth / controllerSize.width;
-                  var heightScale =
-                      constraints.maxHeight / controllerSize.height;
+                  final controllerWidth =
+                      math.max(minControllerWidth, controllerSize.width);
+                  final controllerHeight =
+                      math.max(minControllerHeight, controllerSize.height);
+                  var widthScale = constraints.maxWidth / controllerWidth;
+                  var heightScale = constraints.maxHeight / controllerHeight;
                   var scale = math.min(widthScale, heightScale);
                   var prefs = context.watch<AppPreferences>();
                   var controls = controller.controls.map((data) {
@@ -566,8 +573,10 @@ class ControllerRoutingWidget extends StatelessWidget {
                           mappings: [details.data],
                           x: finalPos.dx.toInt(),
                           y: finalPos.dy.toInt(),
+                          width: controller.gridSize,
+                          height: controller.gridSize,
                         );
-                        Vibration.vibrate(duration: 100);
+                        vibrateMedium();
                         controllerModel.addControl(newData);
                       },
                     ),
@@ -680,10 +689,11 @@ class ControlBag extends StatelessWidget {
                   childWhenDragging: createPotentialControl(
                     fillColor: Colors.grey,
                   ),
+                  maxSimultaneousDrags: 1,
                   feedback: normalPotentialControl,
                   child: normalPotentialControl,
                   onDragStarted: () {
-                    Vibration.vibrate(duration: 50);
+                    vibrateShortly();
                   },
                 ),
               );
@@ -705,7 +715,7 @@ class ControlBag extends StatelessWidget {
         }
         final controllerModel = context.read<ControllerModel>();
         controllerModel.removeControl(data.id);
-        Vibration.vibrate(duration: 100);
+        vibrateMedium();
       },
     );
   }
@@ -775,6 +785,7 @@ class EditableControlState extends State<EditableControl> {
         : coreControl;
     var draggable = Draggable<ControlData>(
       data: widget.data,
+      maxSimultaneousDrags: 1,
       child: DragTarget<ControlData>(
         builder: (context, candidateData, rejectedData) {
           if (candidateData.length > 0) {
@@ -794,7 +805,7 @@ class EditableControlState extends State<EditableControl> {
           }
           final controllerModel = context.read<ControllerModel>();
           controllerModel.uniteControls(widget.data, data);
-          Vibration.vibrate(duration: 200);
+          vibrateLong();
         },
       ),
       childWhenDragging: SizedBox.shrink(),
@@ -810,7 +821,7 @@ class EditableControlState extends State<EditableControl> {
         final controlIds = pageModel.isInMultiEditMode
             ? pageModel.selectedControlIds
             : [widget.data.id];
-        Vibration.vibrate(duration: 50);
+        vibrateShortly();
         var finalPos = getFinalDragPosition(
           gridSize: widget.gridSize,
           globalPosition: details.offset,
@@ -828,7 +839,7 @@ class EditableControlState extends State<EditableControl> {
       left: widget.offset.dx * widget.scale,
       child: GestureDetector(
         onTap: () {
-          Vibration.vibrate(duration: 50);
+          vibrateShortly();
           if (pageModel.isInMultiEditMode) {
             pageModel.selectOrUnselectControl(widget.data.id);
           } else {
@@ -845,12 +856,12 @@ class EditableControlState extends State<EditableControl> {
           }
         },
         onLongPress: () {
-          Vibration.vibrate(duration: 200);
+          vibrateLong();
           if (pageModel.isInMultiEditMode) {
             if (!pageModel.controlIsSelected(widget.data.id)) {
               return;
             }
-            Vibration.vibrate(duration: 50);
+            vibrateShortly();
             showDialog(
               context: context,
               builder: (BuildContext context) {
@@ -1142,7 +1153,7 @@ class Control extends StatelessWidget {
     this.labelTwoAngle = 0,
     this.appearance = ControlAppearance.filled,
     this.borderStyle = preferences.BorderStyle.dotted,
-    this.fontSize = 14,
+    this.fontSize = defaultFontSize,
     this.labelOneSizeConstrained = true,
     this.labelTwoSizeConstrained = true,
   }) : super(key: key);
@@ -1558,7 +1569,7 @@ class CircularControl extends StatelessWidget {
     );
     final scaledDiameter = scale * diameter;
     double actualDiameter = scaledDiameter;
-    double scaledFontSize = props.fontSize * scale;
+    double scaledFontSize = fontSize * scale;
     Widget createCenterText(
       String label, {
       TextStyle style,
@@ -1934,4 +1945,16 @@ T getValueIfAllEqual<T>(
   }
   final allEqualFirst = controls.every((c) => getValue(c) == firstValue);
   return allEqualFirst ? firstValue : null;
+}
+
+void vibrateShortly() {
+  Vibration.vibrate(duration: 50);
+}
+
+void vibrateMedium() {
+  Vibration.vibrate(duration: 100);
+}
+
+void vibrateLong() {
+  Vibration.vibrate(duration: 200);
 }

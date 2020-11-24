@@ -42,7 +42,7 @@ class AppPreferences extends ChangeNotifier {
   })  : themeMode = themeMode ?? ThemeMode.dark,
         highContrastEnabled = highContrastEnabled ?? false,
         backgroundImageEnabled = backgroundImageEnabled ?? true,
-        gridEnabled = gridEnabled ?? false,
+        gridEnabled = gridEnabled ?? true,
         controlAppearance = controlAppearance ?? ControlAppearance.outlinedMono,
         borderStyle = borderStyle ?? BorderStyle.dotted,
         fontSize = fontSize ?? 14;

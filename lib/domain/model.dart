@@ -148,7 +148,7 @@ class Controller {
   }
 
   Mapping findMappingById(String mappingId) {
-    return mappings.firstWhere((m) => m.id == mappingId);
+    return mappings.firstWhere((m) => m.id == mappingId, orElse: () => null);
   }
 
   Size calcTotalSize() {
@@ -240,8 +240,8 @@ class CompanionControllerData {
     int gridSize,
     int gridDivisionCount,
     List<ControlData> controls,
-  })  : gridSize = gridSize ?? 10,
-        gridDivisionCount = gridDivisionCount ?? 2,
+  })  : gridSize = math.max(minGridSize, gridSize ?? defaultGridSize) ,
+        gridDivisionCount = math.min(maxGridDivisionCount, gridDivisionCount ?? 2),
         controls = controls ?? [];
 
   void addControl(ControlData control) {
@@ -264,12 +264,12 @@ class CompanionControllerData {
   }
 
   void increaseGridSize() {
-    gridSize += 10;
+    gridSize += minGridSize;
   }
 
   void decreaseGridSize() {
-    int nextSize = gridSize - 10;
-    gridSize = nextSize < 10 ? 10 : nextSize;
+    int nextSize = gridSize - minGridSize;
+    gridSize = math.max(minGridSize, nextSize);
   }
 
   void increaseControlWidth(ControlData control) {
@@ -289,7 +289,7 @@ class CompanionControllerData {
   }
 
   int get _dimensionIncrement {
-    return gridSize ~/ gridDivisionCount;
+    return minControlSize;
   }
 
   void alignControlPositionsToGrid() {
@@ -309,7 +309,7 @@ class CompanionControllerData {
   }
 
   ControlData findById(String controlId) {
-    return controls.firstWhere((c) => c.id == controlId);
+    return controls.firstWhere((c) => c.id == controlId, orElse: () => null);
   }
 
   Map<String, dynamic> toJson() => _$CompanionControllerDataToJson(this);
@@ -348,8 +348,8 @@ class ControlData {
         shape = shape ?? ControlShape.circle,
         x = math.max(0, x.toInt() ?? 0),
         y = math.max(0, y.toInt() ?? 0),
-        width = math.max(10, width?.toInt() ?? 50),
-        height = math.max(10, height?.toInt() ?? 50),
+        width = math.max(minControlSize, width?.toInt() ?? defaultControlSize),
+        height = math.max(minControlSize, height?.toInt() ?? defaultControlSize),
         labelOne =
             labelOne ?? LabelSettings(position: ControlLabelPosition.aboveTop),
         labelTwo = labelTwo ??
@@ -369,13 +369,11 @@ class ControlData {
   }
 
   void adjustControlWidth(int amount) {
-    final newWidth = width + amount;
-    width = newWidth < 10 ? amount.abs() : newWidth;
+    width = math.max(minControlSize, width + amount);
   }
 
   void adjustControlHeight(int amount) {
-    final newHeight = height + amount;
-    height = newHeight < 10 ? amount.abs() : newHeight;
+    height = math.max(minControlSize, height + amount);
   }
 
   void moveBy(int x, int y) {
@@ -389,6 +387,14 @@ class ControlData {
 
   Map<String, dynamic> toJson() => _$ControlDataToJson(this);
 }
+
+// We choose a proper minimum size here starting from a typical font size.
+const atomicSize = 8;
+const minGridSize = atomicSize * 4;
+const defaultGridSize = minGridSize;
+const minControlSize = atomicSize * 2;
+const defaultControlSize = minGridSize;
+const maxGridDivisionCount = 8;
 
 ControlShape getNextControlShape(ControlShape value) {
   return ControlShape.values[(value.index + 1) % ControlShape.values.length];
