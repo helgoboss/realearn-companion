@@ -677,6 +677,7 @@ class ControlBag extends StatelessWidget {
                   height: 50,
                   shape: ControlShape.circle,
                   fillColor: fillColor,
+                  fontColor: Colors.white,
                   borderStyle: preferences.BorderStyle.solid,
                 );
               }
@@ -1128,6 +1129,7 @@ class Control extends StatelessWidget {
   final List<String> labels;
   final ControlShape shape;
   final Color fillColor;
+  final Color fontColor;
   final double scale;
   final ControlLabelPosition labelOnePosition;
   final bool labelOneSizeConstrained;
@@ -1146,6 +1148,7 @@ class Control extends StatelessWidget {
     @required this.height,
     this.shape = ControlShape.circle,
     this.fillColor = null,
+    this.fontColor = null,
     this.scale = 1.0,
     this.labelOnePosition = ControlLabelPosition.aboveTop,
     this.labelOneAngle = 0,
@@ -1173,6 +1176,7 @@ class Control extends StatelessWidget {
         labelTwoAngle: labelTwoAngle,
         scale: scale,
         fillColor: fillColor,
+        fontColor: fontColor,
         borderStyle: borderStyle,
         fontSize: fontSize,
       );
@@ -1202,6 +1206,7 @@ class DerivedControlProps {
   final bool labelTwoIsInside;
   final ControlAppearance appearance;
   final Color enforcedFillColor;
+  final Color enforcedFontColor;
   final int fontSize;
 
   DerivedControlProps({
@@ -1211,6 +1216,7 @@ class DerivedControlProps {
     @required this.theme,
     @required this.fontSize,
     this.enforcedFillColor,
+    this.enforcedFontColor,
   });
 
   Color get mainColor => enforcedFillColor ?? theme.colorScheme.primary;
@@ -1222,11 +1228,11 @@ class DerivedControlProps {
       );
 
   TextStyle get labelOneTextStyle {
-    return baseTextStyle.copyWith(color: labelOneColor);
+    return baseTextStyle.copyWith(color: enforcedFontColor ?? labelOneColor);
   }
 
   TextStyle get labelTwoTextStyle {
-    return baseTextStyle.copyWith(color: labelTwoColor);
+    return baseTextStyle.copyWith(color: enforcedFontColor ?? labelTwoColor);
   }
 
   Color get labelOneColor {
@@ -1537,6 +1543,7 @@ class CircularControl extends StatelessWidget {
   final int labelTwoAngle;
   final double scale;
   final Color fillColor;
+  final Color fontColor;
   final preferences.BorderStyle borderStyle;
   final int fontSize;
 
@@ -1555,6 +1562,7 @@ class CircularControl extends StatelessWidget {
     @required this.borderStyle,
     @required this.fontSize,
     this.fillColor,
+    this.fontColor,
   }) : super(key: key);
 
   @override
@@ -1566,6 +1574,7 @@ class CircularControl extends StatelessWidget {
       theme: Theme.of(context),
       fontSize: fontSize,
       enforcedFillColor: fillColor,
+      enforcedFontColor: fontColor,
     );
     final scaledDiameter = scale * diameter;
     double actualDiameter = scaledDiameter;
