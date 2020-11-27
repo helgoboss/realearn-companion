@@ -2,7 +2,7 @@
 FLUTTER_BRANCH=`grep channel: .metadata | sed 's/  channel: //g'`
 
 # Get flutter
-git clone <https://github.com/flutter/flutter.git>
+git clone https://github.com/flutter/flutter.git
 FLUTTER=flutter/bin/flutter
 
 #Flutter channel cmd
