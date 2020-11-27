@@ -1,11 +1,11 @@
 {
-    "name": "realearn_companion",
-    "short_name": "realearn_companion",
+    "name": "ReaLearn Companion",
+    "short_name": "ReaLearn",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "Companion app for the REAPER DAW plug-in ReaLearn",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
