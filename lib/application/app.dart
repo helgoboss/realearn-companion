@@ -63,6 +63,6 @@ class App {
     // TODO There might be some browsers (macOS Safari?) which won't connect
     //  from a secure (companion app) website to a non-secure localhost, so
     //  maybe we should use TLS even then!
-    return palette.use(tls: config.useTls);
+    return palette.use(tls: palette.isLocalhost() ? false : config.useTls);
   }
 }
