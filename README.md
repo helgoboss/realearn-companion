@@ -43,13 +43,25 @@ Generate icon assets:
             - Color: #252525
     - Press Next and Finish
 
-Copy icons over to web app:
-1. Copy `android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png` to `web/icons/ic_launcher.png`
-2. Copy `android/app/src/main/res/drawable-xxxhdpi/splash.png` to `web/icons/splash.png`
-3. Copy `resources/icon.png` to `web/favicon.png` and resize it to 16x16
+Build icons for web app via https://realfavicongenerator.net/:
+1. Upload `resources/icon.png`
+2. In section "Favicon for Desktop Browsers and Google Result Pages", choose A"dd margins and a
+   plain background."
+    - Background color: #353535
+    - Background radius: center position (default)
+    - Image size: one less than max
+3. In section "Favicon for Android Chrome", choose "Add a solid, plain background to fill the
+   transparent regions."
+    - Background color: #353535
+    - Margin size: 8px
+4. Download package
+5. Copy files
+    - `favicon-32x32.png` to `web/favicon.png`
+    - `android-chrome-192x192.png` to `web/icons/Icon-192.png`
+    - `android-chrome-512x512.png` to `web/icons/Icon-512.png`
 
 Interesting colors are:
-- Background: #252525
+- Background: #252525 (for web favicon #353535)
 - Active LEDs: #ffffff
 - Inactive LEDs: #808080
 - Magic wand: #ffcc00 (theme/primary color)
