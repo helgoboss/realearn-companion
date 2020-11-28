@@ -45,7 +45,7 @@ Generate icon assets:
 
 Build icons for web app via https://realfavicongenerator.net/:
 1. Upload `resources/icon.png`
-2. In section "Favicon for Desktop Browsers and Google Result Pages", choose A"dd margins and a
+2. In section "Favicon for Desktop Browsers and Google Result Pages", choose "Add margins and a
    plain background."
     - Background color: #353535
     - Background radius: center position (default)
