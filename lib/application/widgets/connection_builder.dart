@@ -283,7 +283,9 @@ class ConnectionBuilderState extends State<ConnectionBuilder> {
     } on TimeoutException catch (_) {
       notifyTimeout();
     } on http.ClientException catch (_) {
-      notifyTrustIssue();
+      // TODO-high
+      // notifyTrustIssue();
+      notifyConnectionPossible();
     }
   }
 }
