@@ -217,20 +217,28 @@ class ConnectionBuilderState extends State<ConnectionBuilder> {
     final wsUrl = widget.connectionData.buildWebSocketUrl(widget.topics);
     log("Connecting to $wsUrl ...");
     final channel = WebSocketChannel.connect(wsUrl);
-    final stream = channel.stream.tap((_) {
-      // log("WebSocket message received");
-    }, onDone: () {
-      log("WebSocket connection closed");
-      connect();
-    }, onError: (e, trace) {
-      log("Error connecting to WebSocket: $e");
-      if (e is WebSocketChannelException) {
-        // Flutter Web: On Chrome for Android I observed that sometimes the HTTP
-        // connection succeeds but the WebSocket connection gets
-        // ERR_CERT_AUTHORITY_INVALID.
-        notifyTrustIssue();
-      }
-    }).asBroadcastStream();
+    var connectedAtLeastOnce = false;
+    final stream = channel.stream.tap(
+      (_) {
+        // log("WebSocket message received");
+        connectedAtLeastOnce = true;
+      },
+      onDone: () {
+        print("WebSocket connection closed");
+        if (connectedAtLeastOnce) {
+          connect();
+        }
+      },
+      onError: (e, trace) {
+        print("WebSocket error: $e");
+        if (!connectedAtLeastOnce && e is WebSocketChannelException) {
+          // Flutter Web: On Chrome for Android I observed that sometimes the HTTP
+          // connection succeeds but the WebSocket connection gets
+          // ERR_CERT_AUTHORITY_INVALID.
+          notifyTrustIssue();
+        }
+      },
+    ).asBroadcastStream();
     setState(() {
       webSocketStream = stream;
       connectionStatus = ConnectionStatus.Connected;

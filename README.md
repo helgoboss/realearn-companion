@@ -44,25 +44,16 @@ Generate icon assets:
             - Color: #252525
     - Press Next and Finish
 
-Build icons for web app via https://realfavicongenerator.net/:
-1. Upload `resources/icon.png`
-2. In section "Favicon for Desktop Browsers and Google Result Pages", choose "Add margins and a
-   plain background."
-    - Background color: #353535
-    - Background radius: center position (default)
-    - Image size: one less than max
-3. In section "Favicon for Android Chrome", choose "Add a solid, plain background to fill the
-   transparent regions."
-    - Background color: #353535
-    - Margin size: 8px
-4. Download package
-5. Copy files
-    - `favicon-32x32.png` to `web/favicon.png`
-    - `android-chrome-192x192.png` to `web/icons/Icon-192.png`
-    - `android-chrome-512x512.png` to `web/icons/Icon-512.png`
+Export icons for web app:
+1. In Inkscape, load `resources/icon.svg`
+1. Make sure the "Rounded background" layer is visible and other helper layers are hidden
+1. File → Export PNG Image...
+    - Export area: Drawing
+    - Width/height: 32 pixels for `favicon.png`, 192/512 pixels for `Icon-*.png`
+    - Filename: `web/favicon.png`, `web/icons/Icon-192.png` and `web/icons/Icon-512.png`
 
 Interesting colors are:
-- Background: #252525 (for web favicon #353535)
+- Background: #252525
 - Active LEDs: #ffffff
 - Inactive LEDs: #808080
 - Magic wand: #ffcc00 (theme/primary color)
