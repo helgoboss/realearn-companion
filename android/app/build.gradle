@@ -39,7 +39,7 @@ android {
     defaultConfig {
         applicationId "org.helgoboss.realearn_companion"
         minSdkVersion 21
-        targetSdkVersion 28
+        targetSdkVersion 30
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
     }
