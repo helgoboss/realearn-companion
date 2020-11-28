@@ -22,7 +22,7 @@ Reexport the icon as PNG after changing the SVG:
 1. In [Inkscape](http://www.inkscape.org/), load `resources/icon.svg`
 1. Make sure helper layers are hidden
 1. File → Export PNG Image...
-    - Export area: Page
+    - Export area: Drawing
     - Width/height: 512 pixels at 96 dpi
     - Filename: `resources/icon.png`
     - Advanced
@@ -37,7 +37,8 @@ Generate icon assets:
             - Path: `resources/icon.png`
         - Scaling
             - Trim: No
-            - Resize: 57 %
+            - Resize: 57 % (maybe choose something like 50% next time because we changed
+              export area to "Drawing" which results in a slightly larger image)
     - Background Layer
         - Source Asset
             - Color: #252525
