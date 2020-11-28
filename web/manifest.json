@@ -3,9 +3,9 @@
     "short_name": "ReaLearn",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "Companion app for the REAPER DAW plug-in ReaLearn",
+    "background_color": "#252525",
+    "theme_color": "#ffcc00",
+    "description": "Companion app for REAPER DAW plug-in ReaLearn",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

@@ -43,11 +43,16 @@ Generate icon assets:
             - Color: #252525
     - Press Next and Finish
 
+Copy icons over to web app:
+1. Copy `android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png` to `web/icons/ic_launcher.png`
+2. Copy `android/app/src/main/res/drawable-xxxhdpi/splash.png` to `web/icons/splash.png`
+3. Copy `resources/icon.png` to `web/favicon.png` and resize it to 16x16
+
 Interesting colors are:
 - Background: #252525
 - Active LEDs: #ffffff
 - Inactive LEDs: #808080
-- Magic wand: #ffcc00
+- Magic wand: #ffcc00 (theme/primary color)
 - Text: #e6e6e6
 
 ### Generate splash screen
