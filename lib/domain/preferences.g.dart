@@ -8,6 +8,11 @@ part of 'preferences.dart';
 
 AppPreferences _$AppPreferencesFromJson(Map<String, dynamic> json) {
   return AppPreferences(
+    recentConnections: (json['recentConnections'] as List)
+        ?.map((e) => e == null
+            ? null
+            : RecentConnection.fromJson(e as Map<String, dynamic>))
+        ?.toList(),
     themeMode: _$enumDecodeNullable(_$ThemeModeEnumMap, json['themeMode']),
     highContrastEnabled: json['highContrastEnabled'] as bool,
     backgroundImageEnabled: json['backgroundImageEnabled'] as bool,
@@ -22,6 +27,7 @@ AppPreferences _$AppPreferencesFromJson(Map<String, dynamic> json) {
 
 Map<String, dynamic> _$AppPreferencesToJson(AppPreferences instance) =>
     <String, dynamic>{
+      'recentConnections': instance.recentConnections,
       'themeMode': _$ThemeModeEnumMap[instance.themeMode],
       'highContrastEnabled': instance.highContrastEnabled,
       'backgroundImageEnabled': instance.backgroundImageEnabled,

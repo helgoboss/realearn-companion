@@ -191,7 +191,7 @@ class Controller {
     customData.companion.addControl(control);
   }
 
-  // TODO-medium Refactor other methods to take IDs as well
+  // TODO-low Refactor other methods to take IDs as well
   void removeControl(String controlId) {
     customData.companion.removeControl(controlId);
   }

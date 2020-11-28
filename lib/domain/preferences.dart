@@ -10,6 +10,7 @@ part 'preferences.g.dart';
 
 @JsonSerializable(nullable: true)
 class AppPreferences extends ChangeNotifier {
+  List<RecentConnection> recentConnections;
   ThemeMode themeMode;
   bool highContrastEnabled;
   bool backgroundImageEnabled;
@@ -32,6 +33,7 @@ class AppPreferences extends ChangeNotifier {
       _$AppPreferencesFromJson(json);
 
   AppPreferences({
+    List<RecentConnection> recentConnections,
     ThemeMode themeMode,
     bool highContrastEnabled,
     bool backgroundImageEnabled,
@@ -39,7 +41,8 @@ class AppPreferences extends ChangeNotifier {
     ControlAppearance controlAppearance,
     BorderStyle borderStyle,
     int fontSize,
-  })  : themeMode = themeMode ?? ThemeMode.dark,
+  })  : recentConnections = recentConnections ?? [],
+        themeMode = themeMode ?? ThemeMode.dark,
         highContrastEnabled = highContrastEnabled ?? false,
         backgroundImageEnabled = backgroundImageEnabled ?? true,
         gridEnabled = gridEnabled ?? true,
@@ -81,6 +84,21 @@ class AppPreferences extends ChangeNotifier {
 
   void adjustFontSizeBy(int amount) {
     fontSize = math.max(8, fontSize + amount);
+    _notifyAndSave();
+  }
+
+  // Can be null
+  ConnectionDataPalette get lastConnection {
+    if (recentConnections.isEmpty) {
+      return null;
+    }
+    return recentConnections.first.toPalette();
+  }
+
+  void memorizeAsLastConnection(ConnectionDataPalette palette) {
+    // Maybe we want to save multiple recent connections in future so we use a
+    // list of exactly one connection.
+    recentConnections = [RecentConnection.fromPalette(palette)];
     _notifyAndSave();
   }
 

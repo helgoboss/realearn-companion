@@ -26,29 +26,6 @@ class App {
 
   static App get instance => _instance;
 
-  // TODO-high Keep this as part of AppPreferences
-  Future<ConnectionDataPalette> loadLastConnection() async {
-    var prefs = await SharedPreferences.getInstance();
-    var jsonStrings = await prefs.getStringList('recentConnections');
-    if (jsonStrings == null || jsonStrings.isEmpty) {
-      return null;
-    }
-    var jsonString = jsonStrings.first;
-    var jsonMap = jsonDecode(jsonString);
-    var recentConnection = RecentConnection.fromJson(jsonMap);
-    return recentConnection.toPalette();
-  }
-
-  void saveLastConnection(ConnectionDataPalette palette) async {
-    var recentConnection = RecentConnection.fromPalette(palette);
-    var jsonMap = recentConnection.toJson();
-    var jsonString = jsonEncode(jsonMap);
-    var prefs = await SharedPreferences.getInstance();
-    // Maybe we want to save multiple recent connections in future so we use a
-    // list of exactly one connection.
-    await prefs.setStringList('recentConnections', [jsonString]);
-  }
-
   App._privateConstructor({this.config});
 
   /**

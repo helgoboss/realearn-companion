@@ -4,10 +4,12 @@ import 'dart:developer';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:realearn_companion/domain/connection.dart';
+import 'package:realearn_companion/domain/preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:stream_transform/stream_transform.dart';
+import 'package:provider/provider.dart';
 
 import '../app.dart';
 import '../app_config.dart';
@@ -213,7 +215,8 @@ class ConnectionBuilderState extends State<ConnectionBuilder> {
   }
 
   void notifyConnectionPossible() {
-    App.instance.saveLastConnection(widget.connectionData.palette);
+    final prefs = context.read<AppPreferences>();
+    prefs.memorizeAsLastConnection(widget.connectionData.palette);
     final wsUrl = widget.connectionData.buildWebSocketUrl(widget.topics);
     log("Connecting to $wsUrl ...");
     final channel = WebSocketChannel.connect(wsUrl);
