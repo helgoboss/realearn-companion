@@ -53,11 +53,12 @@ class ConnectionBuilderState extends State<ConnectionBuilder> {
       "Couldn't connect to ReaLearn within ${connectTimeoutInSeconds} seconds.",
       "",
       "Please consider the following advice:",
+      "- Make sure this device has Wi-Fi enabled.",
+      "- Make sure the computer running REAPER and this device are in the same Wi-Fi network.",
+      "- Make sure REAPER and ReaLearn are running.",
       if (!widget.connectionData.isGenerated)
         "- Make sure the connection data you entered is correct.",
-      "- Open ports in your firewall (step 4 in ReaLearn's projection setup).",
-      "- Make sure the computer running REAPER and this device are in the same network.",
-      "- Make sure REAPER and ReaLearn are running.",
+      "- Make sure your firewall is configured correctly (step 4 in ReaLearn's projection setup).",
     ];
     var dialog = AlertDialog(
       title: Text("Connection failed"),
