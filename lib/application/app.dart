@@ -37,9 +37,19 @@ class App {
   }
 
   ConnectionData createConnectionData(ConnectionDataPalette palette) {
-    // TODO There might be some browsers (macOS Safari?) which won't connect
-    //  from a secure (companion app) website to a non-secure localhost, so
-    //  maybe we should use TLS even then!
-    return palette.use(tls: palette.isLocalhost() ? false : config.useTls);
+    return palette.use(
+      tls: shouldWeUseTls(config.tlsPolicy, palette.isLocalhost()),
+    );
+  }
+}
+
+bool shouldWeUseTls(TlsPolicy policy, bool isLocalhost) {
+  switch (policy) {
+    case TlsPolicy.never:
+      return false;
+    case TlsPolicy.remoteOnly:
+      return !isLocalhost;
+    case TlsPolicy.evenForLocalhost:
+      return true;
   }
 }

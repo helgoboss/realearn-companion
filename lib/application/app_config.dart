@@ -3,7 +3,7 @@ import 'package:flutter/widgets.dart';
 import '../infrastructure/platform/stub/configure_app.dart';
 
 abstract class AppConfig {
-  bool get useTls;
+  TlsPolicy get tlsPolicy;
 
   SecurityPlatform get securityPlatform;
 
@@ -23,6 +23,12 @@ abstract class AppConfig {
     double width,
     double height,
   });
+}
+
+enum TlsPolicy {
+  never,
+  remoteOnly,
+  evenForLocalhost
 }
 
 abstract class QrCodeScan {

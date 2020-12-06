@@ -38,18 +38,22 @@ class _NativeAppConfig implements AppConfig {
 
   _NativeAppConfig({this.securityPlatform});
 
-  bool get useTls {
+  TlsPolicy get tlsPolicy {
     switch (securityPlatform) {
       case SecurityPlatform.Android:
-        return true;
+        return TlsPolicy.remoteOnly;
       case SecurityPlatform.iOS:
-        return false;
+        // TODO not tested yet
+        return TlsPolicy.never;
       case SecurityPlatform.Windows:
-        return false;
+      // TODO not tested yet
+        return TlsPolicy.never;
       case SecurityPlatform.Linux:
-        return false;
+      // TODO not tested yet
+        return TlsPolicy.never;
       case SecurityPlatform.macOS:
-        return false;
+      // TODO not tested yet
+        return TlsPolicy.never;
     }
   }
 
