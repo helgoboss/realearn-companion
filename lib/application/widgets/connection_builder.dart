@@ -164,7 +164,7 @@ class ConnectionBuilderState extends State<ConnectionBuilder> {
         "Congratulations, connection is possible. There's just one step left to make it work. You need to tell your browser that connecting to your personal ReaLearn installation is secure.";
     // This sounds more serious than it is, it's just that browsers nowadays have a lot of security requirements (which is a good thing in general).
     // Even though ReaLearn Companion will not ask you for a password or anything like that and therefore security is secondary, it uses browser technology and therefore is bound to conform to its security rules.
-    var footer = "When you are done, come back here.";
+    var footer = "When you are done, come back here and retry.";
     switch (securityPlatform) {
       case SecurityPlatform.Android:
         return TrustInstructions(
@@ -195,23 +195,24 @@ class ConnectionBuilderState extends State<ConnectionBuilder> {
             action: TrustAction(
                 name: "Download profile", url: certificateDownloadUrl));
       case SecurityPlatform.Windows:
+      case SecurityPlatform.macOS:
         return TrustInstructions(
-            lines: [
-              header,
-              "",
-              "Proceed as follows:",
-              "1. Navigate to the ReaLearn server page.",
-              "2. The browser will complain that this certificate is untrusted. Allow the browser to make an exception.",
-              "",
-              footer
-            ],
-            action: TrustAction(
-                name: "Navigate to ReaLearn server page",
-                url: trustExceptionUrl));
+          lines: [
+            header,
+            "",
+            "Proceed as follows:",
+            "1. Navigate to the ReaLearn server page.",
+            "2. The browser will complain that this certificate is untrusted. Allow the browser to make an exception.",
+            "",
+            footer
+          ],
+          action: TrustAction(
+            name: "Navigate to ReaLearn server page",
+            url: trustExceptionUrl,
+          ),
+        );
       case SecurityPlatform.Linux:
         return TrustInstructions(lines: ["TODO Linux trust instructions"]);
-      case SecurityPlatform.macOS:
-        return TrustInstructions(lines: ["TODO macOS trust instructions"]);
     }
   }
 
