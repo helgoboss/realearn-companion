@@ -18,6 +18,21 @@ class RealearnEvent {
       _$RealearnEventFromJson(json);
 }
 
+class ControllerRoutingModel extends ChangeNotifier {
+  ControllerRouting _controllerRouting = ControllerRouting.empty();
+
+  ControllerRoutingModel();
+
+  ControllerRouting get controllerRouting {
+    return _controllerRouting;
+  }
+
+  void set controllerRouting(ControllerRouting controllerRouting) {
+    this._controllerRouting = controllerRouting;
+    notifyListeners();
+  }
+}
+
 class ControllerModel extends ChangeNotifier {
   Controller _controller = null;
   bool _controllerHasEdits = false;
@@ -127,6 +142,17 @@ class ControllerModel extends ChangeNotifier {
     _controllerHasEdits = true;
     notifyListeners();
   }
+}
+
+@JsonSerializable(createToJson: false, nullable: true)
+class MainPreset {
+  final String id;
+  final String name;
+
+  factory MainPreset.fromJson(Map<String, dynamic> json) =>
+      _$MainPresetFromJson(json);
+
+  MainPreset({this.id, this.name});
 }
 
 @JsonSerializable(createToJson: false, nullable: true)
@@ -240,8 +266,9 @@ class CompanionControllerData {
     int gridSize,
     int gridDivisionCount,
     List<ControlData> controls,
-  })  : gridSize = math.max(minGridSize, gridSize ?? defaultGridSize) ,
-        gridDivisionCount = math.min(maxGridDivisionCount, gridDivisionCount ?? 2),
+  })  : gridSize = math.max(minGridSize, gridSize ?? defaultGridSize),
+        gridDivisionCount =
+            math.min(maxGridDivisionCount, gridDivisionCount ?? 2),
         controls = controls ?? [];
 
   void addControl(ControlData control) {
@@ -349,7 +376,8 @@ class ControlData {
         x = math.max(0, x.toInt() ?? 0),
         y = math.max(0, y.toInt() ?? 0),
         width = math.max(minControlSize, width?.toInt() ?? defaultControlSize),
-        height = math.max(minControlSize, height?.toInt() ?? defaultControlSize),
+        height =
+            math.max(minControlSize, height?.toInt() ?? defaultControlSize),
         labelOne =
             labelOne ?? LabelSettings(position: ControlLabelPosition.aboveTop),
         labelTwo = labelTwo ??
@@ -406,13 +434,15 @@ int roundNumberToGridSize(int number, int gridSize) {
 
 @JsonSerializable(createToJson: false, nullable: true)
 class ControllerRouting {
+  final MainPreset mainPreset;
   final Map<String, List<TargetDescriptor>> routes;
 
-  ControllerRouting({this.routes});
+  const ControllerRouting(
+      {MainPreset mainPreset, Map<String, List<TargetDescriptor>> routes})
+      : mainPreset = mainPreset,
+        routes = routes ?? const {};
 
-  factory ControllerRouting.empty() {
-    return ControllerRouting(routes: {});
-  }
+  const factory ControllerRouting.empty() = ControllerRouting;
 
   factory ControllerRouting.fromJson(Map<String, dynamic> json) =>
       _$ControllerRoutingFromJson(json);

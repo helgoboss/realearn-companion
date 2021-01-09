@@ -16,14 +16,15 @@ class AppWidget extends StatelessWidget {
     App.instance.configureHotReloadable();
     return FutureBuilder(
       future: AppPreferences.load(),
-      builder: (BuildContext context, AsyncSnapshot<AppPreferences> snapshot) {
-        if (!snapshot.hasData) {
+      builder: (BuildContext context, AsyncSnapshot<AppPreferences> app_prefs_snapshot) {
+        if (!app_prefs_snapshot.hasData) {
           return SecondSplashScreen();
         }
         return MultiProvider(
           providers: [
-            ChangeNotifierProvider(create: (context) => snapshot.data),
+            ChangeNotifierProvider(create: (context) => app_prefs_snapshot.data),
             ChangeNotifierProvider(create: (context) => ControllerModel()),
+            ChangeNotifierProvider(create: (context) => ControllerRoutingModel()),
           ],
           child: Consumer<AppPreferences>(
             builder: (context, prefs, _) => MaterialApp(

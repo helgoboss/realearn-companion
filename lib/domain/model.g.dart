@@ -13,6 +13,13 @@ RealearnEvent _$RealearnEventFromJson(Map<String, dynamic> json) {
   );
 }
 
+MainPreset _$MainPresetFromJson(Map<String, dynamic> json) {
+  return MainPreset(
+    id: json['id'] as String,
+    name: json['name'] as String,
+  );
+}
+
 Controller _$ControllerFromJson(Map<String, dynamic> json) {
   return Controller(
     id: json['id'] as String,
@@ -134,6 +141,9 @@ const _$ControlShapeEnumMap = {
 
 ControllerRouting _$ControllerRoutingFromJson(Map<String, dynamic> json) {
   return ControllerRouting(
+    mainPreset: json['mainPreset'] == null
+        ? null
+        : MainPreset.fromJson(json['mainPreset'] as Map<String, dynamic>),
     routes: (json['routes'] as Map<String, dynamic>)?.map(
       (k, e) => MapEntry(
           k,

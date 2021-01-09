@@ -13,7 +13,7 @@ Generated code is committed, so this needs to be executed only after changing fi
 generated code.
 
 ```sh
-flutter pub run build_runner build
+flutter pub run build_runner build --delete-conflicting-outputs
 ```
 
 ### Generate icons

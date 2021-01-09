@@ -128,11 +128,29 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
 
   @override
   Widget build(BuildContext context) {
-    AppBar controllerRoutingAppBar(
-        ControllerModel controllerModel, PageModel pageModel) {
+    AppBar controllerRoutingAppBar(ControllerModel controllerModel,
+        ControllerRoutingModel controllerRoutingModel, PageModel pageModel) {
       var theme = Theme.of(context);
       return AppBar(
-          title: Text(controllerModel.controller?.name ?? 'No controller'),
+          title: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(
+                  controllerRoutingModel.controllerRouting?.mainPreset?.name ??
+                      '<No main preset>'),
+              SizedBox(width: 4, height: 4),
+              Visibility(
+                visible: true,
+                child: Text(
+                  controllerModel.controller?.name ?? '<No controller preset>',
+                  style: TextStyle(
+                    fontSize: 12.0,
+                  ),
+                ),
+              ),
+            ],
+          ),
           actions: [
             if (controllerModel.controller != null)
               IconButton(
@@ -293,12 +311,14 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
         "/realearn/session/$sessionId/controller-routing";
     return ChangeNotifierProvider(
       create: (context) => PageModel(),
-      child: Consumer2<ControllerModel, PageModel>(
-          builder: (context, controllerModel, pageModel, child) {
+      child: Consumer3<ControllerModel, ControllerRoutingModel, PageModel>(
+          builder: (context, controllerModel, controllerRoutingModel, pageModel,
+              child) {
         return NormalScaffold(
           padding: EdgeInsets.zero,
           appBar: appBarIsVisible
-              ? controllerRoutingAppBar(controllerModel, pageModel)
+              ? controllerRoutingAppBar(
+                  controllerModel, controllerRoutingModel, pageModel)
               : null,
           child: ConnectionBuilder(
             connectionData: widget.connectionData,
@@ -357,13 +377,13 @@ class ControllerRoutingContainer extends StatefulWidget {
 class ControllerRoutingContainerState
     extends State<ControllerRoutingContainer> {
   StreamSubscription messagesSubscription;
-  ControllerRouting routing = ControllerRouting.empty();
   bool sessionExists = false;
 
   @override
   Widget build(BuildContext context) {
+    final controllerRoutingModel = context.watch<ControllerRoutingModel>();
     return ControllerRoutingWidget(
-      routing: routing,
+      routing: controllerRoutingModel.controllerRouting,
       sessionExists: sessionExists,
     );
   }
@@ -389,10 +409,10 @@ class ControllerRoutingContainerState
             ? null
             : Controller.fromJson(realearnEvent.body);
       } else if (realearnEvent.path.endsWith("/controller-routing")) {
-        final routing = realearnEvent.body == null
+        final controllerRoutingModel = context.read<ControllerRoutingModel>();
+        controllerRoutingModel.controllerRouting = realearnEvent.body == null
             ? ControllerRouting.empty()
             : ControllerRouting.fromJson(realearnEvent.body);
-        setRouting(routing);
       } else {
         setState(() {
           this.sessionExists = realearnEvent.body != null;
@@ -405,12 +425,6 @@ class ControllerRoutingContainerState
   void dispose() {
     messagesSubscription?.cancel();
     super.dispose();
-  }
-
-  void setRouting(ControllerRouting routing) {
-    setState(() {
-      this.routing = routing;
-    });
   }
 }
 
