@@ -136,9 +136,8 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Text(
-                  controllerRoutingModel.controllerRouting?.mainPreset?.name ??
-                      '<No main preset>'),
+              Text(controllerRoutingModel.controllerRouting?.mainPreset?.name ??
+                  '<No main preset>'),
               SizedBox(width: 4, height: 4),
               Visibility(
                 visible: true,
@@ -183,26 +182,25 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
             PopupMenuButton(
               itemBuilder: (BuildContext context) {
                 return <PopupMenuEntry>[
-                  if (!pageModel.isInEditMode)
-                    PopupMenuItem(
-                      child: Consumer<AppPreferences>(
-                        builder: (context, prefs, child) {
-                          return ListTile(
-                            leading: LeadingMenuBarIcon(Icons.format_size),
-                            title: Text('Text'),
-                            onTap: () {},
-                            trailing: MinusPlus(
-                              onMinus: () {
-                                prefs.adjustFontSizeBy(-1);
-                              },
-                              onPlus: () {
-                                prefs.adjustFontSizeBy(1);
-                              },
-                            ),
-                          );
-                        },
-                      ),
+                  PopupMenuItem(
+                    child: Consumer<AppPreferences>(
+                      builder: (context, prefs, child) {
+                        return ListTile(
+                          leading: LeadingMenuBarIcon(Icons.format_size),
+                          title: Text('Text'),
+                          onTap: () {},
+                          trailing: MinusPlus(
+                            onMinus: () {
+                              prefs.adjustFontSizeBy(-1);
+                            },
+                            onPlus: () {
+                              prefs.adjustFontSizeBy(1);
+                            },
+                          ),
+                        );
+                      },
                     ),
+                  ),
                   if (!pageModel.isInEditMode)
                     PopupMenuItem(
                       child: Consumer<AppPreferences>(
