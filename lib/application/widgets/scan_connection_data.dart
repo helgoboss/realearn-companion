@@ -16,22 +16,25 @@ class ScanConnectionDataWidget extends StatelessWidget {
     return FutureBuilder<String>(
         future: result,
         builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
-          if (snapshot.hasError) {
-            cancelScanning(context, "Couldn't scan QR code", isError: true);
-          } else if (snapshot.hasData) {
-            if (snapshot.data == null || snapshot.data.isEmpty) {
-              cancelScanning(context, "Cancelled scanning QR code");
-            } else {
-              try {
-                var uri = Uri.parse(snapshot.data);
-                var connectionArgs =
-                    ConnectionArgs.fromParams(uri.queryParametersAll);
-                if (!connectionArgs.isComplete) {
+          if (snapshot.connectionState == ConnectionState.done) {
+            if (snapshot.hasError) {
+              cancelScanning(context, "Couldn't scan QR code", isError: true);
+            } else if (snapshot.hasData) {
+              if (snapshot.data == null || snapshot.data.isEmpty) {
+                cancelScanning(context, "Cancelled scanning QR code");
+              } else {
+                try {
+                  var uri = Uri.parse(snapshot.data);
+                  var connectionArgs =
+                  ConnectionArgs.fromParams(uri.queryParametersAll);
+                  if (connectionArgs.isComplete) {
+                    handleSuccess(context, connectionArgs);
+                  } else {
+                    handleWrongQrCode(context);
+                  }
+                } on FormatException catch (_) {
                   handleWrongQrCode(context);
                 }
-                handleSuccess(context, connectionArgs);
-              } on FormatException catch (_) {
-                handleWrongQrCode(context);
               }
             }
           }
@@ -42,8 +45,11 @@ class ScanConnectionDataWidget extends StatelessWidget {
 
 void handleSuccess(BuildContext context, ConnectionArgs connectionArgs) {
   WidgetsBinding.instance.addPostFrameCallback((_) {
-    Navigator.pushReplacementNamed(
-        context, getControllerRoutingRoute(connectionArgs));
+    Navigator.pushNamedAndRemoveUntil(
+      context,
+      getControllerRoutingRoute(connectionArgs),
+      ModalRoute.withName(rootRoute),
+    );
   });
 }
 
@@ -67,15 +73,17 @@ void continueOrCancelScanning({
         TextButton(
           child: Text("Cancel"),
           onPressed: () {
-            Navigator.pop(context);
             cancelScanning(context, "Cancelled scanning QR code");
           },
         ),
         TextButton(
           child: Text("Continue"),
           onPressed: () {
-            Navigator.pop(context);
-            Navigator.pushReplacementNamed(context, scanConnectionDataRoute);
+            Navigator.pushNamedAndRemoveUntil(
+              context,
+              scanConnectionDataRoute,
+              ModalRoute.withName(rootRoute),
+            );
           },
         ),
       ],
@@ -89,6 +97,6 @@ void cancelScanning(BuildContext context, String msg, {bool isError = false}) {
     var snackBar = SnackBar(
         content: Text(msg), backgroundColor: isError ? Colors.red : null);
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
-    Navigator.pop(context);
+    Navigator.popUntil(context, ModalRoute.withName(rootRoute));
   });
 }
