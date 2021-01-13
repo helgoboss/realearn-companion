@@ -217,8 +217,14 @@ class ConnectionBuilderState extends State<ConnectionBuilder> {
   }
 
   void notifyConnectionPossible() {
-    final prefs = context.read<AppPreferences>();
-    prefs.memorizeAsLastConnection(widget.connectionData.palette);
+    Timer(Duration(seconds: 1), () {
+      if (!mounted) {
+        return;
+      }
+      debugPrint("Memorize as last connection...");
+      final prefs = context.read<AppPreferences>();
+      prefs.memorizeAsLastConnection(widget.connectionData.palette);
+    });
     final wsUrl = widget.connectionData.buildWebSocketUrl(widget.topics);
     log("Connecting to $wsUrl ...");
     final channel = WebSocketChannel.connect(wsUrl);
