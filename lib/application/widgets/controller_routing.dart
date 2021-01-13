@@ -480,7 +480,7 @@ class ControllerRoutingWidget extends StatelessWidget {
       return CanvasText(
         "Please select a controller in ReaLearn!",
         subText: MarkdownBody(
-          data: '**Show:** Controller mappings | **Controller:** ...',
+          data: '**Compartment:** Controller mappings | **Preset:** ...',
         ),
       );
     }
