@@ -4,8 +4,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:camera/camera.dart';
-import 'package:barcode_scan/barcode_scan.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 
 import '../../../application/app_config.dart';
 
@@ -110,6 +110,10 @@ class NativeQrCodeScan extends QrCodeScan {
 }
 
 Future<String> scanQrCode() async {
-  var result = await BarcodeScanner.scan();
-  return result.rawContent;
+  return await FlutterBarcodeScanner.scanBarcode(
+    "#ff6666",
+    "Cancel",
+    false,
+    ScanMode.QR,
+  );
 }
