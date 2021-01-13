@@ -16,33 +16,39 @@ class AppWidget extends StatelessWidget {
     App.instance.configureHotReloadable();
     return FutureBuilder(
       future: AppPreferences.load(),
-      builder: (BuildContext context, AsyncSnapshot<AppPreferences> app_prefs_snapshot) {
+      builder: (BuildContext context,
+          AsyncSnapshot<AppPreferences> app_prefs_snapshot) {
         if (!app_prefs_snapshot.hasData) {
           return SecondSplashScreen();
         }
         return MultiProvider(
           providers: [
-            ChangeNotifierProvider(create: (context) => app_prefs_snapshot.data),
+            ChangeNotifierProvider(
+                create: (context) => app_prefs_snapshot.data),
             ChangeNotifierProvider(create: (context) => ControllerModel()),
-            ChangeNotifierProvider(create: (context) => ControllerRoutingModel()),
+            ChangeNotifierProvider(
+                create: (context) => ControllerRoutingModel()),
           ],
           child: Consumer<AppPreferences>(
-            builder: (context, prefs, _) => MaterialApp(
-              title: 'ReaLearn Companion',
-              debugShowCheckedModeBanner: false,
-              theme: ThemeData(
-                brightness: Brightness.light,
-                primaryColor: Colors.blue.shade700,
-                accentColor: Colors.deepOrange,
-              ),
-              darkTheme: ThemeData(
-                brightness: Brightness.dark,
-                primarySwatch: Colors.amber,
-                accentColor: Colors.blueAccent,
-              ),
-              themeMode: prefs.themeMode,
-              onGenerateRoute: App.instance.router.generator,
-            ),
+            builder: (context, prefs, _) {
+              debugPrint("Rebuilding material app");
+              return MaterialApp(
+                title: 'ReaLearn Companion',
+                debugShowCheckedModeBanner: false,
+                theme: ThemeData(
+                  brightness: Brightness.light,
+                  primaryColor: Colors.blue.shade700,
+                  accentColor: Colors.deepOrange,
+                ),
+                darkTheme: ThemeData(
+                  brightness: Brightness.dark,
+                  primarySwatch: Colors.amber,
+                  accentColor: Colors.blueAccent,
+                ),
+                themeMode: prefs.themeMode,
+                onGenerateRoute: App.instance.router.generator,
+              );
+            },
           ),
         );
       },
