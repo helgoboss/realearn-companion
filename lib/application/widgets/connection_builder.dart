@@ -294,7 +294,9 @@ class ConnectionBuilderState extends State<ConnectionBuilder> {
     try {
       // TODO-low Use one client for all requests
       // TODO-low Use head (it always brings a timeout in my case)
-      var responseFuture = http.get(widget.connectionData.httpBaseUri);
+      var uri = widget.connectionData.httpBaseUri;
+      debugPrint("Connecting to URI ${uri}...");
+      var responseFuture = http.get(uri);
       var awaitedFuture = isReconnect
           ? responseFuture
           : responseFuture.timeout(Duration(seconds: connectTimeoutInSeconds));
