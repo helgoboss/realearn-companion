@@ -46,13 +46,13 @@ class _NativeAppConfig implements AppConfig {
         // TODO not tested yet
         return TlsPolicy.never;
       case SecurityPlatform.Windows:
-      // TODO not tested yet
+        // TODO not tested yet
         return TlsPolicy.never;
       case SecurityPlatform.Linux:
-      // TODO not tested yet
+        // TODO not tested yet
         return TlsPolicy.never;
       case SecurityPlatform.macOS:
-      // TODO not tested yet
+        // TODO not tested yet
         return TlsPolicy.never;
     }
   }
