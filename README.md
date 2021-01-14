@@ -66,3 +66,9 @@ After adjusting `resources/icon.png`, run this:
 ```sh
 flutter pub run flutter_native_splash:create
 ```
+
+### Release
+
+1. Adjust version *and* build number in `pubspec.yaml`.
+2. `flutter build appbundle`.
+3. Upload at Google Play Store.
