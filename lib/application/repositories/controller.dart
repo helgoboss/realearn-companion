@@ -10,7 +10,7 @@ class ControllerRepository {
   ControllerRepository(this.connectionData);
 
   void save(Controller controller) async {
-    await http.patch(
+    final r = await http.patch(
       connectionData.httpBaseUri
           .resolve('/realearn/controller/${controller.id}'),
       headers: {
@@ -22,5 +22,10 @@ class ControllerRepository {
         'value': controller.customData.companion.toJson()
       }),
     );
+    final isOkay = r.statusCode >= 200 &&
+        r.statusCode < 300;
+    if (!isOkay) {
+      throw "${r.body} (status code ${r.statusCode})";
+    }
   }
 }

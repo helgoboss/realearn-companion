@@ -118,12 +118,22 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
   }
 
   void saveController() async {
-    var controllerModel = this.context.read<ControllerModel>();
-    await ControllerRepository(widget.connectionData)
-        .save(controllerModel.controller);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Saved controller layout")),
-    );
+    final controllerModel = this.context.read<ControllerModel>();
+    final messengerState = ScaffoldMessenger.of(context);
+    try {
+      await ControllerRepository(widget.connectionData)
+          .save(controllerModel.controller);
+      messengerState.showSnackBar(
+        SnackBar(content: Text("Saved controller layout")),
+      );
+    } catch (err) {
+      messengerState.showSnackBar(
+        SnackBar(
+          backgroundColor: Colors.red,
+          content: Text("Couldn't save controller layout: \"$err\""),
+        ),
+      );
+    }
   }
 
   @override
