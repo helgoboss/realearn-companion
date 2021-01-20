@@ -43,8 +43,7 @@ class _NativeAppConfig implements AppConfig {
       case SecurityPlatform.Android:
         return TlsPolicy.remoteOnly;
       case SecurityPlatform.iOS:
-        // TODO not tested yet
-        return TlsPolicy.never;
+        return TlsPolicy.remoteOnly;
       case SecurityPlatform.Windows:
         // TODO not tested yet
         return TlsPolicy.never;
