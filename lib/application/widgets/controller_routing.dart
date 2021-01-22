@@ -641,10 +641,12 @@ List<String> getLabels(
     final firstSourceDescriptors = descriptorsForEachMapping.first;
     final secondSourceDescriptors = descriptorsForEachMapping[1];
     return [
-      if (firstSourceDescriptors.isNotEmpty)
-        formatAsOneLabel(firstSourceDescriptors),
-      if (secondSourceDescriptors.isNotEmpty)
-        formatAsOneLabel(secondSourceDescriptors),
+      firstSourceDescriptors.isEmpty
+          ? null
+          : formatAsOneLabel(firstSourceDescriptors),
+      secondSourceDescriptors.isEmpty
+          ? null
+          : formatAsOneLabel(secondSourceDescriptors),
     ];
   }
   // A control element must only exist if it has at least one mapping.
@@ -1512,7 +1514,7 @@ Widget createRotatedText(
       child: Padding(
         padding: const EdgeInsets.all(1),
         child: Text(
-          label,
+          label ?? "",
           textAlign: TextAlign.center,
           style: style,
           textScaleFactor: scale,
@@ -1626,7 +1628,7 @@ class CircularControl extends StatelessWidget {
       return Align(
         child: ArcText(
           radius: (scaledDiameter / 2) + (isInside ? -1 : 1) * 1,
-          text: label,
+          text: label ?? "",
           textStyle:
               style.copyWith(fontSize: scaledFontSize, letterSpacing: -1),
           startAngle: (attrs.startAngle * math.pi) / 180.0 + math.pi / 2,
@@ -1698,12 +1700,12 @@ class CircularControl extends StatelessWidget {
           if (labels.length > 1)
             labelTwoPosition == ControlLabelPosition.center
                 ? createCenterText(
-                    labels[1],
+                    labels[1] ?? "",
                     style: props.labelTwoTextStyle,
                     angle: labelTwoAngle,
                   )
                 : createNonCenterText(
-                    labels[1],
+                    labels[1] ?? "",
                     sizeConstrained: labelTwoSizeConstrained,
                     pos: labelTwoPosition,
                     style: props.labelTwoTextStyle,
