@@ -1,6 +1,13 @@
-# realearn_companion
+# ReaLearn Companion
 
-ReaLearn Companion
+This is an addition to the [REAPER](https://www.reaper.fm/) plug-in
+[ReaLearn](https://www.helgoboss.org/projects/realearn/) and allows you to project a schematic
+representation of your currently active ReaLearn controller to your mobile device.
+
+## Usage
+
+1. Install [ReaLearn](https://www.helgoboss.org/projects/realearn/) in REAPER.
+2. Press its "Projection" button and follow the instructions.
 
 ## Development
 
