@@ -30,7 +30,7 @@ dependencies:
   flutter_web_plugins:
     sdk: flutter
   platform_detect: 1.4.0
-  flutter_svg: 0.19.1
+  flutter_svg: 0.19.3
   barcode_scan: ^3.0.1
   camera: ^0.5.8+11
   provider: ^4.3.2+2
