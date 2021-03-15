@@ -11,9 +11,6 @@ representation of your currently active ReaLearn controller to your mobile devic
 
 ## Development
 
-Right now requires Flutter dev channel version 1.24.0-3.0.pre (as of this writing, higher versions
-have [this bug](https://github.com/flutter/flutter/issues/69254)).
-
 ### Generate code
 
 Generated code is committed, so this needs to be executed only after changing files that influence

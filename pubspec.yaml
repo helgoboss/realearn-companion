@@ -23,17 +23,17 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  web_socket_channel: 1.1.0
-  json_serializable: 3.5.0
-  http: 0.12.2
-  fluro: ^1.7.8
+  web_socket_channel: 1.2.0
+  json_serializable: 3.5.1
+  http: ^0.13.0
+  fluro: ^2.0.3
   flutter_web_plugins:
     sdk: flutter
   platform_detect: 1.4.0
   flutter_svg: 0.19.3
   barcode_scan: ^3.0.1
   camera: ^0.5.8+11
-  provider: ^4.3.2+2
+  provider: ^5.0.0
   flutter_markdown: ^0.5.0
   stream_transform: ^1.2.0
   url_launcher: ^5.7.8
