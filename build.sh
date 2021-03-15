@@ -4,7 +4,7 @@ git clone https://github.com/flutter/flutter.git
 FLUTTER=flutter/bin/flutter
 
 #Flutter channel cmd
-cmd="${FLUTTER} channel beta"
+cmd="${FLUTTER} channel stable"
 
 # Set channel info and update
 DIR=$($cmd >& /dev/stdout)
