@@ -74,6 +74,24 @@ After adjusting `resources/icon.png`, run this:
 flutter pub run flutter_native_splash:create
 ```
 
+### Upgrade to new Flutter version
+
+```
+flutter channel stable
+flutter upgrade
+```
+
+Sometimes it seems necessary to recreate the native app folders (if the templates changed). Was
+necessary for [this issue](https://github.com/flutter/flutter/pull/68931/files) for example.
+
+For Windows:
+
+```
+rm windows
+rm build/windows
+flutter create --platforms=windows .
+```
+
 ### Release
 
 1. Adjust version *and* build number in `pubspec.yaml`.

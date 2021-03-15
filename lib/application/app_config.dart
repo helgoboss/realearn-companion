@@ -5,6 +5,8 @@ import '../infrastructure/platform/stub/configure_app.dart';
 abstract class AppConfig {
   TlsPolicy get tlsPolicy;
 
+  String get initialRoute;
+
   SecurityPlatform get securityPlatform;
 
   Future<bool> deviceHasCamera();

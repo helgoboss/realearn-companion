@@ -9,7 +9,7 @@ import 'qr_code_scanner.dart';
 
 import '../../../application/app_config.dart';
 
-AppConfig configureApp() {
+AppConfig configureApp(List<String> arguments) {
   setUrlStrategy(PathUrlStrategy());
   return _WebAppConfig(
       tlsPolicy: determineTlsPolicy(),
@@ -76,6 +76,9 @@ class _WebAppConfig implements AppConfig {
       height: height,
     );
   }
+
+  @override
+  String get initialRoute => null;
 }
 
 SecurityPlatform _getSecurityPlatform() {

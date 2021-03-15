@@ -9,10 +9,12 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../application/app_config.dart';
 
-AppConfig configureApp() {
+AppConfig configureApp(List<String> arguments) {
   HttpOverrides.global = new _CustomHttpOverrides();
-
-  return _NativeAppConfig(securityPlatform: getNativeSecurityPlatform());
+  return _NativeAppConfig(
+    securityPlatform: getNativeSecurityPlatform(),
+    initialRoute: arguments.isEmpty ? null : arguments[0],
+  );
 }
 
 SecurityPlatform getNativeSecurityPlatform() {
@@ -35,8 +37,9 @@ SecurityPlatform getNativeSecurityPlatform() {
 
 class _NativeAppConfig implements AppConfig {
   final SecurityPlatform securityPlatform;
+  final String initialRoute;
 
-  _NativeAppConfig({this.securityPlatform});
+  _NativeAppConfig({this.securityPlatform, this.initialRoute});
 
   TlsPolicy get tlsPolicy {
     switch (securityPlatform) {
