@@ -4,7 +4,7 @@ import 'package:flutter/src/painting/box_fit.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_web_plugins/flutter_web_plugins.dart';
-import 'package:platform_detect/platform_detect.dart';
+import 'package:platform_detect2/platform_detect2.dart';
 import 'qr_code_scanner.dart';
 
 import '../../../application/app_config.dart';
