@@ -33,14 +33,14 @@ class AppPreferences extends ChangeNotifier {
       _$AppPreferencesFromJson(json);
 
   AppPreferences({
-    List<RecentConnection> recentConnections,
-    ThemeMode themeMode,
-    bool highContrastEnabled,
-    bool backgroundImageEnabled,
-    bool gridEnabled,
-    ControlAppearance controlAppearance,
-    BorderStyle borderStyle,
-    int fontSize,
+    List<RecentConnection>? recentConnections,
+    ThemeMode? themeMode,
+    bool? highContrastEnabled,
+    bool? backgroundImageEnabled,
+    bool? gridEnabled,
+    ControlAppearance? controlAppearance,
+    BorderStyle? borderStyle,
+    int? fontSize,
   })  : recentConnections = recentConnections ?? [],
         themeMode = themeMode ?? ThemeMode.dark,
         highContrastEnabled = highContrastEnabled ?? false,
@@ -87,8 +87,7 @@ class AppPreferences extends ChangeNotifier {
     _notifyAndSave();
   }
 
-  // Can be null
-  ConnectionDataPalette get lastConnection {
+  ConnectionDataPalette? get lastConnection {
     if (recentConnections.isEmpty) {
       return null;
     }
@@ -146,13 +145,13 @@ class RecentConnection {
   final String httpPort;
   final String httpsPort;
   final String sessionId;
-  final String certContent;
+  final String? certContent;
 
   RecentConnection({
-    this.host,
-    this.httpPort,
-    this.httpsPort,
-    this.sessionId,
+    required this.host,
+    required this.httpPort,
+    required this.httpsPort,
+    required this.sessionId,
     this.certContent,
   });
 
