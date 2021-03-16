@@ -8,7 +8,8 @@ class ScanConnectionDataWidget extends StatelessWidget {
   final Widget scannerWidget;
   final Future<String> result;
 
-  const ScanConnectionDataWidget({Key key, this.scannerWidget, this.result})
+  const ScanConnectionDataWidget(
+      {Key? key, required this.scannerWidget, required this.result})
       : super(key: key);
 
   @override
@@ -20,13 +21,13 @@ class ScanConnectionDataWidget extends StatelessWidget {
             if (snapshot.hasError) {
               cancelScanning(context, "Couldn't scan QR code", isError: true);
             } else if (snapshot.hasData) {
-              if (snapshot.data == null || snapshot.data.isEmpty) {
+              if (snapshot.data?.isEmpty ?? true) {
                 cancelScanning(context, "Cancelled scanning QR code");
               } else {
                 try {
-                  var uri = Uri.parse(snapshot.data);
+                  var uri = Uri.parse(snapshot.data!);
                   var connectionArgs =
-                  ConnectionArgs.fromParams(uri.queryParametersAll);
+                      ConnectionArgs.fromParams(uri.queryParametersAll);
                   if (connectionArgs.isComplete) {
                     handleSuccess(context, connectionArgs);
                   } else {
@@ -44,7 +45,7 @@ class ScanConnectionDataWidget extends StatelessWidget {
 }
 
 void handleSuccess(BuildContext context, ConnectionArgs connectionArgs) {
-  WidgetsBinding.instance.addPostFrameCallback((_) {
+  WidgetsBinding.instance!.addPostFrameCallback((_) {
     Navigator.pushNamedAndRemoveUntil(
       context,
       getControllerRoutingRoute(connectionArgs),
@@ -61,11 +62,11 @@ void handleWrongQrCode(BuildContext context) {
 }
 
 void continueOrCancelScanning({
-  BuildContext context,
-  String summary,
-  String msg,
+  required BuildContext context,
+  required String summary,
+  required String msg,
 }) {
-  WidgetsBinding.instance.addPostFrameCallback((_) {
+  WidgetsBinding.instance!.addPostFrameCallback((_) {
     var dialog = AlertDialog(
       title: Text(summary),
       content: Text(msg),
@@ -93,7 +94,7 @@ void continueOrCancelScanning({
 }
 
 void cancelScanning(BuildContext context, String msg, {bool isError = false}) {
-  WidgetsBinding.instance.addPostFrameCallback((_) {
+  WidgetsBinding.instance!.addPostFrameCallback((_) {
     var snackBar = SnackBar(
         content: Text(msg), backgroundColor: isError ? Colors.red : null);
     ScaffoldMessenger.of(context).showSnackBar(snackBar);

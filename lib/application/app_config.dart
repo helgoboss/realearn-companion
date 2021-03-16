@@ -5,7 +5,7 @@ import '../infrastructure/platform/stub/configure_app.dart';
 abstract class AppConfig {
   TlsPolicy get tlsPolicy;
 
-  String get initialRoute;
+  String? get initialRoute;
 
   SecurityPlatform get securityPlatform;
 
@@ -16,22 +16,18 @@ abstract class AppConfig {
   /**
    * Returns null if not supported.
    */
-  Uri createCertObjectUrl(String content);
+  Uri? createCertObjectUrl(String content);
 
   Widget svgImage(
     String assetPath, {
-    Color color,
-    BoxFit fit,
-    double width,
-    double height,
+    required Color color,
+    required BoxFit fit,
+    required double width,
+    required double height,
   });
 }
 
-enum TlsPolicy {
-  never,
-  remoteOnly,
-  evenForLocalhost
-}
+enum TlsPolicy { never, remoteOnly, evenForLocalhost }
 
 abstract class QrCodeScan {
   Widget get widget;

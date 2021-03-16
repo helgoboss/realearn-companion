@@ -27,7 +27,7 @@ var uuid = Uuid();
 class ControllerRoutingPage extends StatefulWidget {
   final ConnectionData connectionData;
 
-  const ControllerRoutingPage({Key key, @required this.connectionData})
+  const ControllerRoutingPage({Key? key, required this.connectionData})
       : super(key: key);
 
   @override
@@ -122,7 +122,7 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
     final messengerState = ScaffoldMessenger.of(context);
     try {
       await ControllerRepository(widget.connectionData)
-          .save(controllerModel.controller);
+          .save(controllerModel.controller!);
       messengerState.showSnackBar(
         SnackBar(content: Text("Saved controller layout")),
       );
@@ -146,7 +146,7 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Text(controllerRoutingModel.controllerRouting?.mainPreset?.name ??
+              Text(controllerRoutingModel.controllerRouting.mainPreset?.name ??
                   '<No main preset>'),
               SizedBox(width: 4, height: 4),
               Visibility(
@@ -355,7 +355,7 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
 class LeadingMenuBarIcon extends StatelessWidget {
   final IconData icon;
 
-  const LeadingMenuBarIcon(this.icon, {Key key}) : super(key: key);
+  const LeadingMenuBarIcon(this.icon, {Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -372,8 +372,8 @@ class ControllerRoutingContainer extends StatefulWidget {
   final Stream<dynamic> messages;
 
   const ControllerRoutingContainer({
-    Key key,
-    this.messages,
+    Key? key,
+    required this.messages,
   }) : super(key: key);
 
   @override
@@ -384,7 +384,7 @@ class ControllerRoutingContainer extends StatefulWidget {
 
 class ControllerRoutingContainerState
     extends State<ControllerRoutingContainer> {
-  StreamSubscription messagesSubscription;
+  late StreamSubscription messagesSubscription;
   bool sessionExists = false;
 
   @override
@@ -431,7 +431,7 @@ class ControllerRoutingContainerState
 
   @override
   void dispose() {
-    messagesSubscription?.cancel();
+    messagesSubscription.cancel();
     super.dispose();
   }
 }
@@ -440,12 +440,13 @@ var controlCanvasPadding = EdgeInsets.all(30);
 
 class CanvasText extends StatelessWidget {
   final String label;
-  final Widget subText;
+  final Widget? subText;
 
-  const CanvasText(this.label, {Key key, this.subText}) : super(key: key);
+  const CanvasText(this.label, {Key? key, this.subText}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final subText = this.subText;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -471,9 +472,9 @@ class ControllerRoutingWidget extends StatelessWidget {
   final GlobalKey stackKey = GlobalKey();
 
   ControllerRoutingWidget({
-    Key key,
-    @required this.routing,
-    @required this.sessionExists,
+    Key? key,
+    required this.routing,
+    required this.sessionExists,
   }) : super(key: key);
 
   @override
@@ -502,8 +503,8 @@ class ControllerRoutingWidget extends StatelessWidget {
     }
     var isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
     var controllerSize = controller.calcTotalSize();
-    Widget createControlBag({Axis direction}) {
-      var remainingMappings = controller.mappings.where((m) {
+    Widget createControlBag({required Axis direction}) {
+      final remainingMappings = controller.mappings.where((m) {
         return !controller.controls.any((c) => c.mappings.contains(m.id));
       }).toList();
       return ControlBag(
@@ -617,7 +618,7 @@ class ControllerRoutingWidget extends StatelessWidget {
   }
 }
 
-List<String> getLabels(
+List<String?> getLabels(
   List<List<TargetDescriptor>> descriptorsForEachMapping,
 ) {
   var sourceCount = descriptorsForEachMapping.length;
@@ -652,7 +653,7 @@ List<String> getLabels(
   // A control element must only exist if it has at least one mapping.
   // Control elements that represent more than 2 mappings are not possible at
   // the moment.
-  assert(false);
+  throw UnsupportedError("control elements with no or more than 2 mappings");
 }
 
 String formatAsOneLabel(List<TargetDescriptor> descriptors) {
@@ -666,6 +667,7 @@ String formatAsOneLabel(List<TargetDescriptor> descriptors) {
   if (count > 1) {
     return '${descriptors.first.label} +${count - 1}';
   }
+  throw StateError("negative length impossible");
 }
 
 class ControlBag extends StatelessWidget {
@@ -674,15 +676,15 @@ class ControlBag extends StatelessWidget {
   final Axis direction;
 
   const ControlBag({
-    Key key,
-    this.mappings,
-    this.stackKey,
-    this.direction,
+    Key? key,
+    required this.mappings,
+    required this.stackKey,
+    required this.direction,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    Widget createBag({bool isAccepting}) {
+    Widget createBag({required bool isAccepting}) {
       return Container(
         padding: EdgeInsets.all(10),
         width: direction == Axis.vertical ? 100 : null,
@@ -694,7 +696,7 @@ class ControlBag extends StatelessWidget {
             direction: direction,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: mappings.map((m) {
-              Widget createPotentialControl({Color fillColor}) {
+              Widget createPotentialControl({Color? fillColor}) {
                 return Control(
                   labels: [m.name],
                   width: 50,
@@ -758,16 +760,16 @@ class EditableControl extends StatefulWidget {
   final int fontSize;
 
   const EditableControl({
-    Key key,
-    this.labels,
-    this.data,
-    this.scale,
-    this.stackKey,
-    this.gridSize,
-    this.controllerModel,
-    this.appearance,
-    this.borderStyle,
-    this.fontSize,
+    Key? key,
+    required this.labels,
+    required this.data,
+    required this.scale,
+    required this.stackKey,
+    required this.gridSize,
+    required this.controllerModel,
+    required this.appearance,
+    required this.borderStyle,
+    required this.fontSize,
   }) : super(key: key);
 
   @override
@@ -822,6 +824,9 @@ class EditableControlState extends State<EditableControl> {
           return control;
         },
         onWillAccept: (data) {
+          if (data == null) {
+            return false;
+          }
           return data.mappings.length == 1 && widget.data.mappings.length == 1;
         },
         onAccept: (data) {
@@ -873,7 +878,7 @@ class EditableControlState extends State<EditableControl> {
               builder: (BuildContext context) {
                 return createControlDialog(
                   context: context,
-                  title: coreControl.labels[0],
+                  title: coreControl.labels[0] ?? '',
                   controlIds: HashSet.of([widget.data.id]),
                 );
               },
@@ -911,7 +916,7 @@ class EditableControlState extends State<EditableControl> {
 class SettingRowLabel extends StatelessWidget {
   final String label;
 
-  const SettingRowLabel(this.label, {Key key}) : super(key: key);
+  const SettingRowLabel(this.label, {Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -927,13 +932,13 @@ final italicTextStyle = const TextStyle(fontStyle: FontStyle.italic);
 final multipleText = Text("multiple", style: italicTextStyle);
 
 AlertDialog createControlDialog({
-  BuildContext context,
-  String title,
-  Set<String> controlIds,
+  required BuildContext context,
+  required String title,
+  required Set<String> controlIds,
   bool italic = false,
 }) {
   final controllerModel = context.watch<ControllerModel>();
-  final controls = controlIds.map(controllerModel.findControlById).toList();
+  final controls = controllerModel.findControlsByIds(controlIds).toList();
   final theme = Theme.of(context);
   int controlSize = 35;
   final shape = getValueIfAllEqual(controls, (c) => c.shape);
@@ -1105,7 +1110,7 @@ AlertDialog createControlDialog({
 }
 
 class FixedControl extends StatelessWidget {
-  final List<String> labels;
+  final List<String?> labels;
   final ControlData data;
   final double scale;
   final ControlAppearance appearance;
@@ -1113,13 +1118,13 @@ class FixedControl extends StatelessWidget {
   final int fontSize;
 
   const FixedControl({
-    Key key,
-    this.labels,
-    this.data,
-    this.scale,
-    this.appearance,
-    this.borderStyle,
-    this.fontSize,
+    Key? key,
+    required this.labels,
+    required this.data,
+    required this.scale,
+    required this.appearance,
+    required this.borderStyle,
+    required this.fontSize,
   }) : super(key: key);
 
   @override
@@ -1150,10 +1155,10 @@ class FixedControl extends StatelessWidget {
 class Control extends StatelessWidget {
   final int width;
   final int height;
-  final List<String> labels;
+  final List<String?> labels;
   final ControlShape shape;
-  final Color fillColor;
-  final Color fontColor;
+  final Color? fillColor;
+  final Color? fontColor;
   final double scale;
   final ControlLabelPosition labelOnePosition;
   final bool labelOneSizeConstrained;
@@ -1166,10 +1171,10 @@ class Control extends StatelessWidget {
   final int fontSize;
 
   const Control({
-    Key key,
+    Key? key,
     this.labels = const [],
-    @required this.width,
-    @required this.height,
+    required this.width,
+    required this.height,
     this.shape = ControlShape.circle,
     this.fillColor = null,
     this.fontColor = null,
@@ -1229,16 +1234,16 @@ class DerivedControlProps {
   final bool labelOneIsInside;
   final bool labelTwoIsInside;
   final ControlAppearance appearance;
-  final Color enforcedFillColor;
-  final Color enforcedFontColor;
+  final Color? enforcedFillColor;
+  final Color? enforcedFontColor;
   final int fontSize;
 
   DerivedControlProps({
-    @required this.labelOneIsInside,
-    @required this.labelTwoIsInside,
-    @required this.appearance,
-    @required this.theme,
-    @required this.fontSize,
+    required this.labelOneIsInside,
+    required this.labelTwoIsInside,
+    required this.appearance,
+    required this.theme,
+    required this.fontSize,
     this.enforcedFillColor,
     this.enforcedFontColor,
   });
@@ -1286,7 +1291,7 @@ class DerivedControlProps {
         appearance == ControlAppearance.outlinedMono;
   }
 
-  Color get decorationColor => strokeOnly ? null : mainColor;
+  Color? get decorationColor => strokeOnly ? null : mainColor;
 
   BoxBorder get border {
     return Border.all(width: strokeWidth, color: borderColor);
@@ -1311,7 +1316,7 @@ class DerivedControlProps {
     );
   }
 
-  DottedBorder createDottedRectangleBorder({Widget child}) {
+  DottedBorder createDottedRectangleBorder({required Widget child}) {
     return DottedBorder(
       color: borderColor,
       strokeWidth: strokeWidth,
@@ -1322,7 +1327,7 @@ class DerivedControlProps {
     );
   }
 
-  DottedBorder createDottedCircularBorder({Widget child}) {
+  DottedBorder createDottedCircularBorder({required Widget child}) {
     return DottedBorder(
       color: borderColor,
       strokeWidth: strokeWidth,
@@ -1347,7 +1352,7 @@ class DerivedControlProps {
   double get strokeWidth => 2;
 }
 
-bool labelPositionIsInside(ControlLabelPosition pos) {
+bool labelPositionIsInside(ControlLabelPosition? pos) {
   switch (pos) {
     case ControlLabelPosition.belowTop:
     case ControlLabelPosition.center:
@@ -1364,7 +1369,7 @@ class RectangularControl extends StatelessWidget {
   final int width;
   final int height;
   final ControlAppearance appearance;
-  final List<String> labels;
+  final List<String?> labels;
   final ControlLabelPosition labelOnePosition;
   final bool labelOneSizeConstrained;
   final int labelOneAngle;
@@ -1376,20 +1381,20 @@ class RectangularControl extends StatelessWidget {
   final int fontSize;
 
   const RectangularControl({
-    Key key,
-    @required this.appearance,
-    @required this.labels,
-    @required this.width,
-    @required this.height,
-    @required this.labelOnePosition,
-    @required this.labelOneSizeConstrained,
-    @required this.labelOneAngle,
-    @required this.labelTwoPosition,
-    @required this.labelTwoSizeConstrained,
-    @required this.labelTwoAngle,
-    @required this.scale,
-    @required this.borderStyle,
-    @required this.fontSize,
+    Key? key,
+    required this.appearance,
+    required this.labels,
+    required this.width,
+    required this.height,
+    required this.labelOnePosition,
+    required this.labelOneSizeConstrained,
+    required this.labelOneAngle,
+    required this.labelTwoPosition,
+    required this.labelTwoSizeConstrained,
+    required this.labelTwoAngle,
+    required this.scale,
+    required this.borderStyle,
+    required this.fontSize,
   }) : super(key: key);
 
   @override
@@ -1407,10 +1412,10 @@ class RectangularControl extends StatelessWidget {
     final scaledHeight = scale * height;
     Positioned buildLabelText(
       String label, {
-      ControlLabelPosition position,
-      int angle,
-      bool sizeConstrained,
-      TextStyle style,
+      required ControlLabelPosition position,
+      required int angle,
+      required bool sizeConstrained,
+      required TextStyle style,
     }) {
       final attrs = _getAttributesForPosition(position);
       final child = createRotatedText(
@@ -1477,13 +1482,13 @@ class RectangularControl extends StatelessWidget {
   }
 }
 
-Widget createOuterRectangularText({
-  Widget child,
-  int expansionFactor,
-  double controlWidth,
-  double controlHeight,
-  int leftFactor,
-  int topFactor,
+Positioned createOuterRectangularText({
+  required Widget child,
+  required int expansionFactor,
+  required double controlWidth,
+  required double controlHeight,
+  required int leftFactor,
+  required int topFactor,
 }) {
   final expandedWidth = controlWidth.toDouble() * expansionFactor;
   final expandedHeight = controlHeight.toDouble() * expansionFactor;
@@ -1501,11 +1506,11 @@ Widget createOuterRectangularText({
 }
 
 Widget createRotatedText(
-  String label, {
-  AlignmentGeometry alignment,
-  int angle,
-  TextStyle style,
-  double scale,
+  String? label, {
+  required AlignmentGeometry alignment,
+  required int angle,
+  required TextStyle style,
+  required double scale,
 }) {
   return Align(
     alignment: alignment,
@@ -1552,13 +1557,13 @@ class _PosAttrs {
   final int left;
   final AlignmentGeometry alignment;
 
-  _PosAttrs({this.top, this.left, this.alignment});
+  _PosAttrs({required this.top, required this.left, required this.alignment});
 }
 
 class CircularControl extends StatelessWidget {
   final int diameter;
   final ControlAppearance appearance;
-  final List<String> labels;
+  final List<String?> labels;
   final ControlLabelPosition labelOnePosition;
   final bool labelOneSizeConstrained;
   final int labelOneAngle;
@@ -1566,25 +1571,25 @@ class CircularControl extends StatelessWidget {
   final bool labelTwoSizeConstrained;
   final int labelTwoAngle;
   final double scale;
-  final Color fillColor;
-  final Color fontColor;
+  final Color? fillColor;
+  final Color? fontColor;
   final preferences.BorderStyle borderStyle;
   final int fontSize;
 
   const CircularControl({
-    Key key,
-    @required this.appearance,
-    @required this.labels,
-    @required this.diameter,
-    @required this.labelOnePosition,
-    @required this.labelOneSizeConstrained,
-    @required this.labelOneAngle,
-    @required this.labelTwoPosition,
-    @required this.labelTwoSizeConstrained,
-    @required this.labelTwoAngle,
-    @required this.scale,
-    @required this.borderStyle,
-    @required this.fontSize,
+    Key? key,
+    required this.appearance,
+    required this.labels,
+    required this.diameter,
+    required this.labelOnePosition,
+    required this.labelOneSizeConstrained,
+    required this.labelOneAngle,
+    required this.labelTwoPosition,
+    required this.labelTwoSizeConstrained,
+    required this.labelTwoAngle,
+    required this.scale,
+    required this.borderStyle,
+    required this.fontSize,
     this.fillColor,
     this.fontColor,
   }) : super(key: key);
@@ -1604,9 +1609,9 @@ class CircularControl extends StatelessWidget {
     double actualDiameter = scaledDiameter;
     double scaledFontSize = fontSize * scale;
     Widget createCenterText(
-      String label, {
-      TextStyle style,
-      int angle,
+      String? label, {
+      required TextStyle style,
+      required int angle,
     }) {
       return createRotatedText(
         label,
@@ -1618,10 +1623,10 @@ class CircularControl extends StatelessWidget {
     }
 
     Widget createCircularText(
-      String label, {
-      ControlLabelPosition pos,
-      TextStyle style,
-      int angle,
+      String? label, {
+      required ControlLabelPosition pos,
+      required TextStyle style,
+      required int angle,
     }) {
       final attrs = convertToCircularAttributes(pos, angle);
       final isInside = labelPositionIsInside(pos);
@@ -1640,11 +1645,11 @@ class CircularControl extends StatelessWidget {
     }
 
     Widget createNonCenterText(
-      String label, {
-      ControlLabelPosition pos,
-      bool sizeConstrained,
-      TextStyle style,
-      int angle,
+      String? label, {
+      required ControlLabelPosition pos,
+      required bool sizeConstrained,
+      required TextStyle style,
+      required int angle,
     }) {
       if (sizeConstrained || labelPositionIsInside(pos)) {
         return createCircularText(label, pos: pos, style: style, angle: angle);
@@ -1718,12 +1723,13 @@ class CircularControl extends StatelessWidget {
 }
 
 Offset getFinalDragPosition({
-  int gridSize,
-  GlobalKey stackKey,
-  Offset globalPosition,
-  double scale,
+  required int gridSize,
+  required GlobalKey stackKey,
+  required Offset globalPosition,
+  required double scale,
 }) {
-  final RenderBox box = stackKey.currentContext.findRenderObject();
+  final RenderBox box =
+      stackKey.currentContext!.findRenderObject() as RenderBox;
   var localPosition = box.globalToLocal(globalPosition);
   return Offset(
     localPosition.dx / scale,
@@ -1787,7 +1793,7 @@ String getControlLabelPositionLabel(ControlLabelPosition pos) {
   }
 }
 
-TableRow createSettingRow({String label, Widget child}) {
+TableRow createSettingRow({required String label, required Widget child}) {
   return TableRow(
     children: [
       SettingRowLabel(label),
@@ -1797,10 +1803,10 @@ TableRow createSettingRow({String label, Widget child}) {
 }
 
 class MinusPlus extends StatelessWidget {
-  final VoidCallback onMinus;
-  final VoidCallback onPlus;
+  final VoidCallback? onMinus;
+  final VoidCallback? onPlus;
 
-  const MinusPlus({Key key, this.onMinus, this.onPlus}) : super(key: key);
+  const MinusPlus({Key? key, this.onMinus, this.onPlus}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -1821,11 +1827,11 @@ class MinusPlus extends StatelessWidget {
 }
 
 class ControlLabelPositionDropdownButton extends StatelessWidget {
-  final ControlLabelPosition value;
+  final ControlLabelPosition? value;
   final Function(ControlLabelPosition pos) onChanged;
 
   const ControlLabelPositionDropdownButton(
-      {Key key, this.value, this.onChanged})
+      {Key? key, this.value, required this.onChanged})
       : super(key: key);
 
   @override
@@ -1843,16 +1849,22 @@ class ControlLabelPositionDropdownButton extends StatelessWidget {
                 child: Text(getControlLabelPositionLabel(value)),
               );
             }).toList(),
-            onChanged: onChanged,
+            onChanged: (ControlLabelPosition? pos) {
+              if (pos == null) {
+                return;
+              }
+              onChanged(pos);
+            },
           );
   }
 }
 
 class SizeConstrainedCheckbox extends StatelessWidget {
-  final bool sizeConstrained;
+  final bool? sizeConstrained;
   final Function(bool sizeConstrained) onChanged;
 
-  const SizeConstrainedCheckbox({Key key, this.sizeConstrained, this.onChanged})
+  const SizeConstrainedCheckbox(
+      {Key? key, this.sizeConstrained, required this.onChanged})
       : super(key: key);
 
   @override
@@ -1864,7 +1876,10 @@ class SizeConstrainedCheckbox extends StatelessWidget {
           )
         : Checkbox(
             value: sizeConstrained,
-            onChanged: (bool value) {
+            onChanged: (bool? value) {
+              if (value == null) {
+                return;
+              }
               onChanged(value);
             },
           );
@@ -1872,32 +1887,31 @@ class SizeConstrainedCheckbox extends StatelessWidget {
 }
 
 class RotationSlider extends StatelessWidget {
-  final int angle;
+  final int? angle;
   final Function(int angle) onChanged;
   final bool onlyReverseAllowed;
 
   const RotationSlider({
-    Key key,
+    Key? key,
     this.angle,
-    this.onChanged,
+    required this.onChanged,
     this.onlyReverseAllowed = false,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return angle == null
+    final a = angle;
+    return a == null
         ? TextButton(
             child: multipleText,
             onPressed: () => onChanged(0),
           )
         : Slider(
-            value: onlyReverseAllowed
-                ? (angle == 180 ? 180 : 0)
-                : angle.toDouble(),
+            value: onlyReverseAllowed ? (a == 180 ? 180 : 0) : a.toDouble(),
             min: 0,
             max: onlyReverseAllowed ? 180 : 270,
             divisions: onlyReverseAllowed ? 1 : 3,
-            label: '$angle°',
+            label: '$a°',
             onChanged: (double value) {
               onChanged(value.toInt());
             },
@@ -1957,14 +1971,14 @@ class _CircularAttr {
   final double startAngle;
   final Direction direction;
 
-  _CircularAttr({this.startAngle, this.direction});
+  _CircularAttr({required this.startAngle, required this.direction});
 }
 
 bool isDotted(preferences.BorderStyle style) {
   return style == preferences.BorderStyle.dotted;
 }
 
-T getValueIfAllEqual<T>(
+T? getValueIfAllEqual<T>(
   List<ControlData> controls,
   T Function(ControlData control) getValue,
 ) {

@@ -20,10 +20,10 @@ class ConnectionDataPalette {
       required this.sessionId,
       required this.isGenerated,
       this.certContent})
-      : assert(host != null && host.isNotEmpty),
-        assert(httpPort != null && httpPort.isNotEmpty),
-        assert(httpsPort != null && httpsPort.isNotEmpty),
-        assert(sessionId != null && sessionId.isNotEmpty);
+      : assert(host.isNotEmpty),
+        assert(httpPort.isNotEmpty),
+        assert(httpsPort.isNotEmpty),
+        assert(sessionId.isNotEmpty);
 
   bool isLocalhost() {
     return host == "localhost" || host == "127.0.0.1";

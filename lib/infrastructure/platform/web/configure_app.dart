@@ -36,7 +36,7 @@ class _WebAppConfig implements AppConfig {
   final TlsPolicy tlsPolicy;
   final SecurityPlatform securityPlatform;
 
-  _WebAppConfig({this.tlsPolicy, this.securityPlatform});
+  _WebAppConfig({required this.tlsPolicy, required this.securityPlatform});
 
   @override
   WebQrCodeScan scanQrCode(BuildContext context) {
@@ -45,15 +45,16 @@ class _WebAppConfig implements AppConfig {
 
   @override
   Future<bool> deviceHasCamera() async {
-    if (window.navigator.mediaDevices == null) {
+    final mediaDevices = window.navigator.mediaDevices;
+    if (mediaDevices == null) {
       return false;
     }
-    var devices = await window.navigator.mediaDevices.enumerateDevices();
+    var devices = await mediaDevices.enumerateDevices();
     return devices.any((dev) => dev.kind == 'videoinput');
   }
 
   @override
-  Uri createCertObjectUrl(String certContent) {
+  Uri? createCertObjectUrl(String certContent) {
     const mimeType = "application/pkix-cert";
     if (browser.isSafari) {
       // Unfortunately, Safari doesn't see a profile when downloading a blob
@@ -66,8 +67,13 @@ class _WebAppConfig implements AppConfig {
   }
 
   @override
-  Widget svgImage(String assetPath,
-      {Color color, BoxFit fit, double width, double height}) {
+  Widget svgImage(
+    String assetPath, {
+    required Color color,
+    required BoxFit fit,
+    required double width,
+    required double height,
+  }) {
     return Image.network(
       assetPath,
       color: color,
@@ -78,7 +84,7 @@ class _WebAppConfig implements AppConfig {
   }
 
   @override
-  String get initialRoute => null;
+  String? get initialRoute => null;
 }
 
 SecurityPlatform _getSecurityPlatform() {
@@ -95,6 +101,7 @@ SecurityPlatform _getSecurityPlatform() {
       return SecurityPlatform.macOS;
     }
   }
+  throw UnsupportedError("unknown web security platform");
 }
 
 final List<String> _iOsNeedles = [
@@ -108,9 +115,9 @@ final List<String> _iOsNeedles = [
 
 bool isIOs() {
   var foundNeedle = _iOsNeedles.any((name) =>
-      window.navigator.platform.contains(name) ||
+      (window.navigator.platform?.contains(name) ?? false) ||
       window.navigator.userAgent.contains(name));
-  return foundNeedle || window.navigator.maxTouchPoints > 0;
+  return foundNeedle || (window.navigator.maxTouchPoints ?? 0) > 0;
 }
 
 bool isAndroid() =>

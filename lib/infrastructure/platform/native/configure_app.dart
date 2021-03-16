@@ -33,13 +33,14 @@ SecurityPlatform getNativeSecurityPlatform() {
   if (Platform.isMacOS) {
     return SecurityPlatform.macOS;
   }
+  throw UnsupportedError("unknown native security platform");
 }
 
 class _NativeAppConfig implements AppConfig {
   final SecurityPlatform securityPlatform;
-  final String initialRoute;
+  final String? initialRoute;
 
-  _NativeAppConfig({this.securityPlatform, this.initialRoute});
+  _NativeAppConfig({required this.securityPlatform, this.initialRoute});
 
   TlsPolicy get tlsPolicy {
     switch (securityPlatform) {
@@ -71,15 +72,20 @@ class _NativeAppConfig implements AppConfig {
   }
 
   @override
-  Uri createCertObjectUrl(String content) {
+  Uri? createCertObjectUrl(String content) {
     // This shouldn't be necessary anyway in a native app because we can choose
     // to be fine with a self-signed certificate (at least on Android).
     return null;
   }
 
   @override
-  Widget svgImage(String assetPath,
-      {Color color, BoxFit fit, double width, double height}) {
+  Widget svgImage(
+    String assetPath, {
+    required Color color,
+    required BoxFit fit,
+    required double width,
+    required double height,
+  }) {
     return SvgPicture.asset(
       assetPath,
       color: color,
@@ -92,7 +98,7 @@ class _NativeAppConfig implements AppConfig {
 
 class _CustomHttpOverrides extends HttpOverrides {
   @override
-  HttpClient createHttpClient(SecurityContext context) {
+  HttpClient createHttpClient(SecurityContext? context) {
     var customContext = new SecurityContext(withTrustedRoots: false);
     // customContext.setTrustedCertificates("realearn.cer");
     var client = super.createHttpClient(customContext);

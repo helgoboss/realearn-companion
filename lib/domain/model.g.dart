@@ -9,7 +9,7 @@ part of 'model.dart';
 RealearnEvent _$RealearnEventFromJson(Map<String, dynamic> json) {
   return RealearnEvent(
     path: json['path'] as String,
-    body: json['body'] as Map<String, dynamic>,
+    body: json['body'] as Map<String, dynamic>?,
   );
 }
 
@@ -24,10 +24,9 @@ Controller _$ControllerFromJson(Map<String, dynamic> json) {
   return Controller(
     id: json['id'] as String,
     name: json['name'] as String,
-    mappings: (json['mappings'] as List)
-        ?.map((e) =>
-            e == null ? null : Mapping.fromJson(e as Map<String, dynamic>))
-        ?.toList(),
+    mappings: (json['mappings'] as List<dynamic>?)
+        ?.map((e) => Mapping.fromJson(e as Map<String, dynamic>))
+        .toList(),
     customData: json['customData'] == null
         ? null
         : CustomControllerData.fromJson(
@@ -54,12 +53,11 @@ CustomControllerData _$CustomControllerDataFromJson(Map<String, dynamic> json) {
 CompanionControllerData _$CompanionControllerDataFromJson(
     Map<String, dynamic> json) {
   return CompanionControllerData(
-    gridSize: json['gridSize'] as int,
-    gridDivisionCount: json['gridDivisionCount'] as int,
-    controls: (json['controls'] as List)
-        ?.map((e) =>
-            e == null ? null : ControlData.fromJson(e as Map<String, dynamic>))
-        ?.toList(),
+    gridSize: json['gridSize'] as int?,
+    gridDivisionCount: json['gridDivisionCount'] as int?,
+    controls: (json['controls'] as List<dynamic>?)
+        ?.map((e) => ControlData.fromJson(e as Map<String, dynamic>))
+        .toList(),
   );
 }
 
@@ -74,12 +72,13 @@ Map<String, dynamic> _$CompanionControllerDataToJson(
 ControlData _$ControlDataFromJson(Map<String, dynamic> json) {
   return ControlData(
     id: json['id'] as String,
-    mappings: (json['mappings'] as List)?.map((e) => e as String)?.toList(),
+    mappings:
+        (json['mappings'] as List<dynamic>?)?.map((e) => e as String).toList(),
     shape: _$enumDecodeNullable(_$ControlShapeEnumMap, json['shape']),
-    x: json['x'] as num,
-    y: json['y'] as num,
-    width: json['width'] as num,
-    height: json['height'] as num,
+    x: json['x'] as num?,
+    y: json['y'] as num?,
+    width: json['width'] as num?,
+    height: json['height'] as num?,
     labelOne: json['labelOne'] == null
         ? null
         : LabelSettings.fromJson(json['labelOne'] as Map<String, dynamic>),
@@ -102,36 +101,41 @@ Map<String, dynamic> _$ControlDataToJson(ControlData instance) =>
       'labelTwo': instance.labelTwo,
     };
 
-T _$enumDecode<T>(
-  Map<T, dynamic> enumValues,
-  dynamic source, {
-  T unknownValue,
+K _$enumDecode<K, V>(
+  Map<K, V> enumValues,
+  Object? source, {
+  K? unknownValue,
 }) {
   if (source == null) {
-    throw ArgumentError('A value must be provided. Supported values: '
-        '${enumValues.values.join(', ')}');
+    throw ArgumentError(
+      'A value must be provided. Supported values: '
+      '${enumValues.values.join(', ')}',
+    );
   }
 
-  final value = enumValues.entries
-      .singleWhere((e) => e.value == source, orElse: () => null)
-      ?.key;
-
-  if (value == null && unknownValue == null) {
-    throw ArgumentError('`$source` is not one of the supported values: '
-        '${enumValues.values.join(', ')}');
-  }
-  return value ?? unknownValue;
+  return enumValues.entries.singleWhere(
+    (e) => e.value == source,
+    orElse: () {
+      if (unknownValue == null) {
+        throw ArgumentError(
+          '`$source` is not one of the supported values: '
+          '${enumValues.values.join(', ')}',
+        );
+      }
+      return MapEntry(unknownValue, enumValues.values.first);
+    },
+  ).key;
 }
 
-T _$enumDecodeNullable<T>(
-  Map<T, dynamic> enumValues,
+K? _$enumDecodeNullable<K, V>(
+  Map<K, V> enumValues,
   dynamic source, {
-  T unknownValue,
+  K? unknownValue,
 }) {
   if (source == null) {
     return null;
   }
-  return _$enumDecode<T>(enumValues, source, unknownValue: unknownValue);
+  return _$enumDecode<K, V>(enumValues, source, unknownValue: unknownValue);
 }
 
 const _$ControlShapeEnumMap = {
@@ -144,14 +148,12 @@ ControllerRouting _$ControllerRoutingFromJson(Map<String, dynamic> json) {
     mainPreset: json['mainPreset'] == null
         ? null
         : MainPreset.fromJson(json['mainPreset'] as Map<String, dynamic>),
-    routes: (json['routes'] as Map<String, dynamic>)?.map(
+    routes: (json['routes'] as Map<String, dynamic>?)?.map(
       (k, e) => MapEntry(
           k,
-          (e as List)
-              ?.map((e) => e == null
-                  ? null
-                  : TargetDescriptor.fromJson(e as Map<String, dynamic>))
-              ?.toList()),
+          (e as List<dynamic>)
+              .map((e) => TargetDescriptor.fromJson(e as Map<String, dynamic>))
+              .toList()),
     ),
   );
 }
@@ -166,8 +168,8 @@ LabelSettings _$LabelSettingsFromJson(Map<String, dynamic> json) {
   return LabelSettings(
     position:
         _$enumDecodeNullable(_$ControlLabelPositionEnumMap, json['position']),
-    sizeConstrained: json['sizeConstrained'] as bool,
-    angle: json['angle'] as int,
+    sizeConstrained: json['sizeConstrained'] as bool?,
+    angle: json['angle'] as int?,
   );
 }
 

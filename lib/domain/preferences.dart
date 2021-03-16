@@ -8,7 +8,7 @@ import 'dart:math' as math;
 
 part 'preferences.g.dart';
 
-@JsonSerializable(nullable: true)
+@JsonSerializable()
 class AppPreferences extends ChangeNotifier {
   List<RecentConnection> recentConnections;
   ThemeMode themeMode;
@@ -139,7 +139,7 @@ BorderStyle getNextBorderStyle(BorderStyle value) {
   return BorderStyle.values[(value.index + 1) % BorderStyle.values.length];
 }
 
-@JsonSerializable(nullable: true)
+@JsonSerializable()
 class RecentConnection {
   final String host;
   final String httpPort;

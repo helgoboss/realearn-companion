@@ -25,7 +25,7 @@ class AppWidget extends StatelessWidget {
         return MultiProvider(
           providers: [
             ChangeNotifierProvider(
-                create: (context) => app_prefs_snapshot.data),
+                create: (context) => app_prefs_snapshot.data!),
             ChangeNotifierProvider(create: (context) => ControllerModel()),
             ChangeNotifierProvider(
                 create: (context) => ControllerRoutingModel()),

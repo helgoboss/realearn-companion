@@ -29,26 +29,26 @@ void configureRoutes(FluroRouter router) {
   // hot-reloadable.
   log("Reconfigure routes");
   router.notFoundHandler = Handler(
-      handlerFunc: (BuildContext context, Map<String, List<String>> params) {
+      handlerFunc: (BuildContext? context, Map<String, List<String>> params) {
     return Text("Route doesn't exist");
   });
   router.define(rootRoute, handler: Handler(
-      handlerFunc: (BuildContext context, Map<String, List<String>> params) {
+      handlerFunc: (BuildContext? context, Map<String, List<String>> params) {
     Wakelock.disable();
     return RootWidget();
   }));
   router.define(scanConnectionDataRoute, handler: Handler(
-      handlerFunc: (BuildContext context, Map<String, List<String>> params) {
-    var scan = App.instance.config.scanQrCode(context);
+      handlerFunc: (BuildContext? context, Map<String, List<String>> params) {
+    var scan = App.instance.config.scanQrCode(context!);
     return ScanConnectionDataWidget(
         scannerWidget: scan.widget, result: scan.result);
   }));
   router.define(enterConnectionDataRoute, handler: Handler(
-      handlerFunc: (BuildContext context, Map<String, List<String>> params) {
+      handlerFunc: (BuildContext? context, Map<String, List<String>> params) {
     return EnterConnectionDataWidget();
   }));
   router.define(controllerRoutingRoute, handler: Handler(
-      handlerFunc: (BuildContext context, Map<String, List<String>> params) {
+      handlerFunc: (BuildContext? context, Map<String, List<String>> params) {
     final args = ConnectionArgs.fromParams(params);
     if (!args.isComplete) {
       // TODO-medium Display warning and schedule navigation to root route.
@@ -63,12 +63,12 @@ void configureRoutes(FluroRouter router) {
 }
 
 class ConnectionArgs {
-  final String host;
-  final String httpPort;
-  final String httpsPort;
-  final String sessionId;
-  final String generated;
-  final String cert;
+  final String? host;
+  final String? httpPort;
+  final String? httpsPort;
+  final String? sessionId;
+  final String? generated;
+  final String? cert;
 
   factory ConnectionArgs.fromParams(Map<String, List<String>> params) {
     return ConnectionArgs(
@@ -119,24 +119,24 @@ class ConnectionArgs {
 
   ConnectionDataPalette toPalette() {
     return ConnectionDataPalette(
-        host: host,
-        httpPort: httpPort,
-        httpsPort: httpsPort,
-        sessionId: sessionId,
+        host: host!,
+        httpPort: httpPort!,
+        httpsPort: httpsPort!,
+        sessionId: sessionId!,
         isGenerated: generated == "true",
         certContent: _convertCertArgToContent(cert));
   }
 
   static Codec<String, String> _stringToBase64Url = utf8.fuse(base64Url);
 
-  static String _convertCertContentToArg(String certContent) {
+  static String? _convertCertContentToArg(String? certContent) {
     if (certContent == null) {
       return null;
     }
     return _stringToBase64Url.encode(certContent);
   }
 
-  static String _convertCertArgToContent(String certArg) {
+  static String? _convertCertArgToContent(String? certArg) {
     if (certArg == null) {
       return null;
     }

@@ -8,7 +8,7 @@ class WebQrCodeScan extends QrCodeScan {
   final Completer<String> resultCompleter = new Completer();
 
   @override
-  WebQrCodeScannerWidget widget;
+  late WebQrCodeScannerWidget widget;
 
   WebQrCodeScan() {
     widget = new WebQrCodeScannerWidget(
@@ -24,7 +24,7 @@ class WebQrCodeScan extends QrCodeScan {
 class WebQrCodeScannerWidget extends StatefulWidget {
   final Function(String) callback;
 
-  const WebQrCodeScannerWidget({Key key, @required this.callback})
+  const WebQrCodeScannerWidget({Key? key, required this.callback})
       : super(key: key);
 
   @override
@@ -32,7 +32,7 @@ class WebQrCodeScannerWidget extends StatefulWidget {
 }
 
 class _WebQrCodeScannerWidgetState extends State<WebQrCodeScannerWidget> {
-  IFrameElement _element;
+  late IFrameElement _element;
 
   @override
   void initState() {

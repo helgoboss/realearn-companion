@@ -12,12 +12,12 @@ import 'app_config.dart';
 import 'widgets/app.dart';
 
 class App {
-  static App _instance;
+  static late App _instance;
 
   final AppConfig config;
 
   // We need the router hot-reloadable, so it's not final
-  FluroRouter router;
+  late FluroRouter router;
 
   static run({config: AppConfig}) {
     _instance = App._privateConstructor(config: config);
@@ -26,7 +26,7 @@ class App {
 
   static App get instance => _instance;
 
-  App._privateConstructor({this.config});
+  App._privateConstructor({required this.config});
 
   /**
    * Must be called in a function that's called on hot reload.
