@@ -330,7 +330,6 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
     final controllerTopic = "/realearn/session/$sessionId/controller";
     final controllerRoutingTopic =
         "/realearn/session/$sessionId/controller-routing";
-    // TODO-high Change to "/feedback"
     final feedbackTopic = "/realearn/session/$sessionId/feedback";
     return ChangeNotifierProvider(
       create: (context) => PageModel(),
@@ -339,6 +338,12 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
               child) {
         final feedbackEnabled =
             context.select((AppPreferences prefs) => prefs.feedbackEnabled);
+        final topics = [
+          sessionTopic,
+          controllerTopic,
+          controllerRoutingTopic,
+          if (feedbackEnabled) feedbackTopic
+        ];
         return NormalScaffold(
           padding: EdgeInsets.zero,
           appBar: appBarIsVisible
@@ -347,12 +352,7 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
               : null,
           child: ConnectionBuilder(
             connectionData: widget.connectionData,
-            topics: [
-              sessionTopic,
-              controllerTopic,
-              controllerRoutingTopic,
-              if (feedbackEnabled) feedbackTopic
-            ],
+            topics: topics,
             builder: (BuildContext context, Stream<dynamic> messages) {
               return GestureDetector(
                 behavior: HitTestBehavior.opaque,
