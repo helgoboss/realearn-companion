@@ -12,12 +12,10 @@ part 'model.g.dart';
 class RealearnEvent {
   final RealearnEventType type;
   final String path;
-  final Map<String, dynamic> body;
+  final Map<String, dynamic>? body;
 
-  RealearnEvent(
-      {RealearnEventType? type, required this.path, Map<String, dynamic>? body})
-      : type = type ?? RealearnEventType.put,
-        body = body ?? {};
+  RealearnEvent({RealearnEventType? type, required this.path, this.body})
+      : type = type ?? RealearnEventType.put;
 
   factory RealearnEvent.fromJson(Map<String, dynamic> json) =>
       _$RealearnEventFromJson(json);
@@ -57,6 +55,12 @@ class ControlValuesModel extends ChangeNotifier {
 
   double? getValue(String controlId) {
     return _values[controlId];
+  }
+
+  Map<String, double?> getValues(List<String> controlIds) {
+    return Map.fromEntries(
+      controlIds.map((id) => MapEntry(id, this._values[id])),
+    );
   }
 }
 
