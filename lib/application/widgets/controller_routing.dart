@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:math' as math;
 import 'package:dotted_border/dotted_border.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_arc_text/flutter_arc_text.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
@@ -21,6 +22,7 @@ import 'package:vibration/vibration.dart';
 
 import 'connection_builder.dart';
 import 'normal_scaffold.dart';
+import 'semi_circle.dart';
 
 var uuid = Uuid();
 
@@ -1171,10 +1173,7 @@ class FixedControl extends StatelessWidget {
       if (label == null) {
         return null;
       }
-      return ControlContent(
-        label: label,
-        value: values[id]
-      );
+      return ControlContent(label: label, value: values[id]);
     }).toList();
     return Positioned(
       top: scale * data.y,
@@ -1223,8 +1222,6 @@ class Control extends StatelessWidget {
   final ControlAppearance appearance;
   final preferences.BorderStyle borderStyle;
   final int fontSize;
-
-  // TODO-high Visualize value nicely
 
   const Control({
     Key? key,
@@ -1305,6 +1302,17 @@ class DerivedControlProps {
   });
 
   Color get mainColor => enforcedFillColor ?? theme.colorScheme.primary;
+
+  Color get mainFeedbackColor {
+    switch (appearance) {
+      case ControlAppearance.outlined:
+      case ControlAppearance.outlinedMono:
+        return mainColor;
+      case ControlAppearance.filled:
+      case ControlAppearance.filledAndOutlined:
+        return HSLColor.fromColor(mainColor).withLightness(0.4).toColor();
+    }
+  }
 
   TextStyle get baseTextStyle => TextStyle(
         fontWeight: FontWeight.bold,
@@ -1735,6 +1743,8 @@ class CircularControl extends StatelessWidget {
         border: isDotted(borderStyle) ? null : props.border,
       ),
     );
+    final valueOne = contents[0]?.value;
+    final valueTwo = contents[1]?.value;
     return Container(
       width: actualDiameter,
       height: actualDiameter,
@@ -1744,6 +1754,15 @@ class CircularControl extends StatelessWidget {
           isDotted(borderStyle)
               ? props.createDottedCircularBorder(child: core)
               : core,
+          if (valueOne != null)
+            Container(
+              margin: EdgeInsets.all(props.strokeWidth),
+              child: SemiCircle(
+                diameter: actualDiameter,
+                degrees: valueOne * 360,
+                color: props.mainFeedbackColor,
+              ),
+            ),
           if (contents.length > 0)
             labelOnePosition == ControlLabelPosition.center
                 ? createCenterText(
