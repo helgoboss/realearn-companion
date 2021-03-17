@@ -1313,6 +1313,12 @@ class DerivedControlProps {
     }
   }
 
+  BoxDecoration get mainFeedbackBoxDecoration {
+    return new BoxDecoration(
+      color: mainFeedbackColor,
+    );
+  }
+
   TextStyle get baseTextStyle => TextStyle(
         fontWeight: FontWeight.bold,
         fontSize: fontSize.toDouble(),
@@ -1358,9 +1364,9 @@ class DerivedControlProps {
       case ControlAppearance.outlined:
       case ControlAppearance.filled:
       case ControlAppearance.filledAndOutlined:
-      return labelOneIsInside && !strokeOnly
-          ? theme.colorScheme.onPrimary
-          : theme.colorScheme.onSurface;
+        return labelOneIsInside && !strokeOnly
+            ? theme.colorScheme.onPrimary
+            : theme.colorScheme.onSurface;
     }
   }
 
@@ -1373,9 +1379,9 @@ class DerivedControlProps {
       case ControlAppearance.outlined:
       case ControlAppearance.filled:
       case ControlAppearance.filledAndOutlined:
-      return labelTwoIsInside && !strokeOnly
-          ? theme.colorScheme.onPrimary
-          : theme.colorScheme.onSurface;
+        return labelTwoIsInside && !strokeOnly
+            ? theme.colorScheme.onPrimary
+            : theme.colorScheme.onSurface;
     }
   }
 
@@ -1386,8 +1392,15 @@ class DerivedControlProps {
 
   Color? get decorationColor => strokeOnly ? null : mainColor;
 
-  BoxBorder get border {
-    return Border.all(width: strokeWidth, color: borderColor);
+  BoxBorder? get border {
+    switch (appearance) {
+      case ControlAppearance.filled:
+        return null;
+      case ControlAppearance.filledAndOutlined:
+      case ControlAppearance.outlined:
+      case ControlAppearance.outlinedMono:
+        return Border.all(width: strokeWidth, color: borderColor);
+    }
   }
 
   Radius get borderRadius {
@@ -1499,8 +1512,8 @@ class RectangularControl extends StatelessWidget {
       theme: Theme.of(context),
       fontSize: fontSize,
     );
-    final labelOne = contents.length > 0 ? contents[0] : null;
-    final labelTwo = contents.length > 1 ? contents[1] : null;
+    final contentOne = contents.length > 0 ? contents[0] : null;
+    final contentTwo = contents.length > 1 ? contents[1] : null;
     final scaledWidth = scale * width;
     final scaledHeight = scale * height;
     Positioned buildLabelText(
@@ -1538,12 +1551,22 @@ class RectangularControl extends StatelessWidget {
       }
     }
 
-    var core = Container(
+    final valueOne = contents.length > 0 ? contents[0]?.value : null;
+    final valueTwo = contents.length > 1 ? contents[1]?.value : null;
+    final core = Container(
+      clipBehavior: Clip.hardEdge,
+      alignment: Alignment.bottomLeft,
       width: scaledWidth.toDouble(),
       height: scaledHeight.toDouble(),
       decoration: isDotted(borderStyle)
           ? props.boxDecoration
           : props.solidBoxDecoration,
+      child: valueOne == null
+          ? null
+          : Container(
+              height: valueOne * scaledHeight.toDouble(),
+              decoration: props.mainFeedbackBoxDecoration,
+            ),
     );
     return Stack(
       // We want to draw text outside of the stack's dimensions!
@@ -1554,17 +1577,17 @@ class RectangularControl extends StatelessWidget {
                 child: core,
               )
             : core,
-        if (labelOne != null)
+        if (contentOne != null)
           buildLabelText(
-            labelOne.label,
+            contentOne.label,
             position: labelOnePosition,
             angle: labelOneAngle,
             style: props.labelOneTextStyle,
             sizeConstrained: labelOneSizeConstrained,
           ),
-        if (labelTwo != null)
+        if (contentTwo != null)
           buildLabelText(
-            labelTwo.label,
+            contentTwo.label,
             position: labelTwoPosition,
             angle: labelTwoAngle,
             style: props.labelTwoTextStyle,
@@ -1772,8 +1795,8 @@ class CircularControl extends StatelessWidget {
         border: isDotted(borderStyle) ? null : props.border,
       ),
     );
-    final valueOne = contents[0]?.value;
-    final valueTwo = contents[1]?.value;
+    final valueOne = contents.length > 0 ? contents[0]?.value : null;
+    final valueTwo = contents.length > 1 ? contents[1]?.value : null;
     return Container(
       width: actualDiameter,
       height: actualDiameter,
