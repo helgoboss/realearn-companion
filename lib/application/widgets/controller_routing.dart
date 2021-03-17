@@ -1423,24 +1423,41 @@ class DerivedControlProps {
   }
 
   DottedBorder createDottedRectangleBorder({required Widget child}) {
+    return createDottedBorder(child: child, borderType: BorderType.RRect);
+  }
+
+  Widget createNormalRectangleBorder({required Widget child}) {
+    return Stack(
+      children: <Widget>[
+        child,
+        Positioned.fill(
+          child: Container(
+            decoration: BoxDecoration(
+              border: border,
+              borderRadius: BorderRadius.all(borderRadius),
+            ),
+            padding: EdgeInsets.zero,
+          ),
+        ),
+      ],
+    );
+  }
+
+  DottedBorder createDottedCircularBorder({required Widget child}) {
+    return createDottedBorder(child: child, borderType: BorderType.Circle);
+  }
+
+  DottedBorder createDottedBorder({
+    required Widget child,
+    required BorderType borderType,
+  }) {
     return DottedBorder(
       color: borderColor,
       strokeWidth: strokeWidth,
       child: child,
       padding: EdgeInsets.zero,
       radius: borderRadius,
-      borderType: BorderType.RRect,
-    );
-  }
-
-  DottedBorder createDottedCircularBorder({required Widget child}) {
-    return DottedBorder(
-      color: borderColor,
-      strokeWidth: strokeWidth,
-      child: child,
-      padding: EdgeInsets.zero,
-      borderType: BorderType.Circle,
-      strokeCap: StrokeCap.butt,
+      borderType: borderType,
     );
   }
 
@@ -1558,9 +1575,7 @@ class RectangularControl extends StatelessWidget {
       alignment: Alignment.bottomLeft,
       width: scaledWidth.toDouble(),
       height: scaledHeight.toDouble(),
-      decoration: isDotted(borderStyle)
-          ? props.boxDecoration
-          : props.solidBoxDecoration,
+      decoration: props.boxDecoration,
       child: valueOne == null
           ? null
           : Container(
@@ -1576,7 +1591,9 @@ class RectangularControl extends StatelessWidget {
             ? props.createDottedRectangleBorder(
                 child: core,
               )
-            : core,
+            : props.createNormalRectangleBorder(
+                child: core,
+              ),
         if (contentOne != null)
           buildLabelText(
             contentOne.label,
@@ -1788,15 +1805,25 @@ class CircularControl extends StatelessWidget {
       }
     }
 
+    final valueOne = contents.length > 0 ? contents[0]?.value : null;
+    final valueTwo = contents.length > 1 ? contents[1]?.value : null;
     var core = Container(
       decoration: new BoxDecoration(
         color: props.decorationColor,
         shape: BoxShape.circle,
         border: isDotted(borderStyle) ? null : props.border,
       ),
+      child: valueOne == null
+          ? null
+          : Container(
+              margin: EdgeInsets.all(0),
+              child: SemiCircle(
+                diameter: actualDiameter,
+                degrees: valueOne * 360,
+                color: props.mainFeedbackColor,
+              ),
+            ),
     );
-    final valueOne = contents.length > 0 ? contents[0]?.value : null;
-    final valueTwo = contents.length > 1 ? contents[1]?.value : null;
     return Container(
       width: actualDiameter,
       height: actualDiameter,
@@ -1806,15 +1833,6 @@ class CircularControl extends StatelessWidget {
           isDotted(borderStyle)
               ? props.createDottedCircularBorder(child: core)
               : core,
-          if (valueOne != null)
-            Container(
-              margin: EdgeInsets.all(props.strokeWidth),
-              child: SemiCircle(
-                diameter: actualDiameter,
-                degrees: valueOne * 360,
-                color: props.mainFeedbackColor,
-              ),
-            ),
           if (contents.length > 0)
             labelOnePosition == ControlLabelPosition.center
                 ? createCenterText(
