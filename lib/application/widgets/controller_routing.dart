@@ -4,7 +4,6 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:math' as math;
 import 'package:dotted_border/dotted_border.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_arc_text/flutter_arc_text.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
@@ -1325,13 +1324,40 @@ class DerivedControlProps {
   }
 
   TextStyle get labelTwoTextStyle {
-    return baseTextStyle.copyWith(color: enforcedFontColor ?? labelTwoColor);
+    return baseTextStyle.copyWith(
+      color: enforcedFontColor ?? labelTwoColor,
+      shadows: labelTwoTextShadows,
+    );
+  }
+
+  List<Shadow> get darkTextShadows {
+    return [
+      Shadow(
+        offset: Offset(1.0, 1.0),
+        blurRadius: 5.0,
+        color: Color.fromARGB(255, 0, 0, 0),
+      )
+    ];
+  }
+
+  List<Shadow> get labelTwoTextShadows {
+    switch (appearance) {
+      case ControlAppearance.outlined:
+        return darkTextShadows;
+      case ControlAppearance.outlinedMono:
+      case ControlAppearance.filled:
+      case ControlAppearance.filledAndOutlined:
+        return [];
+    }
   }
 
   Color get labelOneColor {
-    if (appearance == ControlAppearance.outlinedMono) {
-      return theme.colorScheme.primary;
-    } else {
+    switch (appearance) {
+      case ControlAppearance.outlinedMono:
+        return theme.colorScheme.primary;
+      case ControlAppearance.outlined:
+      case ControlAppearance.filled:
+      case ControlAppearance.filledAndOutlined:
       return labelOneIsInside && !strokeOnly
           ? theme.colorScheme.onPrimary
           : theme.colorScheme.onSurface;
@@ -1339,11 +1365,14 @@ class DerivedControlProps {
   }
 
   Color get labelTwoColor {
-    if (appearance == ControlAppearance.outlinedMono) {
-      return labelTwoIsInside && !strokeOnly
-          ? theme.colorScheme.onBackground
-          : theme.colorScheme.secondary;
-    } else {
+    switch (appearance) {
+      case ControlAppearance.outlinedMono:
+        return labelTwoIsInside && !strokeOnly
+            ? theme.colorScheme.onBackground
+            : theme.colorScheme.secondary;
+      case ControlAppearance.outlined:
+      case ControlAppearance.filled:
+      case ControlAppearance.filledAndOutlined:
       return labelTwoIsInside && !strokeOnly
           ? theme.colorScheme.onPrimary
           : theme.colorScheme.onSurface;
