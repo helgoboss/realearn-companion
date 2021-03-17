@@ -29,6 +29,8 @@ class AppWidget extends StatelessWidget {
             ChangeNotifierProvider(create: (context) => ControllerModel()),
             ChangeNotifierProvider(
                 create: (context) => ControllerRoutingModel()),
+            ChangeNotifierProvider(
+                create: (context) => ControlValuesModel()),
           ],
           child: Consumer<AppPreferences>(
             builder: (context, prefs, _) {

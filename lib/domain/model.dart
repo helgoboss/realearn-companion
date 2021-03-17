@@ -10,15 +10,20 @@ part 'model.g.dart';
 
 @JsonSerializable(createToJson: false)
 class RealearnEvent {
+  final RealearnEventType type;
   final String path;
   final Map<String, dynamic> body;
 
-  RealearnEvent({required this.path, Map<String, dynamic>? body})
-      : body = body ?? {};
+  RealearnEvent(
+      {RealearnEventType? type, required this.path, Map<String, dynamic>? body})
+      : type = type ?? RealearnEventType.put,
+        body = body ?? {};
 
   factory RealearnEvent.fromJson(Map<String, dynamic> json) =>
       _$RealearnEventFromJson(json);
 }
+
+enum RealearnEventType { put, patch }
 
 class ControllerRoutingModel extends ChangeNotifier {
   ControllerRouting _controllerRouting = ControllerRouting.empty();
@@ -32,6 +37,26 @@ class ControllerRoutingModel extends ChangeNotifier {
   void set controllerRouting(ControllerRouting controllerRouting) {
     this._controllerRouting = controllerRouting;
     notifyListeners();
+  }
+}
+
+class ControlValuesModel extends ChangeNotifier {
+  Map<String, double> _values = {};
+
+  ControlValuesModel();
+
+  void set values(Map<String, double> values) {
+    this._values = values;
+    notifyListeners();
+  }
+
+  void updateValues(Map<String, double> values) {
+    values.addAll(values);
+    notifyListeners();
+  }
+
+  double? getValue(String controlId) {
+    return _values[controlId];
   }
 }
 

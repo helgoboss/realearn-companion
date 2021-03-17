@@ -411,7 +411,15 @@ class ControllerRoutingContainerState
     messagesSubscription = widget.messages.listen((data) {
       var jsonObject = jsonDecode(data);
       var realearnEvent = RealearnEvent.fromJson(jsonObject);
-      if (realearnEvent.path.endsWith("/controller")) {
+      if (realearnEvent.path.endsWith("/control-value")) {
+        final values = Map<String, double>.from(realearnEvent.body);
+        final controlValuesModel = context.read<ControlValuesModel>();
+        if (realearnEvent.type == RealearnEventType.patch) {
+          controlValuesModel.updateValues(values);
+        } else {
+          controlValuesModel.values = values;
+        }
+      } else if (realearnEvent.path.endsWith("/controller")) {
         final controllerModel = context.read<ControllerModel>();
         controllerModel.controller = realearnEvent.body == null
             ? null
@@ -1129,6 +1137,7 @@ class FixedControl extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final valuesModel = context.watch<ControlValuesModel>();
     return Positioned(
       top: scale * data.y,
       left: scale * data.x,
@@ -1147,6 +1156,7 @@ class FixedControl extends StatelessWidget {
         appearance: appearance,
         borderStyle: borderStyle,
         fontSize: fontSize,
+        value: valuesModel.getValue(data.id),
       ),
     );
   }
@@ -1169,6 +1179,7 @@ class Control extends StatelessWidget {
   final ControlAppearance appearance;
   final preferences.BorderStyle borderStyle;
   final int fontSize;
+  final double? value;
 
   const Control({
     Key? key,
@@ -1188,6 +1199,7 @@ class Control extends StatelessWidget {
     this.fontSize = defaultFontSize,
     this.labelOneSizeConstrained = true,
     this.labelTwoSizeConstrained = true,
+    this.value,
   }) : super(key: key);
 
   @override
@@ -1208,6 +1220,7 @@ class Control extends StatelessWidget {
         fontColor: fontColor,
         borderStyle: borderStyle,
         fontSize: fontSize,
+        value: value,
       );
     } else {
       return RectangularControl(
@@ -1575,6 +1588,7 @@ class CircularControl extends StatelessWidget {
   final Color? fontColor;
   final preferences.BorderStyle borderStyle;
   final int fontSize;
+  final double? value;
 
   const CircularControl({
     Key? key,
@@ -1592,6 +1606,7 @@ class CircularControl extends StatelessWidget {
     required this.fontSize,
     this.fillColor,
     this.fontColor,
+    this.value,
   }) : super(key: key);
 
   @override
@@ -1679,6 +1694,7 @@ class CircularControl extends StatelessWidget {
         border: isDotted(borderStyle) ? null : props.border,
       ),
     );
+    final value = this.value;
     return Container(
       width: actualDiameter,
       height: actualDiameter,
@@ -1688,6 +1704,12 @@ class CircularControl extends StatelessWidget {
           isDotted(borderStyle)
               ? props.createDottedCircularBorder(child: core)
               : core,
+          if (value != null)
+            createCenterText(
+              (value * 100).toStringAsFixed(0),
+              style: props.labelOneTextStyle,
+              angle: labelOneAngle,
+            ),
           if (labels.length > 0)
             labelOnePosition == ControlLabelPosition.center
                 ? createCenterText(
