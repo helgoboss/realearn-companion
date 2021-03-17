@@ -18,6 +18,7 @@ class AppPreferences extends ChangeNotifier {
   ControlAppearance controlAppearance;
   BorderStyle borderStyle;
   int fontSize;
+  bool feedbackEnabled;
 
   static Future<AppPreferences> load() async {
     var prefs = await SharedPreferences.getInstance();
@@ -41,6 +42,7 @@ class AppPreferences extends ChangeNotifier {
     ControlAppearance? controlAppearance,
     BorderStyle? borderStyle,
     int? fontSize,
+    bool? feedbackEnabled,
   })  : recentConnections = recentConnections ?? [],
         themeMode = themeMode ?? ThemeMode.dark,
         highContrastEnabled = highContrastEnabled ?? false,
@@ -48,12 +50,18 @@ class AppPreferences extends ChangeNotifier {
         gridEnabled = gridEnabled ?? true,
         controlAppearance = controlAppearance ?? ControlAppearance.outlinedMono,
         borderStyle = borderStyle ?? BorderStyle.dotted,
-        fontSize = fontSize ?? 14;
+        fontSize = fontSize ?? 14,
+        feedbackEnabled = feedbackEnabled ?? true;
 
   Map<String, dynamic> toJson() => _$AppPreferencesToJson(this);
 
   void switchThemeMode() {
     themeMode = getNextThemeMode(themeMode);
+    _notifyAndSave();
+  }
+
+  void toggleFeedback() {
+    feedbackEnabled = !feedbackEnabled;
     _notifyAndSave();
   }
 

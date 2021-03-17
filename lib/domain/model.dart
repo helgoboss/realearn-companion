@@ -51,7 +51,7 @@ class ControlValuesModel extends ChangeNotifier {
   }
 
   void updateValues(Map<String, double> values) {
-    values.addAll(values);
+    _values.addAll(values);
     notifyListeners();
   }
 

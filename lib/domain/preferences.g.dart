@@ -20,6 +20,7 @@ AppPreferences _$AppPreferencesFromJson(Map<String, dynamic> json) {
     borderStyle:
         _$enumDecodeNullable(_$BorderStyleEnumMap, json['borderStyle']),
     fontSize: json['fontSize'] as int?,
+    feedbackEnabled: json['feedbackEnabled'] as bool?,
   );
 }
 
@@ -34,6 +35,7 @@ Map<String, dynamic> _$AppPreferencesToJson(AppPreferences instance) =>
           _$ControlAppearanceEnumMap[instance.controlAppearance],
       'borderStyle': _$BorderStyleEnumMap[instance.borderStyle],
       'fontSize': instance.fontSize,
+      'feedbackEnabled': instance.feedbackEnabled,
     };
 
 K _$enumDecode<K, V>(

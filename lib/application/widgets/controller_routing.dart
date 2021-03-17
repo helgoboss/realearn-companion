@@ -306,22 +306,39 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
                         },
                       ),
                     ),
+                  if (!pageModel.isInEditMode)
+                    PopupMenuItem(
+                      child: Consumer<AppPreferences>(
+                        builder: (context, prefs, child) {
+                          return CheckboxListTile(
+                            value: prefs.feedbackEnabled,
+                            controlAffinity: ListTileControlAffinity.leading,
+                            onChanged: (_) => prefs.toggleFeedback(),
+                            title: Text('Feedback'),
+                          );
+                        },
+                      ),
+                    ),
                 ];
               },
             ),
           ]);
     }
 
-    var sessionId = widget.connectionData.sessionId;
-    var sessionTopic = "/realearn/session/$sessionId";
-    var controllerTopic = "/realearn/session/$sessionId/controller";
-    var controllerRoutingTopic =
+    final sessionId = widget.connectionData.sessionId;
+    final sessionTopic = "/realearn/session/$sessionId";
+    final controllerTopic = "/realearn/session/$sessionId/controller";
+    final controllerRoutingTopic =
         "/realearn/session/$sessionId/controller-routing";
+    // TODO-high Change to "/feedback"
+    final feedbackTopic = "/realearn/session/$sessionId/feedback";
     return ChangeNotifierProvider(
       create: (context) => PageModel(),
       child: Consumer3<ControllerModel, ControllerRoutingModel, PageModel>(
           builder: (context, controllerModel, controllerRoutingModel, pageModel,
               child) {
+        final feedbackEnabled =
+            context.select((AppPreferences prefs) => prefs.feedbackEnabled);
         return NormalScaffold(
           padding: EdgeInsets.zero,
           appBar: appBarIsVisible
@@ -330,7 +347,12 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
               : null,
           child: ConnectionBuilder(
             connectionData: widget.connectionData,
-            topics: [sessionTopic, controllerTopic, controllerRoutingTopic],
+            topics: [
+              sessionTopic,
+              controllerTopic,
+              controllerRoutingTopic,
+              if (feedbackEnabled) feedbackTopic
+            ],
             builder: (BuildContext context, Stream<dynamic> messages) {
               return GestureDetector(
                 behavior: HitTestBehavior.opaque,
@@ -411,7 +433,7 @@ class ControllerRoutingContainerState
     messagesSubscription = widget.messages.listen((data) {
       var jsonObject = jsonDecode(data);
       var realearnEvent = RealearnEvent.fromJson(jsonObject);
-      if (realearnEvent.path.endsWith("/control-value")) {
+      if (realearnEvent.path.endsWith("/feedback")) {
         final values = Map<String, double>.from(realearnEvent.body);
         final controlValuesModel = context.read<ControlValuesModel>();
         if (realearnEvent.type == RealearnEventType.patch) {
@@ -1137,7 +1159,7 @@ class FixedControl extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final valuesModel = context.watch<ControlValuesModel>();
+    final value = context.select((ControlValuesModel m) => m.getValue(data.id));
     return Positioned(
       top: scale * data.y,
       left: scale * data.x,
@@ -1156,7 +1178,7 @@ class FixedControl extends StatelessWidget {
         appearance: appearance,
         borderStyle: borderStyle,
         fontSize: fontSize,
-        value: valuesModel.getValue(data.id),
+        value: value,
       ),
     );
   }
