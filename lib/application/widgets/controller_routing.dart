@@ -1337,6 +1337,22 @@ class DerivedControlProps {
     }
   }
 
+  Color get secondaryFeedbackColor {
+    switch (appearance) {
+      case ControlAppearance.outlinedMono:
+      case ControlAppearance.filledAndOutlined:
+        return theme.colorScheme.secondary;
+      case ControlAppearance.filled:
+      case ControlAppearance.outlined:
+        switch (theme.brightness) {
+          case Brightness.light:
+            return theme.colorScheme.secondary;
+          case Brightness.dark:
+            return theme.colorScheme.onSurface;
+        }
+    }
+  }
+
   BoxDecoration get mainFeedbackBoxDecoration {
     return new BoxDecoration(
       color: mainFeedbackColor,
@@ -1601,15 +1617,21 @@ class RectangularControl extends StatelessWidget {
     final valueTwo = contents.length > 1 ? contents[1]?.value : null;
     final core = Container(
       clipBehavior: Clip.hardEdge,
-      alignment: scaledWidth > scaledHeight ? Alignment.centerLeft : Alignment.bottomCenter,
+      alignment: scaledWidth > scaledHeight
+          ? Alignment.centerLeft
+          : Alignment.bottomCenter,
       width: scaledWidth.toDouble(),
       height: scaledHeight.toDouble(),
       decoration: props.boxDecoration,
       child: valueOne == null
           ? null
           : Container(
-              height: scaledWidth > scaledHeight ? null : valueOne * scaledHeight.toDouble(),
-              width: scaledWidth > scaledHeight ? valueOne * scaledWidth.toDouble() : null,
+              height: scaledWidth > scaledHeight
+                  ? null
+                  : valueOne * scaledHeight.toDouble(),
+              width: scaledWidth > scaledHeight
+                  ? valueOne * scaledWidth.toDouble()
+                  : null,
               decoration: props.mainFeedbackBoxDecoration,
             ),
     );
@@ -1851,6 +1873,7 @@ class CircularControl extends StatelessWidget {
                 diameter: actualDiameter,
                 degrees: valueOne * 360,
                 color: props.mainFeedbackColor,
+                fill: true,
               ),
             ),
     );
@@ -1863,6 +1886,16 @@ class CircularControl extends StatelessWidget {
           isDotted(borderStyle)
               ? props.createDottedCircularBorder(child: core)
               : core,
+          if (valueTwo != null)
+            Container(
+              margin: EdgeInsets.all(1),
+              child: SemiCircle(
+                diameter: actualDiameter,
+                degrees: valueTwo * 360,
+                color: props.secondaryFeedbackColor,
+                fill: false,
+              ),
+            ),
           if (contents.length > 0)
             labelOnePosition == ControlLabelPosition.center
                 ? createCenterText(
