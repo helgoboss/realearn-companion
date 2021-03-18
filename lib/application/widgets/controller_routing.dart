@@ -1601,14 +1601,15 @@ class RectangularControl extends StatelessWidget {
     final valueTwo = contents.length > 1 ? contents[1]?.value : null;
     final core = Container(
       clipBehavior: Clip.hardEdge,
-      alignment: Alignment.bottomLeft,
+      alignment: scaledWidth > scaledHeight ? Alignment.centerLeft : Alignment.bottomCenter,
       width: scaledWidth.toDouble(),
       height: scaledHeight.toDouble(),
       decoration: props.boxDecoration,
       child: valueOne == null
           ? null
           : Container(
-              height: valueOne * scaledHeight.toDouble(),
+              height: scaledWidth > scaledHeight ? null : valueOne * scaledHeight.toDouble(),
+              width: scaledWidth > scaledHeight ? valueOne * scaledWidth.toDouble() : null,
               decoration: props.mainFeedbackBoxDecoration,
             ),
     );
