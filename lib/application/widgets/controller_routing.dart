@@ -314,7 +314,20 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
                           return CheckboxListTile(
                             value: prefs.feedbackEnabled,
                             controlAffinity: ListTileControlAffinity.leading,
-                            onChanged: (_) => prefs.toggleFeedback(),
+                            onChanged: (_) {
+                              prefs.toggleFeedback();
+                              if (prefs.feedbackEnabled) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    duration: Duration(milliseconds: 1500),
+                                    backgroundColor: theme.accentColor,
+                                    content: Text(
+                                      "You might need to reconnect to see feedback!",
+                                    ),
+                                  ),
+                                );
+                              }
+                            },
                             title: Text('Feedback'),
                           );
                         },
