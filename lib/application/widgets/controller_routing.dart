@@ -1336,20 +1336,25 @@ class DerivedControlProps {
     );
   }
 
-  List<Shadow> get darkTextShadows {
-    return [
-      Shadow(
-        offset: Offset(1.0, 1.0),
-        blurRadius: 5.0,
-        color: Color.fromARGB(255, 0, 0, 0),
-      )
-    ];
+  List<Shadow> get textShadows {
+    switch (theme.brightness) {
+      case Brightness.light:
+        return [];
+      case Brightness.dark:
+        return [
+          Shadow(
+            offset: Offset(1.0, 1.0),
+            blurRadius: 5.0,
+            color: theme.colorScheme.onPrimary,
+          )
+        ];
+    }
   }
 
   List<Shadow> get labelTwoTextShadows {
     switch (appearance) {
       case ControlAppearance.outlined:
-        return darkTextShadows;
+        return textShadows;
       case ControlAppearance.outlinedMono:
       case ControlAppearance.filled:
       case ControlAppearance.filledAndOutlined:
