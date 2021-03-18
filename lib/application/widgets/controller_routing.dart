@@ -593,13 +593,13 @@ class ControllerRoutingWidget extends StatelessWidget {
                         return routing.routes[mappingId] ?? [];
                       }).toList();
                       return FixedControl(
-                        labels: getLabels(descriptorsForEachMapping),
-                        data: data,
-                        scale: scale,
-                        appearance: prefs.controlAppearance,
-                        borderStyle: prefs.borderStyle,
-                        fontSize: prefs.fontSize,
-                      );
+                          labels: getLabels(descriptorsForEachMapping),
+                          data: data,
+                          scale: scale,
+                          appearance: prefs.controlAppearance,
+                          borderStyle: prefs.borderStyle,
+                          fontSize: prefs.fontSize,
+                          feedbackEnabled: prefs.feedbackEnabled);
                     }
                   }).toList();
                   return GridPaper(
@@ -1150,6 +1150,7 @@ class FixedControl extends StatelessWidget {
   final ControlAppearance appearance;
   final preferences.BorderStyle borderStyle;
   final int fontSize;
+  final bool feedbackEnabled;
 
   const FixedControl({
     Key? key,
@@ -1159,28 +1160,18 @@ class FixedControl extends StatelessWidget {
     required this.appearance,
     required this.borderStyle,
     required this.fontSize,
+    required this.feedbackEnabled,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final values =
-        context.select((ControlValuesModel m) => m.getValues(data.mappings));
-    var i = 0;
-    final contents = data.mappings.map((id) {
-      final label = i < labels.length ? labels[i] : null;
-      i += 1;
-      if (label == null) {
-        return null;
-      }
-      return ControlContent(label: label, value: values[id]);
-    }).toList();
     return Positioned(
       top: scale * data.y,
       left: scale * data.x,
       child: Control(
         height: data.height,
         width: data.width,
-        contents: contents,
+        contents: getContents(context),
         shape: data.shape,
         scale: scale,
         labelOnePosition: data.labelOne.position,
@@ -1194,6 +1185,26 @@ class FixedControl extends StatelessWidget {
         fontSize: fontSize,
       ),
     );
+  }
+
+  List<ControlContent?> getContents(BuildContext context) {
+    if (feedbackEnabled) {
+      final values =
+          context.select((ControlValuesModel m) => m.getValues(data.mappings));
+      var i = 0;
+      return data.mappings.map((id) {
+        final label = i < labels.length ? labels[i] : null;
+        i += 1;
+        if (label == null) {
+          return null;
+        }
+        return ControlContent(label: label, value: values[id]);
+      }).toList();
+    } else {
+      return labels
+          .map((l) => l == null ? null : ControlContent(label: l))
+          .toList();
+    }
   }
 }
 
