@@ -1359,6 +1359,12 @@ class DerivedControlProps {
     );
   }
 
+  BoxDecoration get secondaryFeedbackBoxDecoration {
+    return new BoxDecoration(
+      color: secondaryFeedbackColor,
+    );
+  }
+
   TextStyle get baseTextStyle => TextStyle(
         fontWeight: FontWeight.bold,
         fontSize: fontSize.toDouble(),
@@ -1623,16 +1629,40 @@ class RectangularControl extends StatelessWidget {
       width: scaledWidth.toDouble(),
       height: scaledHeight.toDouble(),
       decoration: props.boxDecoration,
-      child: valueOne == null
+      child: valueOne == null && valueTwo == null
           ? null
-          : Container(
-              height: scaledWidth > scaledHeight
-                  ? null
-                  : valueOne * scaledHeight.toDouble(),
-              width: scaledWidth > scaledHeight
-                  ? valueOne * scaledWidth.toDouble()
-                  : null,
-              decoration: props.mainFeedbackBoxDecoration,
+          : Flex(
+              direction:
+                  scaledWidth > scaledHeight ? Axis.vertical : Axis.horizontal,
+              crossAxisAlignment: scaledWidth > scaledHeight
+                  ? CrossAxisAlignment.start
+                  : CrossAxisAlignment.end,
+              children: [
+                if (valueOne != null)
+                  Expanded(
+                    child: Container(
+                      height: scaledWidth > scaledHeight
+                          ? null
+                          : valueOne * scaledHeight.toDouble(),
+                      width: scaledWidth > scaledHeight
+                          ? valueOne * scaledWidth.toDouble()
+                          : null,
+                      decoration: props.mainFeedbackBoxDecoration,
+                    ),
+                  ),
+                if (valueTwo != null)
+                  Expanded(
+                    child: Container(
+                      height: scaledWidth > scaledHeight
+                          ? null
+                          : valueTwo * scaledHeight.toDouble(),
+                      width: scaledWidth > scaledHeight
+                          ? valueTwo * scaledWidth.toDouble()
+                          : null,
+                      decoration: props.secondaryFeedbackBoxDecoration,
+                    ),
+                  ),
+              ],
             ),
     );
     return Stack(
