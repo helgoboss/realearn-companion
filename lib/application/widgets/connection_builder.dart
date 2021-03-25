@@ -198,6 +198,7 @@ class ConnectionBuilderState extends State<ConnectionBuilder> {
                 name: "Download profile", url: certificateDownloadUrl));
       case SecurityPlatform.Windows:
       case SecurityPlatform.macOS:
+      case SecurityPlatform.Linux:
         return TrustInstructions(
           lines: [
             header,
@@ -213,8 +214,6 @@ class ConnectionBuilderState extends State<ConnectionBuilder> {
             url: trustExceptionUrl,
           ),
         );
-      case SecurityPlatform.Linux:
-        return TrustInstructions(lines: ["TODO Linux trust instructions"]);
     }
   }
 
