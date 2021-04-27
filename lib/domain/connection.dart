@@ -11,25 +11,25 @@ class ConnectionDataPalette {
   final String httpsPort;
   final String sessionId;
   final bool isGenerated;
-  final String certContent;
+  final String? certContent;
 
   ConnectionDataPalette(
-      {@required this.host,
-      @required this.httpPort,
-      @required this.httpsPort,
-      @required this.sessionId,
-      @required this.isGenerated,
+      {required this.host,
+      required this.httpPort,
+      required this.httpsPort,
+      required this.sessionId,
+      required this.isGenerated,
       this.certContent})
-      : assert(host != null && host.isNotEmpty),
-        assert(httpPort != null && httpPort.isNotEmpty),
-        assert(httpsPort != null && httpsPort.isNotEmpty),
-        assert(sessionId != null && sessionId.isNotEmpty);
+      : assert(host.isNotEmpty),
+        assert(httpPort.isNotEmpty),
+        assert(httpsPort.isNotEmpty),
+        assert(sessionId.isNotEmpty);
 
   bool isLocalhost() {
     return host == "localhost" || host == "127.0.0.1";
   }
 
-  ConnectionData use({bool tls}) {
+  ConnectionData use({required bool tls}) {
     return ConnectionData(tls, this);
   }
 }
@@ -57,7 +57,7 @@ class ConnectionData {
 
   String get port => tls ? palette.httpsPort : palette.httpPort;
 
-  String get certContent => palette.certContent;
+  String? get certContent => palette.certContent;
 
   String get sessionId => palette.sessionId;
 

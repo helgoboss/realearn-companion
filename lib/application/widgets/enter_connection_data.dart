@@ -36,10 +36,10 @@ class EnterConnectionDataForm extends StatefulWidget {
 
 class EnterConnectionDataFormState extends State<EnterConnectionDataForm> {
   final _formKey = GlobalKey<FormState>();
-  TextEditingController hostController;
-  TextEditingController httpPortController;
-  TextEditingController httpsPortController;
-  TextEditingController sessionIdController;
+  late TextEditingController hostController;
+  late TextEditingController httpPortController;
+  late TextEditingController httpsPortController;
+  late TextEditingController sessionIdController;
 
   @override
   void initState() {
@@ -92,7 +92,7 @@ class EnterConnectionDataFormState extends State<EnterConnectionDataForm> {
                 labelText: 'ReaLearn session ID',
                 helperText: "ID of a particular ReaLearn session"),
             validator: (value) {
-              if (value.isEmpty) {
+              if (value == null || value.isEmpty) {
                 return 'Please enter a valid session ID';
               }
               return null;
@@ -101,7 +101,7 @@ class EnterConnectionDataFormState extends State<EnterConnectionDataForm> {
           Space(),
           ElevatedButton(
             onPressed: () {
-              if (_formKey.currentState.validate()) {
+              if (_formKey.currentState?.validate() ?? false) {
                 var connectionArgs = ConnectionArgs(
                   host: hostController.value.text,
                   httpPort: httpPortController.value.text,
@@ -123,7 +123,10 @@ var portNumberErrorMsg = 'Please enter a valid port number';
 var hostNamePattern = RegExp(
     r"^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])(\.([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9]))*$");
 
-bool isValidIpAddressOrHostName(String value) {
+bool isValidIpAddressOrHostName(String? value) {
+  if (value == null) {
+    return false;
+  }
   // IP addresses are also valid host names!
   return hostNamePattern.hasMatch(value);
 }
@@ -134,18 +137,18 @@ bool isValidPortNumber(String value) {
 }
 
 class PortField extends StatelessWidget {
-  final String labelText;
-  final String helperText;
-  final String hintText;
-  final TextEditingController controller;
+  final String? labelText;
+  final String? helperText;
+  final String? hintText;
+  final TextEditingController? controller;
 
-  const PortField(
-      {Key key,
-      this.labelText,
-      this.helperText,
-      this.hintText,
-      this.controller})
-      : super(key: key);
+  const PortField({
+    Key? key,
+    this.labelText,
+    this.helperText,
+    this.hintText,
+    this.controller,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -158,7 +161,7 @@ class PortField extends StatelessWidget {
           helperText: helperText,
           hintText: hintText),
       validator: (value) {
-        if (!isValidPortNumber(value)) {
+        if (value == null || !isValidPortNumber(value)) {
           return portNumberErrorMsg;
         }
         return null;

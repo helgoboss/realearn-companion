@@ -25,9 +25,9 @@ class ConnectionBuilder extends StatefulWidget {
   final Widget Function(BuildContext context, Stream<dynamic> messages) builder;
 
   ConnectionBuilder({
-    this.connectionData,
-    this.topics,
-    this.builder,
+    required this.connectionData,
+    required this.topics,
+    required this.builder,
   });
 
   @override
@@ -96,17 +96,18 @@ class ConnectionBuilderState extends State<ConnectionBuilder> {
       connectionStatus = ConnectionStatus.TrustIssue;
     });
     var instructions = getTrustInstructions();
+    var action = instructions.action;
     var dialog = AlertDialog(
       title: Text("Almost there!"),
       content: SingleChildScrollView(
         child: MarkdownBody(data: instructions.lines.join("\n")),
       ),
       actions: [
-        if (instructions.action != null)
+        if (action != null)
           TextButton(
-            child: Text(instructions.action.name),
+            child: Text(action.name),
             onPressed: () {
-              launch(instructions.action.url.toString());
+              launch(action.url.toString());
             },
           ),
         TextButton(
@@ -139,14 +140,15 @@ class ConnectionBuilderState extends State<ConnectionBuilder> {
    * that exposes the server certificate via HTTP without TLS.
    */
   Uri get certificateDownloadUrl {
-    var data = widget.connectionData;
-    if (data.certContent == null) {
+    final data = widget.connectionData;
+    final certContent = data.certContent;
+    if (certContent == null) {
       // QR code didn't contain certificate content or connection data was
       // entered manually. Fall back to insecure server-facing certificate
       // download URL.
       return insecureCertificateDownloadUrl;
     }
-    return App.instance.config.createCertObjectUrl(data.certContent) ??
+    return App.instance.config.createCertObjectUrl(certContent) ??
         insecureCertificateDownloadUrl;
   }
 
@@ -196,6 +198,7 @@ class ConnectionBuilderState extends State<ConnectionBuilder> {
                 name: "Download profile", url: certificateDownloadUrl));
       case SecurityPlatform.Windows:
       case SecurityPlatform.macOS:
+      case SecurityPlatform.Linux:
         return TrustInstructions(
           lines: [
             header,
@@ -211,8 +214,6 @@ class ConnectionBuilderState extends State<ConnectionBuilder> {
             url: trustExceptionUrl,
           ),
         );
-      case SecurityPlatform.Linux:
-        return TrustInstructions(lines: ["TODO Linux trust instructions"]);
     }
   }
 
@@ -318,14 +319,14 @@ class ConnectionBuilderState extends State<ConnectionBuilder> {
 
 class TrustInstructions {
   final List<String> lines;
-  final TrustAction action;
+  final TrustAction? action;
 
-  TrustInstructions({this.lines, this.action});
+  TrustInstructions({required this.lines, this.action});
 }
 
 class TrustAction {
   final String name;
   final Uri url;
 
-  TrustAction({this.name, this.url});
+  TrustAction({required this.name, required this.url});
 }

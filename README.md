@@ -11,9 +11,6 @@ representation of your currently active ReaLearn controller to your mobile devic
 
 ## Development
 
-Right now requires Flutter dev channel version 1.24.0-3.0.pre (as of this writing, higher versions
-have [this bug](https://github.com/flutter/flutter/issues/69254)).
-
 ### Generate code
 
 Generated code is committed, so this needs to be executed only after changing files that influence
@@ -72,6 +69,24 @@ After adjusting `resources/icon.png`, run this:
 
 ```sh
 flutter pub run flutter_native_splash:create
+```
+
+### Upgrade to new Flutter version
+
+```
+flutter channel stable
+flutter upgrade
+```
+
+Sometimes it seems necessary to recreate the native app folders (if the templates changed). Was
+necessary for [this issue](https://github.com/flutter/flutter/pull/68931/files) for example.
+
+For Windows:
+
+```
+rm windows
+rm build/windows
+flutter create --platforms=windows .
 ```
 
 ### Release

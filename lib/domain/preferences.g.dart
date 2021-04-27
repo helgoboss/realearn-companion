@@ -8,20 +8,19 @@ part of 'preferences.dart';
 
 AppPreferences _$AppPreferencesFromJson(Map<String, dynamic> json) {
   return AppPreferences(
-    recentConnections: (json['recentConnections'] as List)
-        ?.map((e) => e == null
-            ? null
-            : RecentConnection.fromJson(e as Map<String, dynamic>))
-        ?.toList(),
+    recentConnections: (json['recentConnections'] as List<dynamic>?)
+        ?.map((e) => RecentConnection.fromJson(e as Map<String, dynamic>))
+        .toList(),
     themeMode: _$enumDecodeNullable(_$ThemeModeEnumMap, json['themeMode']),
-    highContrastEnabled: json['highContrastEnabled'] as bool,
-    backgroundImageEnabled: json['backgroundImageEnabled'] as bool,
-    gridEnabled: json['gridEnabled'] as bool,
+    highContrastEnabled: json['highContrastEnabled'] as bool?,
+    backgroundImageEnabled: json['backgroundImageEnabled'] as bool?,
+    gridEnabled: json['gridEnabled'] as bool?,
     controlAppearance: _$enumDecodeNullable(
         _$ControlAppearanceEnumMap, json['controlAppearance']),
     borderStyle:
         _$enumDecodeNullable(_$BorderStyleEnumMap, json['borderStyle']),
-    fontSize: json['fontSize'] as int,
+    fontSize: json['fontSize'] as int?,
+    feedbackEnabled: json['feedbackEnabled'] as bool?,
   );
 }
 
@@ -36,38 +35,44 @@ Map<String, dynamic> _$AppPreferencesToJson(AppPreferences instance) =>
           _$ControlAppearanceEnumMap[instance.controlAppearance],
       'borderStyle': _$BorderStyleEnumMap[instance.borderStyle],
       'fontSize': instance.fontSize,
+      'feedbackEnabled': instance.feedbackEnabled,
     };
 
-T _$enumDecode<T>(
-  Map<T, dynamic> enumValues,
-  dynamic source, {
-  T unknownValue,
+K _$enumDecode<K, V>(
+  Map<K, V> enumValues,
+  Object? source, {
+  K? unknownValue,
 }) {
   if (source == null) {
-    throw ArgumentError('A value must be provided. Supported values: '
-        '${enumValues.values.join(', ')}');
+    throw ArgumentError(
+      'A value must be provided. Supported values: '
+      '${enumValues.values.join(', ')}',
+    );
   }
 
-  final value = enumValues.entries
-      .singleWhere((e) => e.value == source, orElse: () => null)
-      ?.key;
-
-  if (value == null && unknownValue == null) {
-    throw ArgumentError('`$source` is not one of the supported values: '
-        '${enumValues.values.join(', ')}');
-  }
-  return value ?? unknownValue;
+  return enumValues.entries.singleWhere(
+    (e) => e.value == source,
+    orElse: () {
+      if (unknownValue == null) {
+        throw ArgumentError(
+          '`$source` is not one of the supported values: '
+          '${enumValues.values.join(', ')}',
+        );
+      }
+      return MapEntry(unknownValue, enumValues.values.first);
+    },
+  ).key;
 }
 
-T _$enumDecodeNullable<T>(
-  Map<T, dynamic> enumValues,
+K? _$enumDecodeNullable<K, V>(
+  Map<K, V> enumValues,
   dynamic source, {
-  T unknownValue,
+  K? unknownValue,
 }) {
   if (source == null) {
     return null;
   }
-  return _$enumDecode<T>(enumValues, source, unknownValue: unknownValue);
+  return _$enumDecode<K, V>(enumValues, source, unknownValue: unknownValue);
 }
 
 const _$ThemeModeEnumMap = {
@@ -94,7 +99,7 @@ RecentConnection _$RecentConnectionFromJson(Map<String, dynamic> json) {
     httpPort: json['httpPort'] as String,
     httpsPort: json['httpsPort'] as String,
     sessionId: json['sessionId'] as String,
-    certContent: json['certContent'] as String,
+    certContent: json['certContent'] as String?,
   );
 }
 

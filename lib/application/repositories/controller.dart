@@ -9,7 +9,7 @@ class ControllerRepository {
 
   ControllerRepository(this.connectionData);
 
-  void save(Controller controller) async {
+  save(Controller controller) async {
     final r = await http.patch(
       connectionData.httpBaseUri
           .resolve('/realearn/controller/${controller.id}'),

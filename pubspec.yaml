@@ -18,42 +18,42 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 0.4.0+4
 
 environment:
-  sdk: ">=2.7.0 <3.0.0"
+  sdk: '>=2.12.0 <3.0.0'
 
 dependencies:
   flutter:
     sdk: flutter
-  web_socket_channel: 1.1.0
-  json_serializable: 3.5.0
-  http: 0.12.2
-  fluro: ^1.7.8
+  web_socket_channel: ^2.0.0
+  json_serializable: ^4.0.3
+  http: ^0.13.0
+  fluro: ^2.0.3
   flutter_web_plugins:
     sdk: flutter
-  platform_detect: 1.4.0
-  flutter_svg: 0.19.1
+  platform_detect2: ^1.5.0+2
+  flutter_svg: ^0.21.0-nullsafety.0
   barcode_scan: ^3.0.1
   camera: ^0.5.8+11
-  provider: ^4.3.2+2
-  flutter_markdown: ^0.5.0
-  stream_transform: ^1.2.0
-  url_launcher: ^5.7.8
-  shared_preferences: ^0.5.12+4
-  uuid: 2.2.2
-  flutter_arc_text: ^0.3.1
-  vibration: ^1.7.2
-  dotted_border: ^1.0.6
-  wakelock: ^0.2.1+1
+  provider: ^5.0.0
+  flutter_markdown: ^0.6.0
+  stream_transform: ^2.0.0
+  url_launcher: ^6.0.2
+  shared_preferences: ^2.0.4
+  uuid: ^3.0.1
+  flutter_arc_text: ^0.4.0
+  vibration: ^1.7.4-nullsafety.0
+  dotted_border: ^2.0.0-nullsafety.0
+  wakelock: ^0.5.0+2
 
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^0.1.3
+  cupertino_icons: ^1.0.2
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  build_runner: ^1.0.0
-  flutter_native_splash: ^0.1.9
+  build_runner: ^1.11.1
+  flutter_native_splash: ^1.1.0
 
 flutter_native_splash:
   image: resources/icon.png

@@ -7,8 +7,8 @@ import 'package:realearn_companion/domain/preferences.dart';
 import '../app.dart';
 
 class NormalScaffold extends StatelessWidget {
-  final Widget child;
-  final AppBar appBar;
+  final Widget? child;
+  final AppBar? appBar;
   final EdgeInsets padding;
 
   static AppBar defaultAppBar() {
@@ -18,7 +18,7 @@ class NormalScaffold extends StatelessWidget {
   }
 
   const NormalScaffold({
-    Key key,
+    Key? key,
     this.child,
     this.appBar,
     this.padding = const EdgeInsets.symmetric(horizontal: 30),

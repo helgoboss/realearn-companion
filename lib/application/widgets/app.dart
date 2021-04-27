@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:realearn_companion/application/app_config.dart';
 import 'package:realearn_companion/application/widgets/splash_screen.dart';
 import 'package:realearn_companion/domain/model.dart';
 import 'package:realearn_companion/domain/preferences.dart';
@@ -24,16 +25,20 @@ class AppWidget extends StatelessWidget {
         return MultiProvider(
           providers: [
             ChangeNotifierProvider(
-                create: (context) => app_prefs_snapshot.data),
+                create: (context) => app_prefs_snapshot.data!),
             ChangeNotifierProvider(create: (context) => ControllerModel()),
             ChangeNotifierProvider(
                 create: (context) => ControllerRoutingModel()),
+            ChangeNotifierProvider(
+                create: (context) => ControlValuesModel()),
           ],
           child: Consumer<AppPreferences>(
             builder: (context, prefs, _) {
               debugPrint("Rebuilding material app");
               return MaterialApp(
                 title: 'ReaLearn Companion',
+                // initialRoute: App.instance.config.initialRoute,
+                initialRoute: App.instance.config.initialRoute,
                 debugShowCheckedModeBanner: false,
                 theme: ThemeData(
                   brightness: Brightness.light,

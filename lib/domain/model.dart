@@ -4,19 +4,24 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:collection/collection.dart';
 
 part 'model.g.dart';
 
-@JsonSerializable(createToJson: false, nullable: true)
+@JsonSerializable(createToJson: false)
 class RealearnEvent {
+  final RealearnEventType type;
   final String path;
-  final Map<String, dynamic> body;
+  final Map<String, dynamic>? body;
 
-  RealearnEvent({this.path, this.body});
+  RealearnEvent({RealearnEventType? type, required this.path, this.body})
+      : type = type ?? RealearnEventType.put;
 
   factory RealearnEvent.fromJson(Map<String, dynamic> json) =>
       _$RealearnEventFromJson(json);
 }
+
+enum RealearnEventType { put, patch }
 
 class ControllerRoutingModel extends ChangeNotifier {
   ControllerRouting _controllerRouting = ControllerRouting.empty();
@@ -33,13 +38,39 @@ class ControllerRoutingModel extends ChangeNotifier {
   }
 }
 
+class ControlValuesModel extends ChangeNotifier {
+  Map<String, double> _values = {};
+
+  ControlValuesModel();
+
+  void set values(Map<String, double> values) {
+    this._values = values;
+    notifyListeners();
+  }
+
+  void updateValues(Map<String, double> values) {
+    _values.addAll(values);
+    notifyListeners();
+  }
+
+  double? getValue(String controlId) {
+    return _values[controlId];
+  }
+
+  Map<String, double?> getValues(List<String> controlIds) {
+    return Map.fromEntries(
+      controlIds.map((id) => MapEntry(id, this._values[id])),
+    );
+  }
+}
+
 class ControllerModel extends ChangeNotifier {
-  Controller _controller = null;
+  Controller? _controller = null;
   bool _controllerHasEdits = false;
 
   ControllerModel();
 
-  Controller get controller {
+  Controller? get controller {
     return _controller;
   }
 
@@ -47,95 +78,98 @@ class ControllerModel extends ChangeNotifier {
     return _controllerHasEdits;
   }
 
-  void set controller(Controller controller) {
+  void set controller(Controller? controller) {
     this._controller = controller;
     this._controllerHasEdits = false;
     notifyListeners();
   }
 
   void increaseGridSize() {
-    _controller.increaseGridSize();
+    _controller!.increaseGridSize();
     _notifyAndMarkDirty();
   }
 
   void decreaseGridSize() {
-    _controller.decreaseGridSize();
+    _controller!.decreaseGridSize();
     _notifyAndMarkDirty();
   }
 
   void increaseControlWidth(Iterable<String> controlIds) {
     changeControls(controlIds, (c) {
-      _controller.increaseControlWidth(c);
+      _controller!.increaseControlWidth(c);
     });
     _notifyAndMarkDirty();
   }
 
   void decreaseControlWidth(Iterable<String> controlIds) {
     changeControls(controlIds, (c) {
-      _controller.decreaseControlWidth(c);
+      _controller!.decreaseControlWidth(c);
     });
     _notifyAndMarkDirty();
   }
 
   void increaseControlHeight(Iterable<String> controlIds) {
     changeControls(controlIds, (c) {
-      _controller.increaseControlHeight(c);
+      _controller!.increaseControlHeight(c);
     });
     _notifyAndMarkDirty();
   }
 
   void decreaseControlHeight(Iterable<String> controlIds) {
     changeControls(controlIds, (c) {
-      _controller.decreaseControlHeight(c);
+      _controller!.decreaseControlHeight(c);
     });
     _notifyAndMarkDirty();
   }
 
   void alignControlPositionsToGrid() {
-    _controller.alignControlPositionsToGrid();
+    _controller!.alignControlPositionsToGrid();
     _notifyAndMarkDirty();
   }
 
   void addControl(ControlData control) {
-    _controller.addControl(control);
+    _controller!.addControl(control);
     _notifyAndMarkDirty();
   }
 
   void removeControl(String controlId) {
-    _controller.removeControl(controlId);
+    _controller!.removeControl(controlId);
     _notifyAndMarkDirty();
   }
 
   void uniteControls(ControlData survivor, ControlData donator) {
-    _controller.uniteControls(survivor, donator);
+    _controller!.uniteControls(survivor, donator);
     _notifyAndMarkDirty();
   }
 
   void moveControlsBy(Iterable<String> controlIds, int x, int y) {
     changeControls(controlIds, (c) {
-      _controller.moveControlBy(c, x, y);
+      _controller!.moveControlBy(c, x, y);
     });
     _notifyAndMarkDirty();
   }
 
   void changeControl(String controlId, Function(ControlData control) op) {
     final control = findControlById(controlId);
-    assert(control != null);
-    op(control);
+    op(control!);
     _notifyAndMarkDirty();
   }
 
   void changeControls(
       Iterable<String> controlIds, Function(ControlData control) op) {
-    final controls = controlIds.map(findControlById);
+    final controls = this.findControlsByIds(controlIds);
     for (final control in controls) {
       op(control);
     }
     _notifyAndMarkDirty();
   }
 
-  ControlData findControlById(String controlId) {
-    return _controller.customData.companion.findById(controlId);
+  Iterable<ControlData> findControlsByIds(Iterable<String> controlIds) {
+    return controlIds.map(findControlById).whereNotNull();
+  }
+
+  ControlData? findControlById(String controlId) {
+    return _controller!.customData.companion.findById(controlId);
   }
 
   void _notifyAndMarkDirty() {
@@ -144,7 +178,7 @@ class ControllerModel extends ChangeNotifier {
   }
 }
 
-@JsonSerializable(createToJson: false, nullable: true)
+@JsonSerializable(createToJson: false)
 class MainPreset {
   final String id;
   final String name;
@@ -152,10 +186,10 @@ class MainPreset {
   factory MainPreset.fromJson(Map<String, dynamic> json) =>
       _$MainPresetFromJson(json);
 
-  MainPreset({this.id, this.name});
+  MainPreset({required this.id, required this.name});
 }
 
-@JsonSerializable(createToJson: false, nullable: true)
+@JsonSerializable(createToJson: false)
 class Controller {
   final String id;
   final String name;
@@ -165,20 +199,24 @@ class Controller {
   factory Controller.fromJson(Map<String, dynamic> json) =>
       _$ControllerFromJson(json);
 
-  Controller(
-      {this.id, this.name, this.mappings, CustomControllerData customData})
-      : customData = customData ?? CustomControllerData();
+  Controller({
+    required this.id,
+    required this.name,
+    List<Mapping>? mappings,
+    CustomControllerData? customData,
+  })  : mappings = mappings ?? [],
+        customData = customData ?? CustomControllerData();
 
   List<ControlData> get controls {
     return customData.companion.controls;
   }
 
-  Mapping findMappingById(String mappingId) {
-    return mappings.firstWhere((m) => m.id == mappingId, orElse: () => null);
+  Mapping? findMappingById(String mappingId) {
+    return mappings.firstWhereOrNull((m) => m.id == mappingId);
   }
 
   Size calcTotalSize() {
-    return customData.companion.calcTotalSize() ?? Size.zero;
+    return customData.companion.calcTotalSize();
   }
 
   int get gridSize {
@@ -231,29 +269,29 @@ class Controller {
   }
 }
 
-@JsonSerializable(createToJson: false, nullable: true)
+@JsonSerializable(createToJson: false)
 class Mapping {
   final String id;
   final String name;
 
-  Mapping({this.id, this.name});
+  Mapping({required this.id, required this.name});
 
   factory Mapping.fromJson(Map<String, dynamic> json) =>
       _$MappingFromJson(json);
 }
 
-@JsonSerializable(createToJson: false, nullable: true)
+@JsonSerializable(createToJson: false)
 class CustomControllerData {
   CompanionControllerData companion;
 
   factory CustomControllerData.fromJson(Map<String, dynamic> json) =>
       _$CustomControllerDataFromJson(json);
 
-  CustomControllerData({CompanionControllerData companion})
+  CustomControllerData({CompanionControllerData? companion})
       : companion = companion ?? CompanionControllerData();
 }
 
-@JsonSerializable(createToJson: true, nullable: true)
+@JsonSerializable(createToJson: true)
 class CompanionControllerData {
   int gridSize;
   int gridDivisionCount;
@@ -263,9 +301,9 @@ class CompanionControllerData {
       _$CompanionControllerDataFromJson(json);
 
   CompanionControllerData({
-    int gridSize,
-    int gridDivisionCount,
-    List<ControlData> controls,
+    int? gridSize,
+    int? gridDivisionCount,
+    List<ControlData>? controls,
   })  : gridSize = math.max(minGridSize, gridSize ?? defaultGridSize),
         gridDivisionCount =
             math.min(maxGridDivisionCount, gridDivisionCount ?? 2),
@@ -335,8 +373,8 @@ class CompanionControllerData {
     control.alignPositionToGrid(gridSize);
   }
 
-  ControlData findById(String controlId) {
-    return controls.firstWhere((c) => c.id == controlId, orElse: () => null);
+  ControlData? findById(String controlId) {
+    return controls.firstWhereOrNull((c) => c.id == controlId);
   }
 
   Map<String, dynamic> toJson() => _$CompanionControllerDataToJson(this);
@@ -344,7 +382,7 @@ class CompanionControllerData {
 
 enum ControlShape { rectangle, circle }
 
-@JsonSerializable(createToJson: true, nullable: true)
+@JsonSerializable(createToJson: true)
 class ControlData {
   final String id;
   List<String> mappings;
@@ -362,19 +400,19 @@ class ControlData {
       _$ControlDataFromJson(json);
 
   ControlData({
-    this.id,
-    List<String> mappings,
-    ControlShape shape,
-    num x,
-    num y,
-    num width,
-    num height,
-    LabelSettings labelOne,
-    LabelSettings labelTwo,
+    required this.id,
+    List<String>? mappings,
+    ControlShape? shape,
+    num? x,
+    num? y,
+    num? width,
+    num? height,
+    LabelSettings? labelOne,
+    LabelSettings? labelTwo,
   })  : mappings = mappings ?? [],
         shape = shape ?? ControlShape.circle,
-        x = math.max(0, x.toInt() ?? 0),
-        y = math.max(0, y.toInt() ?? 0),
+        x = math.max(0, x?.toInt() ?? 0),
+        y = math.max(0, y?.toInt() ?? 0),
         width = math.max(minControlSize, width?.toInt() ?? defaultControlSize),
         height =
             math.max(minControlSize, height?.toInt() ?? defaultControlSize),
@@ -432,15 +470,15 @@ int roundNumberToGridSize(int number, int gridSize) {
   return (number.toDouble() / gridSize).round() * gridSize;
 }
 
-@JsonSerializable(createToJson: false, nullable: true)
+@JsonSerializable(createToJson: false)
 class ControllerRouting {
-  final MainPreset mainPreset;
+  final MainPreset? mainPreset;
   final Map<String, List<TargetDescriptor>> routes;
 
-  const ControllerRouting(
-      {MainPreset mainPreset, Map<String, List<TargetDescriptor>> routes})
-      : mainPreset = mainPreset,
-        routes = routes ?? const {};
+  const ControllerRouting({
+    this.mainPreset,
+    Map<String, List<TargetDescriptor>>? routes,
+  }) : routes = routes ?? const {};
 
   const factory ControllerRouting.empty() = ControllerRouting;
 
@@ -448,11 +486,11 @@ class ControllerRouting {
       _$ControllerRoutingFromJson(json);
 }
 
-@JsonSerializable(createToJson: false, nullable: true)
+@JsonSerializable(createToJson: false)
 class TargetDescriptor {
   final String label;
 
-  TargetDescriptor({this.label});
+  TargetDescriptor({required this.label});
 
   factory TargetDescriptor.fromJson(Map<String, dynamic> json) =>
       _$TargetDescriptorFromJson(json);
@@ -470,16 +508,16 @@ enum ControlLabelPosition {
   rightOfRight,
 }
 
-@JsonSerializable(createToJson: true, nullable: true)
+@JsonSerializable(createToJson: true)
 class LabelSettings {
   ControlLabelPosition position;
   bool sizeConstrained;
   int angle;
 
   LabelSettings({
-    ControlLabelPosition position,
-    bool sizeConstrained,
-    int angle,
+    ControlLabelPosition? position,
+    bool? sizeConstrained,
+    int? angle,
   })  : position = position ?? ControlLabelPosition.aboveTop,
         sizeConstrained = sizeConstrained ?? true,
         angle = angle ?? 0;

@@ -8,7 +8,7 @@ import 'dart:math' as math;
 
 part 'preferences.g.dart';
 
-@JsonSerializable(nullable: true)
+@JsonSerializable()
 class AppPreferences extends ChangeNotifier {
   List<RecentConnection> recentConnections;
   ThemeMode themeMode;
@@ -18,6 +18,7 @@ class AppPreferences extends ChangeNotifier {
   ControlAppearance controlAppearance;
   BorderStyle borderStyle;
   int fontSize;
+  bool feedbackEnabled;
 
   static Future<AppPreferences> load() async {
     var prefs = await SharedPreferences.getInstance();
@@ -33,14 +34,15 @@ class AppPreferences extends ChangeNotifier {
       _$AppPreferencesFromJson(json);
 
   AppPreferences({
-    List<RecentConnection> recentConnections,
-    ThemeMode themeMode,
-    bool highContrastEnabled,
-    bool backgroundImageEnabled,
-    bool gridEnabled,
-    ControlAppearance controlAppearance,
-    BorderStyle borderStyle,
-    int fontSize,
+    List<RecentConnection>? recentConnections,
+    ThemeMode? themeMode,
+    bool? highContrastEnabled,
+    bool? backgroundImageEnabled,
+    bool? gridEnabled,
+    ControlAppearance? controlAppearance,
+    BorderStyle? borderStyle,
+    int? fontSize,
+    bool? feedbackEnabled,
   })  : recentConnections = recentConnections ?? [],
         themeMode = themeMode ?? ThemeMode.dark,
         highContrastEnabled = highContrastEnabled ?? false,
@@ -48,12 +50,18 @@ class AppPreferences extends ChangeNotifier {
         gridEnabled = gridEnabled ?? true,
         controlAppearance = controlAppearance ?? ControlAppearance.outlinedMono,
         borderStyle = borderStyle ?? BorderStyle.dotted,
-        fontSize = fontSize ?? 14;
+        fontSize = fontSize ?? 14,
+        feedbackEnabled = feedbackEnabled ?? true;
 
   Map<String, dynamic> toJson() => _$AppPreferencesToJson(this);
 
   void switchThemeMode() {
     themeMode = getNextThemeMode(themeMode);
+    _notifyAndSave();
+  }
+
+  void toggleFeedback() {
+    feedbackEnabled = !feedbackEnabled;
     _notifyAndSave();
   }
 
@@ -87,8 +95,7 @@ class AppPreferences extends ChangeNotifier {
     _notifyAndSave();
   }
 
-  // Can be null
-  ConnectionDataPalette get lastConnection {
+  ConnectionDataPalette? get lastConnection {
     if (recentConnections.isEmpty) {
       return null;
     }
@@ -140,19 +147,19 @@ BorderStyle getNextBorderStyle(BorderStyle value) {
   return BorderStyle.values[(value.index + 1) % BorderStyle.values.length];
 }
 
-@JsonSerializable(nullable: true)
+@JsonSerializable()
 class RecentConnection {
   final String host;
   final String httpPort;
   final String httpsPort;
   final String sessionId;
-  final String certContent;
+  final String? certContent;
 
   RecentConnection({
-    this.host,
-    this.httpPort,
-    this.httpsPort,
-    this.sessionId,
+    required this.host,
+    required this.httpPort,
+    required this.httpsPort,
+    required this.sessionId,
     this.certContent,
   });
 

@@ -81,9 +81,10 @@ class RootWidget extends StatelessWidget {
 class ProminentButton extends StatelessWidget {
   final Widget icon;
   final String text;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
 
-  const ProminentButton({Key key, this.icon, this.text, this.onPressed})
+  const ProminentButton(
+      {Key? key, required this.icon, required this.text, this.onPressed})
       : super(key: key);
 
   @override
