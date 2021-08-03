@@ -593,6 +593,7 @@ class ControllerRoutingWidget extends StatelessWidget {
                 boundaryMargin: EdgeInsets.all(200),
                 minScale: 0.25,
                 maxScale: 8,
+                clipBehavior: Clip.none,
                 child: LayoutBuilder(builder:
                     (BuildContext context, BoxConstraints constraints) {
                   final controllerWidth =
