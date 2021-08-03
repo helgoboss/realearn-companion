@@ -1,6 +1,3 @@
-import 'dart:developer';
-
-import 'package:fluro/fluro.dart';
 import 'package:flutter/material.dart';
 import 'package:realearn_companion/application/routes.dart';
 import 'package:realearn_companion/domain/preferences.dart';
@@ -25,19 +22,33 @@ class RootWidget extends StatelessWidget {
             style: Theme.of(context).textTheme.headline5,
             textAlign: TextAlign.center,
           ),
-          TextButton.icon(
-            icon: const Icon(Icons.restore),
-            label: Text(
-              "Last session",
-              textScaleFactor: 1.6,
-            ),
-            onPressed: lastConnection == null
-                ? null
-                : () {
-                    var args = ConnectionArgs.fromPalette(lastConnection);
-                    Navigator.pushNamed(
-                        context, getControllerRoutingRoute(args));
-                  },
+          Column(
+            children: [
+              TextButton.icon(
+                icon: const Icon(Icons.restore),
+                label: Text(
+                  "Last session",
+                  textScaleFactor: 1.6,
+                ),
+                onPressed: lastConnection == null
+                    ? null
+                    : () {
+                        var args = ConnectionArgs.fromPalette(lastConnection);
+                        Navigator.pushNamed(
+                            context, getControllerRoutingRoute(args));
+                      },
+              ),
+              Space(),
+              TextButton.icon(
+                  icon: const Icon(Icons.stars),
+                  label: Text(
+                    "Favorites",
+                    textScaleFactor: 1.6,
+                  ),
+                  onPressed: () {
+                    Navigator.pushNamed(context, favoriteConnectionsRoute);
+                  }),
+            ],
           ),
           Flex(
             direction: isPortrait ? Axis.vertical : Axis.horizontal,

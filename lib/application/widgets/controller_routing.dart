@@ -333,6 +333,28 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
                         },
                       ),
                     ),
+                  if (!pageModel.isInEditMode)
+                    PopupMenuItem(
+                      child: Consumer<AppPreferences>(
+                        builder: (context, prefs, child) {
+                          return ListTile(
+                            leading: LeadingMenuBarIcon(
+                              prefs.isFavoriteConnection(
+                                      widget.connectionData.palette)
+                                  ? Icons.star
+                                  : Icons.star_border,
+                            ),
+                            onTap: () {
+                              prefs.toggleFavoriteConnection(
+                                  widget.connectionData.palette,
+                                  controllerName:
+                                      controllerModel.controller?.name);
+                            },
+                            title: Text('Favorite'),
+                          );
+                        },
+                      ),
+                    ),
                 ];
               },
             ),

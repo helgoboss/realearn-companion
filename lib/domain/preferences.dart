@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -11,6 +12,7 @@ part 'preferences.g.dart';
 @JsonSerializable()
 class AppPreferences extends ChangeNotifier {
   List<RecentConnection> recentConnections;
+  LinkedHashSet<RecentConnection> favoriteConnections;
   ThemeMode themeMode;
   bool highContrastEnabled;
   bool backgroundImageEnabled;
@@ -35,6 +37,7 @@ class AppPreferences extends ChangeNotifier {
 
   AppPreferences({
     List<RecentConnection>? recentConnections,
+    List<RecentConnection>? favoriteConnections,
     ThemeMode? themeMode,
     bool? highContrastEnabled,
     bool? backgroundImageEnabled,
@@ -44,6 +47,9 @@ class AppPreferences extends ChangeNotifier {
     int? fontSize,
     bool? feedbackEnabled,
   })  : recentConnections = recentConnections ?? [],
+        favoriteConnections = favoriteConnections == null
+            ? new LinkedHashSet()
+            : LinkedHashSet.from(favoriteConnections),
         themeMode = themeMode ?? ThemeMode.dark,
         highContrastEnabled = highContrastEnabled ?? false,
         backgroundImageEnabled = backgroundImageEnabled ?? true,
@@ -109,6 +115,23 @@ class AppPreferences extends ChangeNotifier {
     _notifyAndSave();
   }
 
+  bool isFavoriteConnection(ConnectionDataPalette palette) {
+    final connection = RecentConnection.fromPalette(palette);
+    return favoriteConnections.contains(connection);
+  }
+
+  void toggleFavoriteConnection(
+    ConnectionDataPalette palette, {
+    String? controllerName,
+  }) {
+    final connection = RecentConnection.fromPalette(palette);
+    connection.controllerName = controllerName;
+    if (!favoriteConnections.remove(connection)) {
+      favoriteConnections.add(connection);
+    }
+    _notifyAndSave();
+  }
+
   void _notifyAndSave() {
     notifyListeners();
     _save();
@@ -154,6 +177,7 @@ class RecentConnection {
   final String httpsPort;
   final String sessionId;
   final String? certContent;
+  String? controllerName;
 
   RecentConnection({
     required this.host,
@@ -161,10 +185,30 @@ class RecentConnection {
     required this.httpsPort,
     required this.sessionId,
     this.certContent,
+    this.controllerName,
   });
 
   factory RecentConnection.fromJson(Map<String, dynamic> json) =>
       _$RecentConnectionFromJson(json);
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is RecentConnection &&
+          runtimeType == other.runtimeType &&
+          host == other.host &&
+          httpPort == other.httpPort &&
+          httpsPort == other.httpsPort &&
+          sessionId == other.sessionId &&
+          certContent == other.certContent;
+
+  @override
+  int get hashCode =>
+      host.hashCode ^
+      httpPort.hashCode ^
+      httpsPort.hashCode ^
+      sessionId.hashCode ^
+      certContent.hashCode;
 
   Map<String, dynamic> toJson() => _$RecentConnectionToJson(this);
 

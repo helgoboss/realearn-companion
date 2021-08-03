@@ -11,6 +11,9 @@ AppPreferences _$AppPreferencesFromJson(Map<String, dynamic> json) {
     recentConnections: (json['recentConnections'] as List<dynamic>?)
         ?.map((e) => RecentConnection.fromJson(e as Map<String, dynamic>))
         .toList(),
+    favoriteConnections: (json['favoriteConnections'] as List<dynamic>?)
+        ?.map((e) => RecentConnection.fromJson(e as Map<String, dynamic>))
+        .toList(),
     themeMode: _$enumDecodeNullable(_$ThemeModeEnumMap, json['themeMode']),
     highContrastEnabled: json['highContrastEnabled'] as bool?,
     backgroundImageEnabled: json['backgroundImageEnabled'] as bool?,
@@ -27,6 +30,7 @@ AppPreferences _$AppPreferencesFromJson(Map<String, dynamic> json) {
 Map<String, dynamic> _$AppPreferencesToJson(AppPreferences instance) =>
     <String, dynamic>{
       'recentConnections': instance.recentConnections,
+      'favoriteConnections': instance.favoriteConnections.toList(),
       'themeMode': _$ThemeModeEnumMap[instance.themeMode],
       'highContrastEnabled': instance.highContrastEnabled,
       'backgroundImageEnabled': instance.backgroundImageEnabled,
@@ -100,6 +104,7 @@ RecentConnection _$RecentConnectionFromJson(Map<String, dynamic> json) {
     httpsPort: json['httpsPort'] as String,
     sessionId: json['sessionId'] as String,
     certContent: json['certContent'] as String?,
+    controllerName: json['controllerName'] as String?,
   );
 }
 
@@ -110,4 +115,5 @@ Map<String, dynamic> _$RecentConnectionToJson(RecentConnection instance) =>
       'httpsPort': instance.httpsPort,
       'sessionId': instance.sessionId,
       'certContent': instance.certContent,
+      'controllerName': instance.controllerName,
     };
