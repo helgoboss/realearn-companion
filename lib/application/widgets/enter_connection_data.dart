@@ -56,7 +56,7 @@ class EnterConnectionDataFormState extends State<EnterConnectionDataForm> {
         key: _formKey,
         child: Column(children: <Widget>[
           TextFormField(
-            keyboardType: TextInputType.number,
+            keyboardType: TextInputType.text,
             controller: hostController,
             decoration: InputDecoration(
                 filled: true,
