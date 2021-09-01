@@ -12,7 +12,9 @@ PODS:
   - SwiftProtobuf (1.12.0)
   - url_launcher (0.0.1):
     - Flutter
-  - vibration (1.7.3):
+  - vibration (1.7.4-nullsafety.0):
+    - Flutter
+  - wakelock (0.0.1):
     - Flutter
 
 DEPENDENCIES:
@@ -22,6 +24,7 @@ DEPENDENCIES:
   - shared_preferences (from `.symlinks/plugins/shared_preferences/ios`)
   - url_launcher (from `.symlinks/plugins/url_launcher/ios`)
   - vibration (from `.symlinks/plugins/vibration/ios`)
+  - wakelock (from `.symlinks/plugins/wakelock/ios`)
 
 SPEC REPOS:
   trunk:
@@ -41,6 +44,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/url_launcher/ios"
   vibration:
     :path: ".symlinks/plugins/vibration/ios"
+  wakelock:
+    :path: ".symlinks/plugins/wakelock/ios"
 
 SPEC CHECKSUMS:
   barcode_scan: a5c27959edfafaa0c771905bad0b29d6d39e4479
@@ -50,7 +55,8 @@ SPEC CHECKSUMS:
   shared_preferences: af6bfa751691cdc24be3045c43ec037377ada40d
   SwiftProtobuf: 4ef85479c18ca85b5482b343df9c319c62bda699
   url_launcher: 6fef411d543ceb26efce54b05a0a40bfd74cbbef
-  vibration: b5a33e764c3f609a975b9dca73dce20fdde627dc
+  vibration: 1ec279c4a1a7a646627b54039d812334b3f1114a
+  wakelock: d0fc7c864128eac40eba1617cb5264d9c940b46f
 
 PODFILE CHECKSUM: aafe91acc616949ddb318b77800a7f51bffa2a4c
 

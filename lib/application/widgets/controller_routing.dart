@@ -333,6 +333,28 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
                         },
                       ),
                     ),
+                  if (!pageModel.isInEditMode)
+                    PopupMenuItem(
+                      child: Consumer<AppPreferences>(
+                        builder: (context, prefs, child) {
+                          return ListTile(
+                            leading: LeadingMenuBarIcon(
+                              prefs.isFavoriteConnection(
+                                      widget.connectionData.palette)
+                                  ? Icons.star
+                                  : Icons.star_border,
+                            ),
+                            onTap: () {
+                              prefs.toggleFavoriteConnection(
+                                  widget.connectionData.palette,
+                                  controllerName:
+                                      controllerModel.controller?.name);
+                            },
+                            title: Text('Favorite'),
+                          );
+                        },
+                      ),
+                    ),
                 ];
               },
             ),
@@ -571,6 +593,7 @@ class ControllerRoutingWidget extends StatelessWidget {
                 boundaryMargin: EdgeInsets.all(200),
                 minScale: 0.25,
                 maxScale: 8,
+                clipBehavior: Clip.none,
                 child: LayoutBuilder(builder:
                     (BuildContext context, BoxConstraints constraints) {
                   final controllerWidth =
@@ -1204,15 +1227,24 @@ class FixedControl extends StatelessWidget {
     if (feedbackEnabled) {
       final values =
           context.select((ControlValuesModel m) => m.getValues(data.mappings));
-      var i = 0;
-      return data.mappings.map((id) {
+      final List<ControlContent?> contents = [];
+      for (var i = 0; i < math.max(data.mappings.length, labels.length); i++) {
         final label = i < labels.length ? labels[i] : null;
-        i += 1;
+        ControlContent? content;
         if (label == null) {
-          return null;
+          content = null;
+        } else {
+          final mappingId = i < data.mappings.length ? data.mappings[i] : null;
+          if (mappingId == null) {
+            // When does this happen?
+            content = ControlContent(label: label);
+          } else {
+            content = ControlContent(label: label, value: values[mappingId]);
+          }
         }
-        return ControlContent(label: label, value: values[id]);
-      }).toList();
+        contents.add(content);
+      }
+      return contents;
     } else {
       return labels
           .map((l) => l == null ? null : ControlContent(label: l))

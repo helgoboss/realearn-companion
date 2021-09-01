@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:realearn_companion/application/widgets/controller_routing.dart';
 import 'package:realearn_companion/application/widgets/enter_connection_data.dart';
+import 'package:realearn_companion/application/widgets/favorite_connections.dart';
 import 'package:realearn_companion/application/widgets/scan_connection_data.dart';
 import 'package:realearn_companion/domain/connection.dart';
 import 'package:wakelock/wakelock.dart';
@@ -17,6 +18,7 @@ import 'widgets/root.dart';
 String rootRoute = "/";
 String scanConnectionDataRoute = "/scan-connection-data";
 String enterConnectionDataRoute = "/enter-connection-data";
+String favoriteConnectionsRoute = "/favorite-connections";
 String controllerRoutingRoute = "/controller-routing";
 
 String getControllerRoutingRoute(ConnectionArgs args) {
@@ -46,6 +48,10 @@ void configureRoutes(FluroRouter router) {
   router.define(enterConnectionDataRoute, handler: Handler(
       handlerFunc: (BuildContext? context, Map<String, List<String>> params) {
     return EnterConnectionDataWidget();
+  }));
+  router.define(favoriteConnectionsRoute, handler: Handler(
+      handlerFunc: (BuildContext? context, Map<String, List<String>> params) {
+    return FavoriteConnectionsWidget();
   }));
   router.define(controllerRoutingRoute, handler: Handler(
       handlerFunc: (BuildContext? context, Map<String, List<String>> params) {
