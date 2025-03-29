@@ -15,7 +15,7 @@ class EnterConnectionDataWidget extends StatelessWidget {
           children: [
             Text(
               "Please enter the connection data!",
-              style: Theme.of(context).textTheme.headline6,
+              style: Theme.of(context).textTheme.headlineLarge,
               textAlign: TextAlign.center,
             ),
             Space(),

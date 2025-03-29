@@ -1,9 +1,5 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:realearn_companion/application/app_config.dart';
 import 'package:realearn_companion/application/widgets/splash_screen.dart';
 import 'package:realearn_companion/domain/model.dart';
 import 'package:realearn_companion/domain/preferences.dart';
@@ -42,13 +38,11 @@ class AppWidget extends StatelessWidget {
                 debugShowCheckedModeBanner: false,
                 theme: ThemeData(
                   brightness: Brightness.light,
-                  primaryColor: Colors.blue.shade700,
-                  accentColor: Colors.deepOrange,
+                  colorSchemeSeed: Colors.blue.shade700,
                 ),
                 darkTheme: ThemeData(
                   brightness: Brightness.dark,
-                  primarySwatch: Colors.amber,
-                  accentColor: Colors.blueAccent,
+                  colorSchemeSeed: Colors.amber,
                 ),
                 themeMode: prefs.themeMode,
                 onGenerateRoute: App.instance.router.generator,

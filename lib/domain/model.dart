@@ -1,5 +1,3 @@
-import 'dart:collection';
-import 'dart:developer';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -33,7 +31,7 @@ class ControllerRoutingModel extends ChangeNotifier {
   }
 
   void set controllerRouting(ControllerRouting controllerRouting) {
-    this._controllerRouting = controllerRouting;
+    _controllerRouting = controllerRouting;
     notifyListeners();
   }
 }

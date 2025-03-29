@@ -7,7 +7,7 @@ import '../app.dart';
 import 'normal_scaffold.dart';
 import 'space.dart';
 
-class RootWidget extends StatelessWidget {
+class MainWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
@@ -19,7 +19,7 @@ class RootWidget extends StatelessWidget {
         children: [
           Text(
             "How do you want to connect to ReaLearn?",
-            style: Theme.of(context).textTheme.headline5,
+            style: Theme.of(context).textTheme.headlineMedium,
             textAlign: TextAlign.center,
           ),
           Column(
@@ -72,7 +72,7 @@ class RootWidget extends StatelessWidget {
               Space(),
               Text(
                 "or",
-                style: Theme.of(context).textTheme.subtitle1,
+                style: Theme.of(context).textTheme.titleMedium,
               ),
               Space(),
               ProminentButton(

@@ -1,11 +1,10 @@
-import 'dart:developer';
+import 'dart:async';
 import 'dart:io';
 
-import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:camera/camera.dart';
-import 'package:barcode_scan/barcode_scan.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../../../application/app_config.dart';
 
@@ -49,14 +48,11 @@ class _NativeAppConfig implements AppConfig {
       case SecurityPlatform.iOS:
         return TlsPolicy.remoteOnly;
       case SecurityPlatform.Windows:
-        // TODO not tested yet
-        return TlsPolicy.never;
+        return TlsPolicy.remoteOnly;
       case SecurityPlatform.Linux:
-        // TODO not tested yet
-        return TlsPolicy.never;
+        return TlsPolicy.remoteOnly;
       case SecurityPlatform.macOS:
-        // TODO not tested yet
-        return TlsPolicy.never;
+        return TlsPolicy.remoteOnly;
     }
   }
 
@@ -86,13 +82,7 @@ class _NativeAppConfig implements AppConfig {
     required double width,
     required double height,
   }) {
-    return SvgPicture.asset(
-      assetPath,
-      color: color,
-      fit: fit,
-      width: width,
-      height: height,
-    );
+    return SvgPicture.asset(assetPath, color: color, fit: fit, width: width, height: height);
   }
 }
 
@@ -102,22 +92,111 @@ class _CustomHttpOverrides extends HttpOverrides {
     var customContext = new SecurityContext(withTrustedRoots: false);
     // customContext.setTrustedCertificates("realearn.cer");
     var client = super.createHttpClient(customContext);
-    client.badCertificateCallback =
-        (X509Certificate cert, String host, int port) => true;
+    client.badCertificateCallback = (X509Certificate cert, String host, int port) {
+      return true;
+    };
     return client;
   }
 }
 
 class NativeQrCodeScan extends QrCodeScan {
-  @override
-  final Future<String> result = scanQrCode();
+  final _completer = Completer<String>();
 
   @override
-  // https://stackoverflow.com/questions/53455358/how-to-present-an-empty-view-in-flutter
-  final Widget widget = SizedBox.shrink();
+  late final Future<String> result = _completer.future;
+
+  @override
+  late final Widget widget = _NativeQrCodeScanWidget(
+    onCodeDetected: (code) {
+      if (_completer.isCompleted) {
+        return;
+      }
+      _completer.complete(code);
+    },
+  );
 }
 
-Future<String> scanQrCode() async {
-  var result = await BarcodeScanner.scan();
-  return result.rawContent;
+class _NativeQrCodeScanWidget extends StatefulWidget {
+  final void Function(String code) onCodeDetected;
+
+  const _NativeQrCodeScanWidget({super.key, required this.onCodeDetected});
+
+  @override
+  State<_NativeQrCodeScanWidget> createState() => _NativeQrCodeScanWidgetState();
+}
+
+class _NativeQrCodeScanWidgetState extends State<_NativeQrCodeScanWidget>
+    with WidgetsBindingObserver {
+  final MobileScannerController controller = MobileScannerController();
+  StreamSubscription<Object?>? _subscription;
+
+  @override
+  void initState() {
+    super.initState();
+    // Start listening to lifecycle changes.
+    WidgetsBinding.instance.addObserver(this);
+
+    // Start listening to the barcode events.
+    _subscription = controller.barcodes.listen(_handleBarcode);
+
+    // Finally, start the scanner itself.
+    unawaited(controller.start());
+  }
+
+  @override
+  Future<void> dispose() async {
+    // Stop listening to lifecycle changes.
+    WidgetsBinding.instance.removeObserver(this);
+    // Stop listening to the barcode events.
+    unawaited(_subscription?.cancel());
+    _subscription = null;
+    // Dispose the widget itself.
+    super.dispose();
+    // Finally, dispose of the controller.
+    await controller.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // If the controller is not ready, do not try to start or stop it.
+    // Permission dialogs can trigger lifecycle changes before the controller is ready.
+    if (!controller.value.hasCameraPermission) {
+      return;
+    }
+    switch (state) {
+      case AppLifecycleState.detached:
+      case AppLifecycleState.hidden:
+      case AppLifecycleState.paused:
+        return;
+      case AppLifecycleState.resumed:
+        // Restart the scanner when the app is resumed.
+        // Don't forget to resume listening to the barcode events.
+        _subscription = controller.barcodes.listen(_handleBarcode);
+
+        unawaited(controller.start());
+      case AppLifecycleState.inactive:
+        // Stop the scanner when the app is paused.
+        // Also stop the barcode events subscription.
+        unawaited(_subscription?.cancel());
+        _subscription = null;
+        unawaited(controller.stop());
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MobileScanner(controller: controller);
+  }
+
+  void _handleBarcode(BarcodeCapture cap) {
+    final barcode = cap.barcodes.elementAtOrNull(0);
+    if (barcode == null) {
+      return;
+    }
+    final rawValue = barcode.rawValue;
+    if (rawValue == null) {
+      return;
+    }
+    widget.onCodeDetected(rawValue);
+  }
 }

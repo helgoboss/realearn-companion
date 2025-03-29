@@ -1,46 +1,49 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:realearn_companion/application/app_config.dart';
 import 'package:realearn_companion/application/routes.dart';
+
 import '../app.dart';
 
 class ScanConnectionDataWidget extends StatelessWidget {
-  final Widget scannerWidget;
-  final Future<String> result;
+  final QrCodeScan qrCodeScan;
 
-  const ScanConnectionDataWidget(
-      {Key? key, required this.scannerWidget, required this.result})
-      : super(key: key);
+  const ScanConnectionDataWidget({super.key, required this.qrCodeScan});
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<String>(
-        future: result,
-        builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
-          if (snapshot.connectionState == ConnectionState.done) {
-            if (snapshot.hasError) {
-              cancelScanning(context, "Couldn't scan QR code", isError: true);
-            } else if (snapshot.hasData) {
-              if (snapshot.data?.isEmpty ?? true) {
-                cancelScanning(context, "Cancelled scanning QR code");
-              } else {
-                try {
-                  var uri = Uri.parse(snapshot.data!);
-                  var connectionArgs =
-                      ConnectionArgs.fromParams(uri.queryParametersAll);
-                  if (connectionArgs.isComplete) {
-                    handleSuccess(context, connectionArgs);
-                  } else {
-                    handleWrongQrCode(context);
-                  }
-                } on FormatException catch (_) {
+      future: qrCodeScan.result,
+      builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          if (snapshot.hasError) {
+            cancelScanning(
+              context,
+              "Sorry, QR code scanning is temporarily disabled. It will come back in later versions.",
+              isError: true,
+            );
+          } else if (snapshot.hasData) {
+            if (snapshot.data?.isEmpty ?? true) {
+              cancelScanning(context, "Cancelled scanning QR code");
+            } else {
+              try {
+                var uri = Uri.parse(snapshot.data!);
+                var connectionArgs = ConnectionArgs.fromParams(uri.queryParametersAll);
+                if (connectionArgs.isComplete) {
+                  handleSuccess(context, connectionArgs);
+                } else {
                   handleWrongQrCode(context);
                 }
+              } on FormatException catch (_) {
+                handleWrongQrCode(context);
               }
             }
           }
-          return scannerWidget;
-        });
+        }
+        return qrCodeScan.widget;
+      },
+    );
   }
 }
 
@@ -56,9 +59,10 @@ void handleSuccess(BuildContext context, ConnectionArgs connectionArgs) {
 
 void handleWrongQrCode(BuildContext context) {
   continueOrCancelScanning(
-      context: context,
-      summary: "Wrong QR code",
-      msg: "This doesn't look like a QR code from ReaLearn.");
+    context: context,
+    summary: "Wrong QR code",
+    msg: "This doesn't look like a QR code from ReaLearn.",
+  );
 }
 
 void continueOrCancelScanning({
@@ -95,8 +99,7 @@ void continueOrCancelScanning({
 
 void cancelScanning(BuildContext context, String msg, {bool isError = false}) {
   WidgetsBinding.instance!.addPostFrameCallback((_) {
-    var snackBar = SnackBar(
-        content: Text(msg), backgroundColor: isError ? Colors.red : null);
+    var snackBar = SnackBar(content: Text(msg), backgroundColor: isError ? Colors.red : null);
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
     Navigator.popUntil(context, ModalRoute.withName(rootRoute));
   });

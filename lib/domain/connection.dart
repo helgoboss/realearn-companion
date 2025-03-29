@@ -1,10 +1,4 @@
-import 'dart:convert';
-
-import 'package:flutter/widgets.dart';
-
-/**
- * A "palette" of connection data to choose from.
- */
+/// A "palette" of connection data to choose from.
 class ConnectionDataPalette {
   final String host;
   final String httpPort;

@@ -28,8 +28,7 @@ var uuid = Uuid();
 class ControllerRoutingPage extends StatefulWidget {
   final ConnectionData connectionData;
 
-  const ControllerRoutingPage({Key? key, required this.connectionData})
-      : super(key: key);
+  const ControllerRoutingPage({Key? key, required this.connectionData}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
@@ -108,10 +107,9 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
 
   void toggleAppBar() {
     if (appBarIsVisible) {
-      SystemChrome.setEnabledSystemUIOverlays([]);
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: []);
     } else {
-      SystemChrome.setEnabledSystemUIOverlays(
-          [SystemUiOverlay.top, SystemUiOverlay.bottom]);
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: [SystemUiOverlay.top, SystemUiOverlay.bottom]);
     }
     setState(() {
       appBarIsVisible = !appBarIsVisible;
@@ -122,8 +120,7 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
     final controllerModel = this.context.read<ControllerModel>();
     final messengerState = ScaffoldMessenger.of(context);
     try {
-      await ControllerRepository(widget.connectionData)
-          .save(controllerModel.controller!);
+      await ControllerRepository(widget.connectionData).save(controllerModel.controller!);
       messengerState.showSnackBar(
         SnackBar(content: Text("Saved controller layout")),
       );
@@ -139,16 +136,15 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
 
   @override
   Widget build(BuildContext context) {
-    AppBar controllerRoutingAppBar(ControllerModel controllerModel,
-        ControllerRoutingModel controllerRoutingModel, PageModel pageModel) {
+    AppBar controllerRoutingAppBar(
+        ControllerModel controllerModel, ControllerRoutingModel controllerRoutingModel, PageModel pageModel) {
       var theme = Theme.of(context);
       return AppBar(
           title: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Text(controllerRoutingModel.controllerRouting.mainPreset?.name ??
-                  '<No main preset>'),
+              Text(controllerRoutingModel.controllerRouting.mainPreset?.name ?? '<No main preset>'),
               SizedBox(width: 4, height: 4),
               Visibility(
                 visible: true,
@@ -165,13 +161,12 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
             if (controllerModel.controller != null)
               IconButton(
                 icon: Icon(Icons.save),
-                onPressed:
-                    controllerModel.controllerHasEdits ? saveController : null,
+                onPressed: controllerModel.controllerHasEdits ? saveController : null,
               ),
             if (controllerModel.controller != null)
               IconButton(
                 icon: Icon(Icons.edit),
-                color: pageModel.isInEditMode ? theme.accentColor : null,
+                color: pageModel.isInEditMode ? theme.colorScheme.secondary : null,
                 onPressed: () {
                   if (pageModel.isInEditMode) {
                     pageModel.leaveEditMode();
@@ -179,9 +174,8 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
                     if (context.read<ControllerModel>().controllerHasEdits) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          backgroundColor: theme.accentColor,
-                          content:
-                              Text("Don't forget to save once in a while!"),
+                          backgroundColor: theme.colorScheme.secondary,
+                          content: Text("Don't forget to save once in a while!"),
                         ),
                       );
                     }
@@ -292,14 +286,10 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
                             secondary: prefs.gridEnabled
                                 ? MinusPlus(
                                     onMinus: () {
-                                      context
-                                          .read<ControllerModel>()
-                                          .decreaseGridSize();
+                                      context.read<ControllerModel>().decreaseGridSize();
                                     },
                                     onPlus: () {
-                                      context
-                                          .read<ControllerModel>()
-                                          .increaseGridSize();
+                                      context.read<ControllerModel>().increaseGridSize();
                                     },
                                   )
                                 : null,
@@ -320,7 +310,7 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     duration: Duration(milliseconds: 1500),
-                                    backgroundColor: theme.accentColor,
+                                    backgroundColor: theme.colorScheme.secondary,
                                     content: Text(
                                       "You might need to reconnect to see feedback!",
                                     ),
@@ -339,16 +329,13 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
                         builder: (context, prefs, child) {
                           return ListTile(
                             leading: LeadingMenuBarIcon(
-                              prefs.isFavoriteConnection(
-                                      widget.connectionData.palette)
+                              prefs.isFavoriteConnection(widget.connectionData.palette)
                                   ? Icons.star
                                   : Icons.star_border,
                             ),
                             onTap: () {
-                              prefs.toggleFavoriteConnection(
-                                  widget.connectionData.palette,
-                                  controllerName:
-                                      controllerModel.controller?.name);
+                              prefs.toggleFavoriteConnection(widget.connectionData.palette,
+                                  controllerName: controllerModel.controller?.name);
                             },
                             title: Text('Favorite'),
                           );
@@ -364,28 +351,17 @@ class ControllerRoutingPageState extends State<ControllerRoutingPage> {
     final sessionId = widget.connectionData.sessionId;
     final sessionTopic = "/realearn/session/$sessionId";
     final controllerTopic = "/realearn/session/$sessionId/controller";
-    final controllerRoutingTopic =
-        "/realearn/session/$sessionId/controller-routing";
+    final controllerRoutingTopic = "/realearn/session/$sessionId/controller-routing";
     final feedbackTopic = "/realearn/session/$sessionId/feedback";
     return ChangeNotifierProvider(
       create: (context) => PageModel(),
       child: Consumer3<ControllerModel, ControllerRoutingModel, PageModel>(
-          builder: (context, controllerModel, controllerRoutingModel, pageModel,
-              child) {
-        final feedbackEnabled =
-            context.select((AppPreferences prefs) => prefs.feedbackEnabled);
-        final topics = [
-          sessionTopic,
-          controllerTopic,
-          controllerRoutingTopic,
-          if (feedbackEnabled) feedbackTopic
-        ];
+          builder: (context, controllerModel, controllerRoutingModel, pageModel, child) {
+        final feedbackEnabled = context.select((AppPreferences prefs) => prefs.feedbackEnabled);
+        final topics = [sessionTopic, controllerTopic, controllerRoutingTopic, if (feedbackEnabled) feedbackTopic];
         return NormalScaffold(
           padding: EdgeInsets.zero,
-          appBar: appBarIsVisible
-              ? controllerRoutingAppBar(
-                  controllerModel, controllerRoutingModel, pageModel)
-              : null,
+          appBar: appBarIsVisible ? controllerRoutingAppBar(controllerModel, controllerRoutingModel, pageModel) : null,
           child: ConnectionBuilder(
             connectionData: widget.connectionData,
             topics: topics,
@@ -440,8 +416,7 @@ class ControllerRoutingContainer extends StatefulWidget {
   }
 }
 
-class ControllerRoutingContainerState
-    extends State<ControllerRoutingContainer> {
+class ControllerRoutingContainerState extends State<ControllerRoutingContainer> {
   late StreamSubscription messagesSubscription;
   bool sessionExists = false;
 
@@ -479,14 +454,11 @@ class ControllerRoutingContainerState
         }
       } else if (realearnEvent.path.endsWith("/controller")) {
         final controllerModel = context.read<ControllerModel>();
-        controllerModel.controller = realearnEvent.body == null
-            ? null
-            : Controller.fromJson(realearnEvent.body!);
+        controllerModel.controller = realearnEvent.body == null ? null : Controller.fromJson(realearnEvent.body!);
       } else if (realearnEvent.path.endsWith("/controller-routing")) {
         final controllerRoutingModel = context.read<ControllerRoutingModel>();
-        controllerRoutingModel.controllerRouting = realearnEvent.body == null
-            ? ControllerRouting.empty()
-            : ControllerRouting.fromJson(realearnEvent.body!);
+        controllerRoutingModel.controllerRouting =
+            realearnEvent.body == null ? ControllerRouting.empty() : ControllerRouting.fromJson(realearnEvent.body!);
       } else {
         setState(() {
           this.sessionExists = realearnEvent.body != null;
@@ -518,7 +490,7 @@ class CanvasText extends StatelessWidget {
       children: [
         Text(
           label,
-          style: Theme.of(context).textTheme.headline6,
+          style: Theme.of(context).textTheme.headlineLarge,
           textAlign: TextAlign.center,
         ),
         Space(),
@@ -548,8 +520,7 @@ class ControllerRoutingWidget extends StatelessWidget {
     final controllerModel = context.watch<ControllerModel>();
     final controller = controllerModel.controller;
     if (!sessionExists) {
-      return CanvasText("Please open this ReaLearn session in REAPER!",
-          subText: Text("or connect to another one"));
+      return CanvasText("Please open this ReaLearn session in REAPER!", subText: Text("or connect to another one"));
     }
     if (controller == null) {
       return CanvasText(
@@ -563,8 +534,7 @@ class ControllerRoutingWidget extends StatelessWidget {
     if (!pageModel.isInEditMode && controller.controls.isEmpty) {
       return CanvasText(
         "Please create a controller layout!",
-        subText: Text(
-            "Just press the pencil button in the app bar and drag the controls on the canvas."),
+        subText: Text("Just press the pencil button in the app bar and drag the controls on the canvas."),
       );
     }
     var isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
@@ -594,12 +564,9 @@ class ControllerRoutingWidget extends StatelessWidget {
                 minScale: 0.25,
                 maxScale: 8,
                 clipBehavior: Clip.none,
-                child: LayoutBuilder(builder:
-                    (BuildContext context, BoxConstraints constraints) {
-                  final controllerWidth =
-                      math.max(minControllerWidth, controllerSize.width);
-                  final controllerHeight =
-                      math.max(minControllerHeight, controllerSize.height);
+                child: LayoutBuilder(builder: (BuildContext context, BoxConstraints constraints) {
+                  final controllerWidth = math.max(minControllerWidth, controllerSize.width);
+                  final controllerHeight = math.max(minControllerHeight, controllerSize.height);
                   var widthScale = constraints.maxWidth / controllerWidth;
                   var heightScale = constraints.maxHeight / controllerHeight;
                   var scale = math.min(widthScale, heightScale);
@@ -608,11 +575,8 @@ class ControllerRoutingWidget extends StatelessWidget {
                     if (pageModel.isInEditMode) {
                       return EditableControl(
                         contents: data.mappings.map((mappingId) {
-                          final name =
-                              controller.findMappingById(mappingId)?.name;
-                          return name == null
-                              ? null
-                              : ControlContent(label: name);
+                          final name = controller.findMappingById(mappingId)?.name;
+                          return name == null ? null : ControlContent(label: name);
                         }).toList(),
                         data: data,
                         scale: scale,
@@ -624,8 +588,7 @@ class ControllerRoutingWidget extends StatelessWidget {
                         fontSize: prefs.fontSize,
                       );
                     } else {
-                      final descriptorsForEachMapping =
-                          data.mappings.map((mappingId) {
+                      final descriptorsForEachMapping = data.mappings.map((mappingId) {
                         return routing.routes[mappingId] ?? [];
                       }).toList();
                       return FixedControl(
@@ -642,9 +605,7 @@ class ControllerRoutingWidget extends StatelessWidget {
                     divisions: 1,
                     subdivisions: 1,
                     interval: controller.gridSize * scale,
-                    color: pageModel.isInEditMode && prefs.gridEnabled
-                        ? Colors.grey
-                        : Colors.transparent,
+                    color: pageModel.isInEditMode && prefs.gridEnabled ? Colors.grey : Colors.transparent,
                     child: DragTarget<String>(
                       builder: (context, candidateData, rejectedData) {
                         return Stack(
@@ -700,10 +661,7 @@ List<String?> getLabels(
       // Not assigned
       return [];
     }
-    return [
-      descriptors.first.label,
-      if (descriptors.length > 1) formatAsOneLabel(descriptors.sublist(1))
-    ];
+    return [descriptors.first.label, if (descriptors.length > 1) formatAsOneLabel(descriptors.sublist(1))];
   }
   if (sourceCount == 2) {
     // The two control labels are reserved for two different sources that are
@@ -712,12 +670,8 @@ List<String?> getLabels(
     final firstSourceDescriptors = descriptorsForEachMapping.first;
     final secondSourceDescriptors = descriptorsForEachMapping[1];
     return [
-      firstSourceDescriptors.isEmpty
-          ? null
-          : formatAsOneLabel(firstSourceDescriptors),
-      secondSourceDescriptors.isEmpty
-          ? null
-          : formatAsOneLabel(secondSourceDescriptors),
+      firstSourceDescriptors.isEmpty ? null : formatAsOneLabel(firstSourceDescriptors),
+      secondSourceDescriptors.isEmpty ? null : formatAsOneLabel(secondSourceDescriptors),
     ];
   }
   // A control element must only exist if it has at least one mapping.
@@ -914,13 +868,10 @@ class EditableControlState extends State<EditableControl> {
         if (details.wasAccepted) {
           return;
         }
-        if (pageModel.isInMultiEditMode &&
-            !pageModel.selectedControlIds.contains(widget.data.id)) {
+        if (pageModel.isInMultiEditMode && !pageModel.selectedControlIds.contains(widget.data.id)) {
           return;
         }
-        final controlIds = pageModel.isInMultiEditMode
-            ? pageModel.selectedControlIds
-            : [widget.data.id];
+        final controlIds = pageModel.isInMultiEditMode ? pageModel.selectedControlIds : [widget.data.id];
         vibrateShortly();
         var finalPos = getFinalDragPosition(
           gridSize: widget.gridSize,
@@ -1013,16 +964,12 @@ AlertDialog createControlDialog({
   int controlSize = 35;
   final shape = getValueIfAllEqual(controls, (c) => c.shape);
   final isCircular = shape == ControlShape.circle;
-  final labelOnePosition =
-      getValueIfAllEqual(controls, (c) => c.labelOne.position);
+  final labelOnePosition = getValueIfAllEqual(controls, (c) => c.labelOne.position);
   final labelOneAngle = getValueIfAllEqual(controls, (c) => c.labelOne.angle);
-  final labelOneSizedConstrained =
-      getValueIfAllEqual(controls, (c) => c.labelOne.sizeConstrained);
-  final labelTwoPosition =
-      getValueIfAllEqual(controls, (c) => c.labelTwo.position);
+  final labelOneSizedConstrained = getValueIfAllEqual(controls, (c) => c.labelOne.sizeConstrained);
+  final labelTwoPosition = getValueIfAllEqual(controls, (c) => c.labelTwo.position);
   final labelTwoAngle = getValueIfAllEqual(controls, (c) => c.labelTwo.angle);
-  final labelTwoSizeConstrained =
-      getValueIfAllEqual(controls, (c) => c.labelTwo.sizeConstrained);
+  final labelTwoSizeConstrained = getValueIfAllEqual(controls, (c) => c.labelTwo.sizeConstrained);
   return AlertDialog(
     backgroundColor: theme.dialogBackgroundColor.withOpacity(0.75),
     title: Text(
@@ -1107,8 +1054,7 @@ AlertDialog createControlDialog({
                     onChanged: (sizeConstrained) {
                       controllerModel.changeControls(
                         controlIds,
-                        (control) =>
-                            control.labelOne.sizeConstrained = sizeConstrained,
+                        (control) => control.labelOne.sizeConstrained = sizeConstrained,
                       );
                     },
                   ),
@@ -1145,8 +1091,7 @@ AlertDialog createControlDialog({
                     onChanged: (sizeConstrained) {
                       controllerModel.changeControls(
                         controlIds,
-                        (control) =>
-                            control.labelTwo.sizeConstrained = sizeConstrained,
+                        (control) => control.labelTwo.sizeConstrained = sizeConstrained,
                       );
                     },
                   ),
@@ -1225,8 +1170,7 @@ class FixedControl extends StatelessWidget {
 
   List<ControlContent?> getContents(BuildContext context) {
     if (feedbackEnabled) {
-      final values =
-          context.select((ControlValuesModel m) => m.getValues(data.mappings));
+      final values = context.select((ControlValuesModel m) => m.getValues(data.mappings));
       final List<ControlContent?> contents = [];
       for (var i = 0; i < math.max(data.mappings.length, labels.length); i++) {
         final label = i < labels.length ? labels[i] : null;
@@ -1246,9 +1190,7 @@ class FixedControl extends StatelessWidget {
       }
       return contents;
     } else {
-      return labels
-          .map((l) => l == null ? null : ControlContent(label: l))
-          .toList();
+      return labels.map((l) => l == null ? null : ControlContent(label: l)).toList();
     }
   }
 }
@@ -1447,30 +1389,23 @@ class DerivedControlProps {
       case ControlAppearance.outlined:
       case ControlAppearance.filled:
       case ControlAppearance.filledAndOutlined:
-        return labelOneIsInside && !strokeOnly
-            ? theme.colorScheme.onPrimary
-            : theme.colorScheme.onSurface;
+        return labelOneIsInside && !strokeOnly ? theme.colorScheme.onPrimary : theme.colorScheme.onSurface;
     }
   }
 
   Color get labelTwoColor {
     switch (appearance) {
       case ControlAppearance.outlinedMono:
-        return labelTwoIsInside && !strokeOnly
-            ? theme.colorScheme.onBackground
-            : theme.colorScheme.secondary;
+        return labelTwoIsInside && !strokeOnly ? theme.colorScheme.onBackground : theme.colorScheme.secondary;
       case ControlAppearance.outlined:
       case ControlAppearance.filled:
       case ControlAppearance.filledAndOutlined:
-        return labelTwoIsInside && !strokeOnly
-            ? theme.colorScheme.onPrimary
-            : theme.colorScheme.onSurface;
+        return labelTwoIsInside && !strokeOnly ? theme.colorScheme.onPrimary : theme.colorScheme.onSurface;
     }
   }
 
   bool get strokeOnly {
-    return appearance == ControlAppearance.outlined ||
-        appearance == ControlAppearance.outlinedMono;
+    return appearance == ControlAppearance.outlined || appearance == ControlAppearance.outlinedMono;
   }
 
   Color? get decorationColor => strokeOnly ? null : mainColor;
@@ -1655,42 +1590,29 @@ class RectangularControl extends StatelessWidget {
     final valueTwo = contents.length > 1 ? contents[1]?.value : null;
     final core = Container(
       clipBehavior: Clip.hardEdge,
-      alignment: scaledWidth > scaledHeight
-          ? Alignment.centerLeft
-          : Alignment.bottomCenter,
+      alignment: scaledWidth > scaledHeight ? Alignment.centerLeft : Alignment.bottomCenter,
       width: scaledWidth.toDouble(),
       height: scaledHeight.toDouble(),
       decoration: props.boxDecoration,
       child: valueOne == null && valueTwo == null
           ? null
           : Flex(
-              direction:
-                  scaledWidth > scaledHeight ? Axis.vertical : Axis.horizontal,
-              crossAxisAlignment: scaledWidth > scaledHeight
-                  ? CrossAxisAlignment.start
-                  : CrossAxisAlignment.end,
+              direction: scaledWidth > scaledHeight ? Axis.vertical : Axis.horizontal,
+              crossAxisAlignment: scaledWidth > scaledHeight ? CrossAxisAlignment.start : CrossAxisAlignment.end,
               children: [
                 if (valueOne != null)
                   Expanded(
                     child: Container(
-                      height: scaledWidth > scaledHeight
-                          ? null
-                          : valueOne * scaledHeight.toDouble(),
-                      width: scaledWidth > scaledHeight
-                          ? valueOne * scaledWidth.toDouble()
-                          : null,
+                      height: scaledWidth > scaledHeight ? null : valueOne * scaledHeight.toDouble(),
+                      width: scaledWidth > scaledHeight ? valueOne * scaledWidth.toDouble() : null,
                       decoration: props.mainFeedbackBoxDecoration,
                     ),
                   ),
                 if (valueTwo != null)
                   Expanded(
                     child: Container(
-                      height: scaledWidth > scaledHeight
-                          ? null
-                          : valueTwo * scaledHeight.toDouble(),
-                      width: scaledWidth > scaledHeight
-                          ? valueTwo * scaledWidth.toDouble()
-                          : null,
+                      height: scaledWidth > scaledHeight ? null : valueTwo * scaledHeight.toDouble(),
+                      width: scaledWidth > scaledHeight ? valueTwo * scaledWidth.toDouble() : null,
                       decoration: props.secondaryFeedbackBoxDecoration,
                     ),
                   ),
@@ -1881,8 +1803,7 @@ class CircularControl extends StatelessWidget {
         child: ArcText(
           radius: (scaledDiameter / 2) + (isInside ? -1 : 1) * 1,
           text: label ?? "",
-          textStyle:
-              style.copyWith(fontSize: scaledFontSize, letterSpacing: -1),
+          textStyle: style.copyWith(fontSize: scaledFontSize, letterSpacing: -1),
           startAngle: (attrs.startAngle * math.pi) / 180.0 + math.pi / 2,
           placement: isInside ? Placement.inside : Placement.outside,
           direction: attrs.direction,
@@ -1945,9 +1866,7 @@ class CircularControl extends StatelessWidget {
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          isDotted(borderStyle)
-              ? props.createDottedCircularBorder(child: core)
-              : core,
+          isDotted(borderStyle) ? props.createDottedCircularBorder(child: core) : core,
           if (valueTwo != null)
             Container(
               margin: EdgeInsets.all(1),
@@ -1998,8 +1917,7 @@ Offset getFinalDragPosition({
   required Offset globalPosition,
   required double scale,
 }) {
-  final RenderBox box =
-      stackKey.currentContext!.findRenderObject() as RenderBox;
+  final RenderBox box = stackKey.currentContext!.findRenderObject() as RenderBox;
   var localPosition = box.globalToLocal(globalPosition);
   return Offset(
     localPosition.dx / scale,
@@ -2100,9 +2018,7 @@ class ControlLabelPositionDropdownButton extends StatelessWidget {
   final ControlLabelPosition? value;
   final Function(ControlLabelPosition pos) onChanged;
 
-  const ControlLabelPositionDropdownButton(
-      {Key? key, this.value, required this.onChanged})
-      : super(key: key);
+  const ControlLabelPositionDropdownButton({Key? key, this.value, required this.onChanged}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -2133,9 +2049,7 @@ class SizeConstrainedCheckbox extends StatelessWidget {
   final bool? sizeConstrained;
   final Function(bool sizeConstrained) onChanged;
 
-  const SizeConstrainedCheckbox(
-      {Key? key, this.sizeConstrained, required this.onChanged})
-      : super(key: key);
+  const SizeConstrainedCheckbox({Key? key, this.sizeConstrained, required this.onChanged}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -2213,25 +2127,19 @@ _CircularAttr convertToCircularAttributes(ControlLabelPosition pos, int angle) {
       );
     case ControlLabelPosition.aboveBottom:
     case ControlLabelPosition.belowBottom:
-      return _CircularAttr(
-          startAngle: 90,
-          direction: invertIf180(Direction.counterClockwise, angle));
+      return _CircularAttr(startAngle: 90, direction: invertIf180(Direction.counterClockwise, angle));
     case ControlLabelPosition.leftOfLeft:
     case ControlLabelPosition.rightOfLeft:
-      return _CircularAttr(
-          startAngle: 180, direction: invertIf180(Direction.clockwise, angle));
+      return _CircularAttr(startAngle: 180, direction: invertIf180(Direction.clockwise, angle));
     case ControlLabelPosition.leftOfRight:
     case ControlLabelPosition.rightOfRight:
-      return _CircularAttr(
-          startAngle: 0, direction: invertIf180(Direction.clockwise, angle));
+      return _CircularAttr(startAngle: 0, direction: invertIf180(Direction.clockwise, angle));
   }
 }
 
 Direction invertIf180(Direction dir, int angle) {
   if (angle == 180) {
-    return dir == Direction.clockwise
-        ? Direction.counterClockwise
-        : Direction.clockwise;
+    return dir == Direction.clockwise ? Direction.counterClockwise : Direction.clockwise;
   } else {
     return dir;
   }

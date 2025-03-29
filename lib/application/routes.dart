@@ -10,7 +10,7 @@ import 'package:realearn_companion/application/widgets/enter_connection_data.dar
 import 'package:realearn_companion/application/widgets/favorite_connections.dart';
 import 'package:realearn_companion/application/widgets/scan_connection_data.dart';
 import 'package:realearn_companion/domain/connection.dart';
-import 'package:wakelock/wakelock.dart';
+// import 'package:wakelock/wakelock.dart';
 
 import 'app.dart';
 import 'widgets/root.dart';
@@ -36,14 +36,13 @@ void configureRoutes(FluroRouter router) {
   });
   router.define(rootRoute, handler: Handler(
       handlerFunc: (BuildContext? context, Map<String, List<String>> params) {
-    Wakelock.disable();
-    return RootWidget();
+    // Wakelock.disable();
+    return MainWidget();
   }));
   router.define(scanConnectionDataRoute, handler: Handler(
       handlerFunc: (BuildContext? context, Map<String, List<String>> params) {
     var scan = App.instance.config.scanQrCode(context!);
-    return ScanConnectionDataWidget(
-        scannerWidget: scan.widget, result: scan.result);
+    return ScanConnectionDataWidget(qrCodeScan: scan);
   }));
   router.define(enterConnectionDataRoute, handler: Handler(
       handlerFunc: (BuildContext? context, Map<String, List<String>> params) {
@@ -61,7 +60,7 @@ void configureRoutes(FluroRouter router) {
       //  This can happen when entering URL or call from cmd line manually
       return Text("Incomplete connection args: $params");
     }
-    Wakelock.enable();
+    // Wakelock.enable();
     return ControllerRoutingPage(
       connectionData: App.instance.createConnectionData(args.toPalette()),
     );

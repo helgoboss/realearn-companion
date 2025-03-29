@@ -19,7 +19,7 @@ class App {
   // We need the router hot-reloadable, so it's not final
   late FluroRouter router;
 
-  static run({config: AppConfig}) {
+  static run({required AppConfig config}) {
     _instance = App._privateConstructor(config: config);
     runApp(AppWidget());
   }
