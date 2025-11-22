@@ -1,3 +1,6 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -5,18 +8,12 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
-import java.util.Properties
-import java.io.FileInputStream
-
-// Create a variable called keystorePropertiesFile, and initialize it to your
-// key.properties file, in the rootProject folder.
-val keyPropertiesFile = rootProject.file("key.properties")
-
-// Initialize a new Properties() object called keystoreProperties.
+// Signing
 val keystoreProperties = Properties()
-
-// Load your keystore.properties file into the keystoreProperties object.
-keystoreProperties.load(FileInputStream(keyPropertiesFile))
+val keystorePropertiesFile = rootProject.file("key.properties")
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+}
 
 android {
     namespace = "org.helgoboss.realearn_companion"
@@ -53,8 +50,6 @@ android {
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("release")
         }
     }
