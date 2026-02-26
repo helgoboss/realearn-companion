@@ -91,11 +91,24 @@ flutter create --platforms=windows .
 
 ### Release
 
+#### Android
+
 1. Adjust version *and* build number in `pubspec.yaml`.
 2. ```sh
    flutter build appbundle
    ```
 3. Upload at Google Play Store.
+
+
+#### Web
+
+```sh
+flutter build web
+```
+
+```sh
+rclone sync ./build/web websites:realearn-helgoboss-org --progress
+```
 
 
 ### Check ELF alignment (16-bit page size)
