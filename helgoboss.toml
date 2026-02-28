@@ -1,0 +1,6 @@
+[build]
+command = "flutter build web"
+
+[deploy]
+source = "build/web"
+subdomain = "realearn.helgoboss.org"

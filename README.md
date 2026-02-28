@@ -102,12 +102,16 @@ flutter create --platforms=windows .
 
 #### Web
 
+##### Build
+
 ```sh
 flutter build web
 ```
 
+##### Deploy
+
 ```sh
-rclone sync ./build/web websites:realearn-helgoboss-org --progress
+helgoboss-devtool deploy-website
 ```
 
 
